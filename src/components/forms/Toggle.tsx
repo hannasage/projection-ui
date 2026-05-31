@@ -50,6 +50,7 @@ export function Toggle({
         <div
           role="switch"
           aria-checked={checked}
+          aria-label={label}
           onClick={() => !disabled && onChange(!checked)}
           style={{
             width:        trackW,

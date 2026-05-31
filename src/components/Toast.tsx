@@ -110,7 +110,10 @@ export function ToastContainer(): React.ReactElement {
         }
       `}</style>
       <div
+        role="log"
         aria-label="Notifications"
+        aria-live="polite"
+        aria-atomic="false"
         style={{
           position:       'fixed',
           bottom:         24,
