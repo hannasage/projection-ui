@@ -1,0 +1,32 @@
+/*
+  @hannasage/projection-ui — fallback design tokens
+  These are default values only. Override by wrapping your app in <ThemeProvider theme={...} />.
+  All components reference only the --ui-* custom properties defined here.
+*/
+
+:root {
+  /* Surfaces */
+  --ui-bg:      #07090C;
+  --ui-surface: #0D1117;
+  --ui-border:  #1B2535;
+
+  /* Text */
+  --ui-text:    #DDE3EE;
+  --ui-muted:   #8396AB;
+
+  /* Accent */
+  --ui-primary:    #C9F53A;
+  --ui-primary-fg: #07090C;
+
+  /* Semantic */
+  --ui-danger:  #FF5252;
+
+  /* Typography */
+  --ui-font: 'IBM Plex Mono', monospace;
+
+  /* Radius — soft preset (default) */
+  --ui-radius-sm:   4px;
+  --ui-radius-md:   6px;
+  --ui-radius-lg:   10px;
+  --ui-radius-full: 9999px;
+}
