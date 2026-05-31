@@ -1,6 +1,6 @@
 import React from 'react'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon'
 export type ButtonSize    = 'sm' | 'md' | 'lg'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -11,9 +11,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const SIZE: Record<ButtonSize, React.CSSProperties> = {
-  sm: { padding: '5px 12px',  fontSize: 12 },
-  md: { padding: '8px 16px',  fontSize: 13 },
-  lg: { padding: '11px 22px', fontSize: 15 },
+  sm: { padding: '5px 12px',  fontSize: 11 },
+  md: { padding: '8px 16px',  fontSize: 12 },
+  lg: { padding: '11px 22px', fontSize: 14 },
 }
 
 const BASE: React.CSSProperties = {
@@ -27,7 +27,7 @@ const BASE: React.CSSProperties = {
   fontWeight:     500,
   cursor:         'pointer',
   lineHeight:     1,
-  transition:     'opacity 0.12s, background 0.12s',
+  transition:     'all 0.12s',
   textDecoration: 'none',
   whiteSpace:     'nowrap',
 }
@@ -40,7 +40,7 @@ const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
   },
   secondary: {
     background: 'transparent',
-    color:      'var(--ui-text)',
+    color:      'var(--ui-muted)',
     border:     '1px solid var(--ui-border)',
   },
   ghost: {
@@ -52,6 +52,14 @@ const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
     background: 'transparent',
     color:      'var(--ui-danger)',
     border:     '1px solid var(--ui-danger)',
+  },
+  /** Rounded icon button — no text label, minimal chrome. */
+  icon: {
+    background:   'transparent',
+    color:        'var(--ui-muted)',
+    border:       '1px solid transparent',
+    borderRadius: 'var(--ui-radius-full)',
+    padding:      '8px',
   },
 }
 
@@ -70,8 +78,8 @@ export function Button({
       disabled={disabled}
       style={{
         ...BASE,
-        ...SIZE[size],
-        ...VARIANT_STYLE[variant],
+        ...(variant === 'icon' ? VARIANT_STYLE.icon : SIZE[size]),
+        ...(variant !== 'icon' ? VARIANT_STYLE[variant] : {}),
         width:   block ? '100%' : undefined,
         opacity: disabled ? 0.45 : 1,
         cursor:  disabled ? 'not-allowed' : 'pointer',

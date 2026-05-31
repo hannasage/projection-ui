@@ -1,10 +1,18 @@
 import React from 'react'
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?:   string
-  error?:   string
-  hint?:    string
+  label?:          string
+  error?:          string
+  hint?:           string
   containerStyle?: React.CSSProperties
+}
+
+const labelStyle: React.CSSProperties = {
+  fontSize:      10,
+  color:         'var(--ui-muted)',
+  fontFamily:    'var(--ui-font)',
+  letterSpacing: '1.5px',
+  textTransform: 'uppercase',
 }
 
 export function Textarea({
@@ -21,10 +29,7 @@ export function Textarea({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
       {label && (
-        <label
-          htmlFor={textareaId}
-          style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)', letterSpacing: 0.5 }}
-        >
+        <label htmlFor={textareaId} style={labelStyle}>
           {label}
         </label>
       )}
@@ -33,11 +38,11 @@ export function Textarea({
         {...rest}
         style={{
           width:        '100%',
-          padding:      '8px 10px',
-          fontSize:     13,
+          padding:      '7px 10px',
+          fontSize:     12,
           fontFamily:   'var(--ui-font)',
           color:        'var(--ui-text)',
-          background:   'transparent',
+          background:   'var(--ui-bg)',
           border:       `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
           borderRadius: 'var(--ui-radius-md)',
           outline:      'none',
@@ -45,16 +50,17 @@ export function Textarea({
           minHeight:    80,
           boxSizing:    'border-box',
           lineHeight:   1.5,
+          transition:   'border-color 0.12s',
           ...style,
         }}
       />
       {error && (
-        <span style={{ fontSize: 11, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)' }}>
+        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
           {hint}
         </span>
       )}

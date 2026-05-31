@@ -1,19 +1,26 @@
 import React from 'react'
 
 export interface SelectOption {
-  value: string
-  label: string
+  value:    string
+  label:    string
   disabled?: boolean
 }
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?:   string
-  error?:   string
-  hint?:    string
-  options:  SelectOption[]
-  /** Placeholder option shown when no value is selected */
-  placeholder?: string
+  label?:          string
+  error?:          string
+  hint?:           string
+  options:         SelectOption[]
+  placeholder?:    string
   containerStyle?: React.CSSProperties
+}
+
+const labelStyle: React.CSSProperties = {
+  fontSize:      10,
+  color:         'var(--ui-muted)',
+  fontFamily:    'var(--ui-font)',
+  letterSpacing: '1.5px',
+  textTransform: 'uppercase',
 }
 
 export function Select({
@@ -32,10 +39,7 @@ export function Select({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
       {label && (
-        <label
-          htmlFor={selectId}
-          style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)', letterSpacing: 0.5 }}
-        >
+        <label htmlFor={selectId} style={labelStyle}>
           {label}
         </label>
       )}
@@ -44,19 +48,20 @@ export function Select({
           id={selectId}
           {...rest}
           style={{
-            width:        '100%',
-            padding:      '8px 30px 8px 10px',
-            fontSize:     13,
-            fontFamily:   'var(--ui-font)',
-            color:        'var(--ui-text)',
-            background:   'var(--ui-surface)',
-            border:       `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
-            borderRadius: 'var(--ui-radius-md)',
-            outline:      'none',
-            appearance:   'none',
+            width:            '100%',
+            padding:          '7px 28px 7px 10px',
+            fontSize:         12,
+            fontFamily:       'var(--ui-font)',
+            color:            'var(--ui-text)',
+            background:       'var(--ui-bg)',
+            border:           `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
+            borderRadius:     'var(--ui-radius-md)',
+            outline:          'none',
+            appearance:       'none',
             WebkitAppearance: 'none',
-            cursor:       'pointer',
-            boxSizing:    'border-box',
+            cursor:           'pointer',
+            boxSizing:        'border-box',
+            transition:       'border-color 0.12s',
             ...style,
           }}
         >
@@ -71,7 +76,6 @@ export function Select({
             </option>
           ))}
         </select>
-        {/* Chevron */}
         <span style={{
           position:      'absolute',
           right:         10,
@@ -80,17 +84,18 @@ export function Select({
           pointerEvents: 'none',
           color:         'var(--ui-muted)',
           fontSize:      10,
+          userSelect:    'none',
         }}>
           ▾
         </span>
       </div>
       {error && (
-        <span style={{ fontSize: 11, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)' }}>
+        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
           {hint}
         </span>
       )}
