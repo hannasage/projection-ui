@@ -9,7 +9,15 @@
     "type": "git",
     "url": "git+https://github.com/hannasage/projection-ui.git"
   },
-  "keywords": ["react", "component-library", "design-system", "dark-mode", "theming", "recharts", "typescript"],
+  "keywords": [
+    "react",
+    "component-library",
+    "design-system",
+    "dark-mode",
+    "theming",
+    "recharts",
+    "typescript"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -22,8 +30,12 @@
     },
     "./tokens": "./dist/tokens/theme.css"
   },
-  "files": ["dist"],
-  "sideEffects": ["**/*.css"],
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "vite build",
@@ -66,5 +78,5 @@
     "vite": "^8.0.10",
     "vite-plugin-dts": "^3.9.1",
     "zustand": "^5.0.13"
-  }
+  },
 }
