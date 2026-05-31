@@ -7,6 +7,8 @@ export interface SliderProps {
   max?:        number
   step?:       number
   label?:      string
+  /** Accessible label for the range input when no visible label is rendered. */
+  'aria-label'?: string
   /** Formats the displayed value. Defaults to String(value). */
   valueFormat?:(value: number) => string
   hint?:       string
@@ -22,6 +24,7 @@ export function Slider({
   max        = 100,
   step       = 1,
   label,
+  'aria-label': ariaLabel,
   valueFormat,
   hint,
   disabled   = false,
@@ -121,6 +124,7 @@ export function Slider({
           onChange={(e) => onChange(Number(e.target.value))}
           className="ui-slider-track"
           style={{ '--ui-slider-pct': `${pct}%` } as React.CSSProperties}
+          aria-label={ariaLabel ?? label}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
