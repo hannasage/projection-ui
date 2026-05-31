@@ -12,17 +12,20 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 }
 
 const fieldBase: React.CSSProperties = {
-  width:        '100%',
-  padding:      '7px 10px',
-  fontSize:     12,
-  fontFamily:   'var(--ui-font)',
-  color:        'var(--ui-text)',
-  background:   'var(--ui-bg)',
-  border:       '1px solid var(--ui-border)',
-  borderRadius: 'var(--ui-radius-md)',
-  outline:      'none',
-  boxSizing:    'border-box',
-  transition:   'border-color 0.12s',
+  width:         '100%',
+  paddingTop:    7,
+  paddingBottom: 7,
+  paddingLeft:   10,
+  paddingRight:  10,
+  fontSize:      12,
+  fontFamily:    'var(--ui-font)',
+  color:         'var(--ui-text)',
+  background:    'var(--ui-bg)',
+  border:        '1px solid var(--ui-border)',
+  borderRadius:  'var(--ui-radius-md)',
+  outline:       'none',
+  boxSizing:     'border-box',
+  transition:    'border-color 0.12s',
 }
 
 const labelStyle: React.CSSProperties = {
@@ -73,8 +76,8 @@ export function Input({
           {...rest}
           style={{
             ...fieldBase,
-            paddingLeft:  prefix ? 28 : undefined,
-            paddingRight: suffix ? 36 : undefined,
+            paddingLeft:  prefix ? 26 : 10,
+            paddingRight: suffix ? 34 : 10,
             borderColor:  error ? 'var(--ui-danger)' : undefined,
             ...style,
           }}

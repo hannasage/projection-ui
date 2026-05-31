@@ -38,7 +38,10 @@ export function Textarea({
         {...rest}
         style={{
           width:        '100%',
-          padding:      '7px 10px',
+          paddingTop:    7,
+          paddingBottom: 7,
+          paddingLeft:   10,
+          paddingRight:  10,
           fontSize:     12,
           fontFamily:   'var(--ui-font)',
           color:        'var(--ui-text)',
