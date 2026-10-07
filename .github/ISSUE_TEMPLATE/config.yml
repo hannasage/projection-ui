@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Component and setup examples
+    url: https://github.com/hannasage/projection-ui/discussions/5
+    about: Request a clearer documentation example.
+  - name: Compatibility and library scope
+    url: https://github.com/hannasage/projection-ui/discussions/6
+    about: Share the imports and theme overrides that an upgrade must preserve.
