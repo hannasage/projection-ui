@@ -1,4 +1,5 @@
 import { Meta, Canvas } from '@storybook/blocks'
+import * as ChartPaletteStories from '../../stories/charts/ChartPalette.stories'
 import * as ThemeStories from '../../stories/ThemeProvider.stories'
 
 <Meta title="Guides/Theming" />
@@ -40,3 +41,26 @@ Read <a href="./?path=/docs/guides-migration--docs" target="_top">Migration</a> 
 
 A custom palette needs its own contrast tests.
 The provider does not enforce contrast.
+
+## Chart colors
+
+`DEFAULT_CHART_COLORS` supplies six colors from the package.
+The first follows `--ui-primary`; the others are cyan, violet, pink, amber, and mint.
+Required series and slice colors remain strings. Nonempty custom colors stay unchanged.
+An empty string uses the palette color at that index.
+
+```tsx
+import { LineChart, DEFAULT_CHART_COLORS } from '@hannasage/projection-ui/charts'
+
+export function PaletteExample() {
+  return <LineChart data={[{label: 'First', value: 2}]} xKey="label"
+    series={[{key: 'value', color: DEFAULT_CHART_COLORS[0], label: 'Value'}]} />
+}
+```
+
+Labels use the theme's text color. Swatches show the series color.
+Mouse proximity adds glow only to nearby marks.
+Touch, pen, reduced motion, and forced colors do not use this decorative effect.
+Provide a readable text equivalent for chart values.
+
+<Canvas of={ChartPaletteStories.Default} />

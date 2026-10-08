@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { AreaChart } from '@hannasage/projection-ui/charts'
+import { DEFAULT_CHART_COLORS, AreaChart } from '@hannasage/projection-ui/charts'
 import { withTheme } from '../decorators'
 
 const meta: Meta<typeof AreaChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },
@@ -23,7 +23,7 @@ export const SingleSeries: Story = {
   args: {
     data,
     xKey:   'month',
-    series: [{ key: 'planA', color: '#C9F53A', label: 'Plan A' }],
+    series: [{ key: 'planA', color: DEFAULT_CHART_COLORS[0], label: 'Plan A' }],
     title:  'Synthetic values',
   },
 }
@@ -33,8 +33,8 @@ export const MultiSeries: Story = {
     data,
     xKey:   'month',
     series: [
-      { key: 'planA', color: '#C9F53A', label: 'Plan A' },
-      { key: 'planB', color: '#5B9CF6', label: 'Plan B' },
+      { key: 'planA', color: DEFAULT_CHART_COLORS[0], label: 'Plan A' },
+      { key: 'planB', color: DEFAULT_CHART_COLORS[1], label: 'Plan B' },
     ],
     title: 'Synthetic series comparison',
   },

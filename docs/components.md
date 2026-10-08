@@ -180,6 +180,11 @@ export function ReorderExample() {
 
 AreaChart, BarChart, and LineChart require `data`, `series`, and `xKey`.
 Each series contains `key`, `color`, and an optional `label`.
+`DEFAULT_CHART_COLORS` supplies six reusable colors, led by the active theme’s primary color.
+Use a palette value for each required `color` field. Nonempty custom colors stay unchanged.
+An empty color string falls back to the matching palette index.
+Mouse proximity adds glow to nearby marks. Axes and labels stay sharp.
+Touch, pen, reduced motion, and forced colors do not use decorative glow.
 These charts accept `height=260`, `title`, `className`, `style`, `xFormatter`, and `yFormatter`.
 BarChart does not expose a stacking prop.
 
@@ -189,7 +194,7 @@ It does not accept the series-chart `series` or `xKey` props.
 Give charts a container with usable width and an accessible text equivalent for their data.
 
 ```tsx
-import { DonutChart, LineChart } from '@hannasage/projection-ui'
+import { DonutChart, LineChart, DEFAULT_CHART_COLORS } from '@hannasage/projection-ui/charts'
 
 export function ChartExamples() {
   return (
@@ -197,10 +202,10 @@ export function ChartExamples() {
       <LineChart
         data={[{ label: 'First', value: 2 }, { label: 'Second', value: 3 }]}
         xKey="label"
-        series={[{ key: 'value', label: 'Example values', color: 'var(--ui-primary)' }]}
+        series={[{ key: 'value', label: 'Example values', color: DEFAULT_CHART_COLORS[0] }]}
       />
       <DonutChart
-        data={[{ key: 'sample', label: 'Sample', value: 5, color: 'var(--ui-primary)' }]}
+        data={[{ key: 'sample', label: 'Sample', value: 5, color: DEFAULT_CHART_COLORS[0] }]}
         centerLabel="5"
       />
     </>

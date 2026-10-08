@@ -9,3 +9,5 @@ export type { LineChartProps } from './components/charts/LineChart'
 export { DonutChart } from './components/charts/DonutChart'
 export type { DonutChartProps, DonutSlice } from './components/charts/DonutChart'
 export type { SeriesConfig, BaseChartProps } from './components/charts/shared'
+
+export { DEFAULT_CHART_COLORS } from './components/charts/shared'

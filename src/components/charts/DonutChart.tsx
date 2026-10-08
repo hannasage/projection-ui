@@ -3,7 +3,7 @@ import {
   PieChart, Pie, Cell,
   Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { ChartTooltip } from './shared'
+import { ChartTooltip, chartColor, useChartGlow } from './shared'
 
 export interface DonutSlice {
   key:    string
@@ -36,8 +36,10 @@ export function DonutChart({
   style,
   yFormatter,
 }: DonutChartProps): React.ReactElement {
+  const { ref, motionAllowed } = useChartGlow()
+  const colors = data.map((slice, index) => ({ ...slice, color: chartColor(slice.color, index) }))
   return (
-    <div className={className} style={{ position: 'relative', ...style }}>
+    <div ref={ref} className={className} style={{ position: 'relative', ...style }}>
       {title && (
         <div style={{ fontSize: 12, color: 'var(--ui-muted)', marginBottom: 10, fontFamily: 'var(--ui-font)' }}>
           {title}
@@ -46,7 +48,8 @@ export function DonutChart({
       <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie
-            data={data}
+            isAnimationActive={motionAllowed}
+            data={colors}
             dataKey="value"
             nameKey="label"
             cx="50%"
@@ -55,7 +58,7 @@ export function DonutChart({
             outerRadius={outerRadius}
             strokeWidth={0}
           >
-            {data.map((slice) => (
+            {colors.map((slice) => (
               <Cell key={slice.key} fill={slice.color} />
             ))}
           </Pie>

@@ -82,3 +82,19 @@ Test text, focus, and control contrast for each palette that your application of
 `UI_FOUNDATIONS` supplies type, line-height, spacing, border, elevation, motion, and semantic values.
 The generated CSS properties use the same foundation source.
 The [token preview](pages/Tokens.mdx) reads the actual package exports.
+
+## Chart colors
+
+`DEFAULT_CHART_COLORS` is exported from `/charts` and the root entry.
+Its first color reads `--ui-primary`. The other colors are cyan, violet, pink, amber, and mint.
+Chart labels use the theme's text color; swatches show each series color.
+Provide a text equivalent for chart values so color is not the only way to read the data.
+
+```tsx
+import { LineChart, DEFAULT_CHART_COLORS } from '@hannasage/projection-ui/charts'
+
+export function PaletteExample() {
+  return <LineChart data={[{label: 'First', value: 2}]} xKey="label"
+    series={[{key: 'value', color: DEFAULT_CHART_COLORS[0], label: 'Value'}]} />
+}
+```

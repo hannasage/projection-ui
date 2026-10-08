@@ -11,3 +11,5 @@ export type { ThemeProviderProps } from './components/ThemeProvider'
 
 export { ProjectionGlow } from './components/ProjectionGlow'
 export type { ProjectionGlowProps } from './components/ProjectionGlow'
+
+export { DEFAULT_CHART_COLORS } from './components/charts/shared'

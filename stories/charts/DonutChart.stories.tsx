@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { DonutChart } from '@hannasage/projection-ui/charts'
+import { DEFAULT_CHART_COLORS, DonutChart } from '@hannasage/projection-ui/charts'
 import { withTheme } from '../decorators'
 
 const meta: Meta<typeof DonutChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },
@@ -12,10 +12,10 @@ const meta: Meta<typeof DonutChart> = { parameters: { docs: { description: { com
 export default meta
 
 const data = [
-  { key: 'advisory',  label: 'Advisory',  value: 4800, color: '#4A9EFF' },
-  { key: 'planning',  label: 'Planning',  value: 2400, color: '#7C6FFF' },
-  { key: 'coaching',  label: 'Coaching',  value: 1600, color: '#FF6B6B' },
-  { key: 'reporting', label: 'Reporting', value: 800,  color: '#FFB347' },
+  { key: 'advisory',  label: 'Advisory',  value: 4800, color: DEFAULT_CHART_COLORS[0] },
+  { key: 'planning',  label: 'Planning',  value: 2400, color: DEFAULT_CHART_COLORS[1] },
+  { key: 'coaching',  label: 'Coaching',  value: 1600, color: DEFAULT_CHART_COLORS[2] },
+  { key: 'reporting', label: 'Reporting', value: 800,  color: DEFAULT_CHART_COLORS[3] },
 ]
 
 type Story = StoryObj<typeof DonutChart>

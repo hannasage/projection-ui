@@ -5,7 +5,7 @@ import {
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import type { BaseChartProps } from './shared'
-import { ChartTooltip, AXIS_STYLE } from './shared'
+import { ChartTooltip, AXIS_STYLE, chartColor, chartLegendLabel, useChartGlow } from './shared'
 
 export type { BaseChartProps as AreaChartProps }
 
@@ -20,8 +20,11 @@ export function AreaChart({
   xFormatter,
   yFormatter,
 }: BaseChartProps): React.ReactElement {
+  const { ref, motionAllowed } = useChartGlow()
+  const colors = series.map((item, index) => ({ ...item, color: chartColor(item.color, index) }))
+  const gradientId = React.useId().replace(/:/g, '')
   return (
-    <div className={className} style={style}>
+    <div ref={ref} className={className} style={style}>
       {title && (
         <div style={{ fontSize: 12, color: 'var(--ui-muted)', marginBottom: 10, fontFamily: 'var(--ui-font)' }}>
           {title}
@@ -30,8 +33,8 @@ export function AreaChart({
       <ResponsiveContainer width="100%" height={height}>
         <ReAreaChart data={data} margin={{ top: 8, right: 6, left: 0, bottom: 0 }}>
           <defs>
-            {series.map((s) => (
-              <linearGradient key={s.key} id={`area-grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+            {colors.map((s) => (
+              <linearGradient key={s.key} id={`${gradientId}-area-grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor={s.color} stopOpacity={0.25} />
                 <stop offset="95%" stopColor={s.color} stopOpacity={0.02} />
               </linearGradient>
@@ -54,17 +57,18 @@ export function AreaChart({
           />
           <Tooltip content={<ChartTooltip xFormatter={xFormatter} yFormatter={yFormatter} />} />
           {series.length > 1 && (
-            <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--ui-font)' }} iconType="circle" />
+            <Legend formatter={chartLegendLabel} wrapperStyle={{ fontSize: 11, fontFamily: 'var(--ui-font)' }} iconType="circle" />
           )}
-          {series.map((s) => (
+          {colors.map((s) => (
             <Area
+              isAnimationActive={motionAllowed}
               key={s.key}
               type="monotone"
               dataKey={s.key}
               name={s.label ?? s.key}
               stroke={s.color}
               strokeWidth={2}
-              fill={`url(#area-grad-${s.key})`}
+              fill={`url(#${gradientId}-area-grad-${s.key})`}
               dot={false}
               activeDot={{ r: 4, fill: s.color, strokeWidth: 0 }}
             />

@@ -90,6 +90,8 @@ test('sortable handle supports keyboard pickup/move/drop and announcements', asy
   await page.keyboard.press('Space');
   await page.getByRole('button', {name:'alpha',exact:true}).and(page.locator('[aria-pressed="true"]')).waitFor();
   await page.waitForFunction(() => document.querySelector('[aria-live="assertive"]')?.textContent.includes('Item alpha moved to position 1'));
+  // dnd-kit attaches its keyboard listener in a zero-delay task after pickup.
+  await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
   await page.keyboard.press('ArrowDown');
   await page.waitForFunction(() => document.querySelector('[aria-live="assertive"]')?.textContent.includes('position 2'));
   await page.keyboard.press('Space');
