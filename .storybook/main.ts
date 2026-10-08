@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 const config: StorybookConfig = {
   stories: ['../docs/pages/**/*.mdx', '../stories/**/*.stories.@(ts|tsx)'],
   addons: ['@storybook/addon-docs'],
-  framework: { name: '@storybook/react-vite', options: {} },
+  framework: { name: '@storybook/react-vite', options: { builder: { viteConfigPath: '.storybook/vite.config.ts' } } },
   async viteFinal(config) {
     const packageDirectory = process.env.PROJECTION_UI_PACKAGE_DIR
     if (!packageDirectory) {

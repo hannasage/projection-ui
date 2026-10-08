@@ -29,3 +29,6 @@ export type { ToggleProps } from './components/forms/Toggle'
 export * from './components/Content'
 export type { UITheme, UIRadius } from './theme'
 export { DEFAULT_THEME, RADIUS_SCALE, UI_FOUNDATIONS } from './foundations'
+
+export { ProjectionGlow } from './components/ProjectionGlow'
+export type { ProjectionGlowProps } from './components/ProjectionGlow'

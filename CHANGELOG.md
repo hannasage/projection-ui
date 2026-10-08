@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0-next.0 candidate
+## 0.2.0-next.1 candidate
 
 This entry describes the local candidate before npm publication.
 Existing root imports, required theme fields, CSS variable meanings, and radius presets remain available.
@@ -10,11 +10,16 @@ Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 
 - Add `/core`, `/charts`, `/sortable`, `/toast`, and `/foundations` entry points.
 - Add Container, Stack, Prose, LinkButton, Separator, and VisuallyHidden to the core entry.
+- Add ProjectionGlow as a decorative light field with an inherited accent and a still default.
+- Offer one opt-in reveal that respects reduced motion and hides decorative light in forced colors.
 - Export DEFAULT_THEME and UI_FOUNDATIONS from the shared foundation source.
 - Add optional fontBody, fontDisplay, success, warning, focus, and backdrop theme fields.
 - Add `/styles` for scoped component rules and `/reset` for explicit page rules.
 - Add authored Storybook guides and stories for every public React component.
 - Build documentation and consumer fixtures against a packed candidate.
+- Add a Fumadocs static reader with local search, plain Markdown, and a text index.
+- Share guide content and component contracts between the reader and component explorer.
+- Verify reader navigation, code copying, links, and accessibility at three screen widths.
 
 ### Interaction fixes
 
@@ -40,4 +45,8 @@ The candidate adds no 3D runtime dependency or new default palette.
 
 The candidate does not establish a 1.0 stability promise.
 Publication and stable promotion require maintainer authorization.
-No stable 0.2 release or deployed documentation URL is declared here.
+No stable 0.2 release is declared here.
+
+## 0.2.0-next.0 candidate
+
+Initial candidate with shared foundations, split entry points, scoped CSS, interaction fixes, and packed consumer tests.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { join } from 'node:path';
+import { resolve } from 'node:path';
 
 const {name, version} = JSON.parse(readFileSync('package.json', 'utf8'));
 assert.equal(name, '@hannasage/projection-ui');
@@ -13,7 +13,7 @@ assert.match(readFileSync('CHANGELOG.md', 'utf8'), new RegExp(`^##[ \\t]+${escap
 if (process.argv.includes('--publish')) {
   const files = readdirSync('release').filter(file => file.endsWith('.tgz'));
   assert.deepEqual(files, [`hannasage-projection-ui-${version}.tgz`], 'Exactly one verified release artifact is required');
-  const result = spawnSync('npm', ['publish', join('release', files[0]), '--access', 'public', '--provenance', '--tag', prerelease ? 'next' : 'latest', '--ignore-scripts'], {stdio:'inherit'});
+  const result = spawnSync('npm', ['publish', resolve('release', files[0]), '--access', 'public', '--provenance', '--tag', prerelease ? 'next' : 'latest', '--ignore-scripts'], {stdio:'inherit'});
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`npm publish failed with status ${result.status}`);
 }

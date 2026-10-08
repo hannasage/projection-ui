@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { packFixture, repository } from '../tests/helpers/packed.mjs';
+import { componentDocuments, transformGuide } from './docs-content.mjs';
+
+const site = join(repository, 'docs-site');
+const packed = packFixture('docs', ['react','react-dom','recharts','zustand','@dnd-kit/core','@dnd-kit/sortable','@dnd-kit/utilities','@types']);
+function run(command, args, cwd = repository, env = process.env) {
+  const result = spawnSync(command, args, {cwd, env, stdio:'inherit', timeout:300_000});
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`Docs command failed: ${command}, status ${result.status}`);
+}
+try {
+  const manifest = JSON.parse(readFileSync(join(packed.installed, 'package.json'), 'utf8'));
+  const expected = JSON.parse(readFileSync(join(repository, 'package.json'), 'utf8'));
+  assert.equal(manifest.name, expected.name);
+  assert.equal(manifest.version, expected.version);
+  run(process.execPath, ['scripts/build-storybook.mjs'], repository, {...process.env,PROJECTION_UI_PACKAGE_DIR:packed.installed,PROJECTION_UI_TYPING_DIR:packed.temporary});
+  run('npm', ['ci','--ignore-scripts','--legacy-peer-deps=false','--no-audit','--no-fund'], site);
+  run('npm', ['install','--no-save','--package-lock=false','--ignore-scripts','--legacy-peer-deps=false','--no-audit','--no-fund',join(packed.temporary,packed.packed.filename)], site);
+  const installed = JSON.parse(readFileSync(join(site,'node_modules/@hannasage/projection-ui/package.json'),'utf8'));
+  assert.equal(installed.version, manifest.version);
+  const entries = Object.values(JSON.parse(readFileSync(join(repository,'storybook-static/index.json'),'utf8')).entries);
+  const guides = readdirSync(join(repository,'docs/pages')).filter(file => file.endsWith('.mdx')).map(file => transformGuide(readFileSync(join(repository,'docs/pages',file),'utf8'), `docs/pages/${file}`, entries));
+  assert.equal(guides.length, 8);
+  const contracts = JSON.parse(readFileSync(join(repository,'docs/component-contracts.json'),'utf8'));
+  const components = componentDocuments(contracts,entries,manifest.peerDependencies);
+  assert.equal(components.length,27);
+  const records = [...guides,...components];
+  const examples = join(packed.fixture,'documentation-examples');
+  mkdirSync(examples);
+  let exampleCount = 0;
+  for (const text of [readFileSync(join(repository,'README.md'),'utf8'), ...records.map(record=>record.mdx)]) {
+    for (const block of text.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/g)) writeFileSync(join(examples,`example-${++exampleCount}.tsx`),block[1]+'\n');
+  }
+  assert.ok(exampleCount >= 2, 'Packed documentation compilation must not be empty');
+  writeFileSync(join(examples,'assets.d.ts'),['tokens','styles','reset'].map(entry=>`declare module '${manifest.name}/${entry}'`).join('\n'));
+  writeFileSync(join(examples,'tsconfig.json'),JSON.stringify({compilerOptions:{target:'ES2020',lib:['ES2020','DOM','DOM.Iterable'],module:'ESNext',moduleResolution:'bundler',jsx:'react-jsx',strict:true,skipLibCheck:true,noEmit:true},include:['*.tsx','*.d.ts']}));
+  run(process.execPath,[join(repository,'node_modules/typescript/bin/tsc'),'-p',join(examples,'tsconfig.json'),'--noEmit']);
+  for (const record of records) {
+    const path = join(site,'content/docs',record.slug+'.mdx');
+    mkdirSync(join(path,'..'),{recursive:true});
+    writeFileSync(path, `---\ntitle: ${JSON.stringify(record.title)}\ndescription: ${JSON.stringify(`Projection UI ${manifest.version}`)}\n---\n\n${record.mdx}`);
+    const markdown = join(site,'public/markdown',record.slug+'.md');
+    mkdirSync(join(markdown,'..'),{recursive:true});
+    writeFileSync(markdown,record.markdown);
+  }
+  writeFileSync(join(site,'content/docs/meta.json'),JSON.stringify({pages:['index','installation','theming','tokens','accessibility','migration','releases','community','components']},null,2));
+  writeFileSync(join(site,'content/docs/components/meta.json'),JSON.stringify({title:'Components',pages:components.map(page=>page.slug.split('/')[1])},null,2));
+  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projection-ui-docs.vercel.app/markdown/${record.slug}.md)`).join('\n')+'\n');
+  writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
+  writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');
+  cpSync(join(repository,'storybook-static'),join(site,'public/examples'),{recursive:true});
+  const {DEFAULT_THEME:theme} = await import(pathToFileURL(join(packed.installed,'dist/foundations.js')).href);
+  mkdirSync(join(site,'.generated'),{recursive:true});
+  writeFileSync(join(site,'.generated/theme.css'),`.dark { --color-fd-background: ${theme.bg}; --color-fd-foreground: ${theme.text}; --color-fd-primary: ${theme.primary}; --color-fd-primary-foreground: ${theme.primaryFg}; --color-fd-muted: ${theme.surface}; --color-fd-muted-foreground: ${theme.muted}; --color-fd-border: ${theme.border}; }\n`);
+  run('npm',['run','build'],site,{...process.env,NEXT_TELEMETRY_DISABLED:'1'});
+  run('npm',['run','typecheck'],site);
+  run('npm',['run','lint'],site);
+  run('npm',['run','test'],site);
+} finally { rmSync(packed.temporary,{recursive:true,force:true}); }

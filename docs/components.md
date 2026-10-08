@@ -225,3 +225,35 @@ They accept native HTML attributes and consumer-authored content.
 Use LinkButton for navigation and Button for an action.
 Prose does not parse Markdown or sanitize untrusted HTML.
 Keep application navigation and page compositions in the consumer.
+
+## Projection glow
+
+ProjectionGlow is a decorative light field available from `/core` and the root entry.
+It inherits the theme primary color and stays within its container.
+It does not receive children, focus, or input events.
+
+| Prop | Default | Supported values |
+| --- | --- | --- |
+| `color` | `var(--ui-primary)` | A CSS color |
+| `intensity` | `standard` | `standard`, `subtle` |
+| `motion` | `none` | `none`, `reveal` |
+| `className`, `style` | None | Consumer appearance and dimensions |
+
+Import `/styles` with the core entry to include the effect rules.
+The root entry includes the legacy stylesheet with the same scoped effect.
+The reveal runs once for 450 milliseconds and uses opacity and scale.
+Reduced motion keeps the final still effect.
+Forced colors hide the decorative field.
+Use a sibling for authored content, with enough contrast against the page background.
+
+```tsx
+import { ProjectionGlow } from '@hannasage/projection-ui/core'
+import '@hannasage/projection-ui/styles'
+
+export function LightField() {
+  return <section style={{ position: 'relative' }}>
+    <ProjectionGlow style={{ height: '16rem' }} />
+    <h2>Selected experience</h2>
+  </section>
+}
+```

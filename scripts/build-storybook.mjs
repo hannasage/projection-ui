@@ -3,7 +3,9 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { packFixture, repository } from '../tests/helpers/packed.mjs';
 
-const packed = packFixture('storybook', ['react', 'react-dom', 'recharts', 'zustand', '@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities', '@types']);
+const shared = process.env.PROJECTION_UI_PACKAGE_DIR;
+const packed = shared ? { installed: shared, temporary: process.env.PROJECTION_UI_TYPING_DIR } : packFixture('storybook', ['react', 'react-dom', 'recharts', 'zustand', '@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities', '@types']);
+if (!packed.temporary) throw new Error('A shared package requires PROJECTION_UI_TYPING_DIR');
 try {
   const manifest = JSON.parse(readFileSync(join(packed.installed, 'package.json'), 'utf8'));
   const paths = {};
@@ -18,7 +20,7 @@ try {
   writeFileSync(join(typing, 'assets.d.ts'), assets.join('\n'));
   writeFileSync(join(typing, 'tsconfig.json'), JSON.stringify({
     extends: join(repository, 'tsconfig.app.json'),
-    compilerOptions: { paths, rootDir: repository },
+    compilerOptions: { paths, rootDir: repository, resolveJsonModule: true },
     include: [join(repository, 'stories/**/*.tsx'), join(repository, '.storybook/**/*.ts'), join(typing, 'assets.d.ts')],
   }, null, 2));
   const environment = { ...process.env, PROJECTION_UI_PACKAGE_DIR: packed.installed };
@@ -28,4 +30,4 @@ try {
     if (result.error) throw result.error;
     if (result.status !== 0) throw new Error(`Storybook gate failed with status ${result.status}`);
   }
-} finally { rmSync(packed.temporary, {recursive:true,force:true}); }
+} finally { if (!shared) rmSync(packed.temporary, {recursive:true,force:true}); }

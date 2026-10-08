@@ -26,11 +26,12 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: '1'
       - run: npm run build
-      - run: npm run build:storybook
+      - run: npm run build:docs
       - run: npm run test:storybook
-      - run: npm pack --dry-run --json --ignore-scripts
+      - run: npm run test:docs
+      - run: npm run test:artifact
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: storybook
-          path: storybook-static
+          name: documentation
+          path: docs-site/out
           if-no-files-found: error

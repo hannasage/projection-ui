@@ -48,17 +48,20 @@ function compile(configuration) {
 after(() => rmSync(temporary, { recursive: true, force: true }));
 
 before(async () => {
-  execFileSync(process.execPath, [join(repository, 'node_modules/vite/bin/vite.js'), 'build'], {
+  if (!process.env.PROJECTION_UI_TARBALL) execFileSync(process.execPath, [join(repository, 'node_modules/vite/bin/vite.js'), 'build'], {
     cwd: repository,
     stdio: ['ignore', 'pipe', 'pipe'],
     timeout: 120_000,
   });
-  const [packed] = JSON.parse(npm(['pack', '--json', '--ignore-scripts', '--pack-destination', temporary]));
-  assert.ok(packed.filename, 'npm pack must return a tarball');
-  archive = join(temporary, packed.filename);
+  if (process.env.PROJECTION_UI_TARBALL) archive = resolve(process.env.PROJECTION_UI_TARBALL);
+  else {
+    const [packed] = JSON.parse(npm(['pack', '--json', '--ignore-scripts', '--pack-destination', temporary]));
+    assert.ok(packed.filename, 'npm pack must return a tarball');
+    archive = join(temporary, packed.filename);
+  }
   mkdirSync(fixture);
   writeFileSync(join(fixture, 'package.json'), JSON.stringify({ name: 'projection-ui-contract-consumer', private: true, type: 'module' }));
-  npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund', join(temporary, packed.filename)]);
+  npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund', archive]);
 
   // The consumer supplies existing peers. Its library comes only from the tarball.
   for (const dependency of [...Object.keys(manifest.peerDependencies), '@types']) {
@@ -144,6 +147,9 @@ test('feature entries share component and store identities with the legacy root'
     for (const [member, value] of Object.entries(features[name])) assert.equal(value, esm[member], `${name}/${member} shares the ESM root identity`);
     for (const [member, value] of Object.entries(commonjs)) assert.equal(value, cjs[member], `${name}/${member} shares the CommonJS root identity`);
   }
+  for (const file of execFileSync('tar',['-tzf',archive],{encoding:'utf8'}).trim().split('\n').filter(file=>file.endsWith('.d.ts'))) {
+    assert.doesNotMatch(execFileSync('tar',['-xOzf',archive,file],{encoding:'utf8'}), /(?:from\s+['"]|import\(['"])[^'"\n]*node_modules/, `${file} must resolve public peers rather than local build paths`);
+  }
 });
 
 test('both module formats render the documented theme and component composition', () => {
@@ -163,6 +169,29 @@ test('both module formats render the documented theme and component composition'
     assert.match(html, /Selected work/);
     assert.match(html, /<button[^>]*type="button"[^>]*>Explore<\/button>/);
     assert.match(html, /--ui-primary:#C9F53A/);
+  }
+});
+
+test('the decorative glow renders without content, input, or browser-only dependencies', () => {
+  const { createElement } = consumerRequire('react');
+  const { renderToStaticMarkup } = consumerRequire('react-dom/server');
+  for (const api of [esm, cjs, consumerRequire(`${packageName}/core`)]) {
+    assert.equal(typeof api.ProjectionGlow, 'function');
+    const html = renderToStaticMarkup(createElement(api.ProjectionGlow, {
+      color: '#123456', intensity: 'subtle', motion: 'reveal', className: 'consumer-glow',
+      style: { height: '12rem', pointerEvents: 'auto' },
+    }));
+    assert.match(html, /aria-hidden="true"/);
+    assert.match(html, /ui-projection-glow consumer-glow/);
+    assert.match(html, /data-intensity="subtle"/);
+    assert.match(html, /data-motion="reveal"/);
+    assert.match(html, /--ui-glow-color:#123456/);
+    assert.match(html, /height:12rem/);
+    assert.match(html, /pointer-events:none/);
+    assert.doesNotMatch(html, /<(?:button|input|h[1-6]|a)\b|tabindex=|on[a-z]+=/i);
+    const still = renderToStaticMarkup(createElement(api.ProjectionGlow));
+    assert.match(still, /data-motion="none"/);
+    assert.match(still, /--ui-glow-color:var\(--ui-primary\)/);
   }
 });
 

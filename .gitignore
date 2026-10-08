@@ -2,3 +2,16 @@ node_modules
 dist
 storybook-static
 *.local
+docs-site/.next
+docs-site/out
+docs-site/.source
+docs-site/.generated
+docs-site/content
+docs-site/public/examples
+docs-site/public/markdown
+docs-site/public/llms.txt
+docs-site/public/llms-full.txt
+docs-site/public/release.json
+docs-site/next-env.d.ts
+docs-site/tsconfig.tsbuildinfo
+release-artifacts

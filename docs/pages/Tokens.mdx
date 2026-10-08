@@ -1,4 +1,5 @@
 import { Meta, Canvas } from '@storybook/blocks'
+import * as GlowStories from '../../stories/ProjectionGlow.stories'
 import * as TokenStories from '../../stories/Foundations.stories'
 
 <Meta title="Guides/Tokens" />
@@ -36,3 +37,12 @@ Keep content widths fluid and allow labels to wrap.
 Place wide data tables and charts in containers with usable width.
 Use the same shared values in your application media queries.
 Test your actual copy at narrow widths and at 200 percent zoom.
+
+## Projection glow
+
+ProjectionGlow adds a decorative light field with the current primary color.
+It remains still by default and stays inside its own container.
+The optional reveal runs once and stops when the viewer reduces motion.
+Place headings and controls beside the effect, so they stay readable without it.
+
+<Canvas of={GlowStories.Default} />

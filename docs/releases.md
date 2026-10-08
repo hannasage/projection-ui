@@ -2,7 +2,7 @@
 
 A release must give consumers a package whose exports, examples, and compatibility claims agree.
 The published baseline is `0.1.5`.
-This work prepares `0.2.0-next.0` before stable `0.2.0`.
+This work prepares `0.2.0-next.1` before stable `0.2.0`.
 The [changelog](../CHANGELOG.md) describes the candidate.
 The repository includes packed-package contract tests.
 
@@ -10,7 +10,7 @@ The repository includes packed-package contract tests.
 
 For new compatible foundations and components, prepare a `0.2.0` release candidate.
 A release candidate is a package version that receives final consumer checks.
-Use a prerelease version such as `0.2.0-next.0` under the `next` distribution tag.
+Use a prerelease version such as `0.2.0-next.1` under the `next` distribution tag.
 A distribution tag is a name that selects a version on npm.
 Keep `latest` on the existing release until the final package passes its gates.
 
@@ -36,11 +36,12 @@ Review sourcemaps before publication because they can include source content.
 Run `npm test` to exercise the current package contract.
 The current tests include browser interactions, accessibility checks, and framework consumers.
 The [CI workflow](../.github/workflows/ci.yml) runs these checks on pull requests and pushes to `main`.
-It uses Node 24.11.0 and uploads the checked Storybook build.
+It uses Node 24.11.0 and uploads the checked Fumadocs static site, including its component explorer.
 A release candidate must pass:
 
 - Effective TypeScript, lint, unit, interaction, and library-build checks.
 - The static docs build and its accessibility and responsive checks.
+- The Fumadocs reader, local search, plain Markdown, and embedded packed examples.
 - A tarball inventory with every declared export target present.
 - ESM, CommonJS, token CSS, and declaration-resolution tests against the tarball.
 - A Vite consumer build and a Next.js consumer build with server and client boundaries.
@@ -56,6 +57,9 @@ If a gate fails, fix the candidate before publication.
 The [publish workflow](../.github/workflows/publish.yml) accepts `v0.2.0` and `v0.2.0-next.*` tags.
 The tag must match the package version and its changelog entry.
 Its verification job runs the package, consumer, browser, and docs gates before packing the candidate.
+The final artifact check compares its integrity with the documentation package, then repeats consumer tests without rebuilding the library.
+It checks all 69 reviewed package files and rejects declarations that import local `node_modules` paths.
+The checked versioned archive appears in `release-artifacts`.
 Its separate publish job downloads that exact tarball; it does not rebuild it.
 
 The publish job uses Node 24.11.0 and npm 11.6.1.
