@@ -1,0 +1,29 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Guides/Releases" />
+
+# Releases
+
+The current work prepares `0.2.0-next.0` before a stable `0.2.0` release.
+This page describes the candidate and does not claim that npm publication occurred.
+The npm `next` tag selects a prerelease version.
+The `latest` tag remains a separate release choice.
+
+## Candidate changes
+
+The candidate adds core, chart, sortable, and toast entry points.
+It adds content primitives, shared foundation exports, scoped styles, and an explicit reset entry.
+Existing root imports and theme fields remain available.
+
+The candidate also updates dialog focus, field associations, keyboard selection, sorting, and reduced-motion behavior.
+The [changelog](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/CHANGELOG.md) records the final additions and fixes.
+
+## Release checks
+
+The package and documentation use the same packed candidate.
+Consumer checks cover module imports, declarations, stylesheet paths, rendering, and framework builds.
+Browser checks cover the examples and documentation navigation.
+
+A package release requires maintainer authorization.
+A faulty published version receives a corrected version with migration notes.
+Read the [release guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/releases.md) for the full contract.

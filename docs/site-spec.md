@@ -9,12 +9,13 @@ It must present reusable library features separately from application-specific s
 ## Foundation
 
 Use the existing Storybook and Vite setup as the component preview engine.
-The current repository includes ten story files with automatic API documentation.
-Add authored guides through MDX, Markdown content that can contain React examples.
-A separate editorial site shell remains a design option before implementation.
+The repository includes stories for every public component and authored MDX guides.
+Authored guides use MDX, Markdown content that can contain React examples.
+The selected surface extends the existing Storybook shell.
 Do not create a second manual prop reference.
 
-The proposed files below are implementation targets, not claims that a deployed site exists.
+The files below define the local documentation.
+No deployed site URL is declared yet.
 
 | Target file | Responsibility |
 | --- | --- |
@@ -63,5 +64,5 @@ The initial site requires no accounts, tracking, cookie banner, or external font
 - Make sure that the public build contains no credentials or private example data.
 - Add the docs homepage to package metadata only after the deployed URL works.
 
-Deployment selection and the final visual design require maintainer approval.
+Deployment requires maintainer approval.
 A local or in-app browser preview supplies the design review surface.

@@ -1,4 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useId, useRef } from 'react'
+
+const documents = new WeakMap<Document, { stack: HTMLElement[]; overflow: string }>()
+const focusable = (dialog: HTMLElement) => Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]'))
+  .filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && !element.closest('[hidden], [inert], [aria-hidden="true"]') && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden')
 
 export interface ModalAction {
   label:      string
@@ -30,27 +34,54 @@ export function Modal({
   maxWidth = 440,
   className,
 }: ModalProps): React.ReactElement | null {
-  const primaryRef = useRef<HTMLButtonElement | null>(null)
-  const headingId  = 'ui-modal-title'
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+  const dismissRef = useRef(onDismiss)
+  const headingId = useId()
+  useEffect(() => { dismissRef.current = onDismiss }, [onDismiss])
 
   useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onDismiss() }
+    const dialog = dialogRef.current
+    if (!open || !dialog) return
+    const owner = dialog.ownerDocument
+    const opener = owner.activeElement instanceof HTMLElement ? owner.activeElement : null
+    let state = documents.get(owner)
+    if (!state) { state = { stack: [], overflow: owner.body.style.overflow }; documents.set(owner, state) }
+    const nestedIndex = state.stack.findIndex(item => dialog.contains(item))
+    if (nestedIndex >= 0) state.stack.splice(nestedIndex, 0, dialog)
+    else state.stack.push(dialog)
+    owner.body.style.overflow = 'hidden'
+    const topmost = () => state.stack[state.stack.length - 1] === dialog
+    const initial = () => {
+      const items = focusable(dialog)
+      const primary = items.find(item => item.hasAttribute('data-ui-modal-primary'))
+      ;(primary ?? items[0] ?? dialog).focus()
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onDismiss])
-
-  useEffect(() => {
-    if (open) requestAnimationFrame(() => primaryRef.current?.focus())
+    if (topmost()) initial()
+    const handler = (event: KeyboardEvent) => {
+      if (!topmost()) return
+      if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current(); return }
+      if (event.key !== 'Tab') return
+      const items = focusable(dialog)
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (!first) { event.preventDefault(); dialog.focus(); return }
+      if (event.shiftKey && (owner.activeElement === first || !items.includes(owner.activeElement as HTMLElement))) { event.preventDefault(); last.focus() }
+      else if (!event.shiftKey && (owner.activeElement === last || !items.includes(owner.activeElement as HTMLElement))) { event.preventDefault(); first.focus() }
+    }
+    const containFocus = (event: FocusEvent) => {
+      if (topmost() && !dialog.contains(event.target as Node)) initial()
+    }
+    owner.addEventListener('keydown', handler)
+    owner.addEventListener('focusin', containFocus)
+    return () => {
+      owner.removeEventListener('keydown', handler)
+      owner.removeEventListener('focusin', containFocus)
+      const wasTopmost = topmost()
+      state.stack.splice(state.stack.indexOf(dialog), 1)
+      if (state.stack.length === 0) { owner.body.style.overflow = state.overflow; documents.delete(owner) }
+      if (wasTopmost && opener?.isConnected) opener.focus()
+      else if (wasTopmost && state.stack.length) (focusable(state.stack[state.stack.length - 1])[0] ?? state.stack[state.stack.length - 1]).focus()
+    }
   }, [open])
 
   if (!open) return null
@@ -62,7 +93,7 @@ export function Modal({
       style={{
         position:        'fixed',
         inset:           0,
-        background:      'rgba(0,0,0,0.55)',
+        background:      'var(--ui-backdrop, rgba(0,0,0,0.55))',
         zIndex:          1000,
         display:         'flex',
         alignItems:      'center',
@@ -72,6 +103,8 @@ export function Modal({
     >
       <div
         role="dialog"
+        ref={dialogRef}
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={headingId}
         className={className}
@@ -142,11 +175,14 @@ export function Modal({
                 return (
                   <a
                     key={a.label}
-                    href={a.href}
+                    href={a.disabled ? undefined : a.href}
                     target={a.target ?? '_self'}
                     rel={a.target === '_blank' ? 'noopener noreferrer' : undefined}
                     aria-label={a.ariaLabel ?? a.label}
-                    onClick={a.onClick}
+                    aria-disabled={a.disabled || undefined}
+                    tabIndex={a.disabled ? -1 : undefined}
+                    data-ui-modal-primary={isPrimary ? '' : undefined}
+                    onClick={event => { if (a.disabled) event.preventDefault(); else a.onClick?.() }}
                     style={btnStyle}
                   >
                     {a.label}
@@ -157,7 +193,8 @@ export function Modal({
               return (
                 <button
                   key={a.label}
-                  ref={isPrimary ? primaryRef : undefined}
+                  type="button"
+                  data-ui-modal-primary={isPrimary ? '' : undefined}
                   onClick={a.onClick}
                   disabled={a.disabled}
                   aria-label={a.ariaLabel ?? a.label}

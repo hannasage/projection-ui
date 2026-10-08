@@ -1,7 +1,9 @@
 # Component reference
 
-Import components and prop types from `@hannasage/projection-ui`.
-Import `@hannasage/projection-ui/tokens` once in the application entry.
+The 0.2 candidate retains the combined `@hannasage/projection-ui` import.
+Use `/core`, `/charts`, `/sortable`, or `/toast` to isolate features.
+Import `/styles` once for scoped component rules.
+Keep `/tokens` when an existing application needs its legacy global rules.
 The public export list is in [src/components/index.ts](../src/components/index.ts).
 
 ## Surfaces and actions
@@ -24,7 +26,8 @@ Set `type="button"` for a button that must not submit its enclosing form.
 ButtonGroup options contain `value`, `label`, and optional `title` and `disabled` fields.
 The selected `value` can be `null`.
 If `deselectable` is true, clicking the selected option calls `onChange` with an empty string.
-Its current type signature does not describe that empty-string behavior for every narrow string type.
+Give the group a visible name through `aria-label`.
+Arrow keys move the selected radio choice and skip disabled options.
 Use it as a selection control, not as an accessible tab system.
 
 ```tsx
@@ -94,8 +97,9 @@ export function Preferences() {
 
 Modal actions contain a `label` and optional `onClick`, `href`, `target`, `variant`, `ariaLabel`, and `disabled` fields.
 Action variants are `primary`, `secondary`, and `danger`.
-A disabled action with an `href` still renders an anchor. Do not use that combination to block navigation.
-Modal closes on Escape and backdrop click. It does not trap or restore focus.
+Disabled actions do not activate, including actions with an `href`.
+Modal closes on Escape and backdrop click.
+It moves focus into the dialog, contains Tab movement, and returns focus to the opener.
 
 Toast variants are `info`, `success`, `warning`, and `danger`.
 The default variant is `info`. The store removes a toast after 4000 milliseconds.
@@ -122,8 +126,10 @@ A column requires `key`, `header`, and `cell(row, index)`.
 It accepts `sortable`, `width`, and `align` values of `left`, `right`, or `center`.
 The table also accepts `loading=false`, `emptyState`, `className`, and `onRowClick`.
 
-The current `sortable` behavior changes the header's indicator and ARIA state, but does not reorder data.
-Supply data in the intended order and do not rely on its indicator as a sorting control.
+Sorting changes row order and updates the accessible sort state.
+Use `sortValue(row)` for a derived value or `compare(a, b)` for a custom comparison.
+Give the table an `aria-label`.
+Rows with `onRowClick` also respond to keyboard activation.
 
 ```tsx
 import { DataTable } from '@hannasage/projection-ui'
@@ -146,7 +152,9 @@ SortableList requires items with string IDs, an `onReorder` callback, and a chil
 SortableItem requires `id` and a child render function that receives `dragHandleProps` and `isDragging`.
 Both components accept `className` and `style`.
 The package exports dnd-kit's `arrayMove` helper.
-The current list registers a pointer sensor without a keyboard sensor.
+The list supports pointer and keyboard movement.
+Focus a handle, press Space, use arrow keys, then press Space to drop.
+Press Escape to cancel.
 
 ```tsx
 import { useState } from 'react'
@@ -199,3 +207,21 @@ export function ChartExamples() {
   )
 }
 ```
+
+## Content primitives
+
+These primitives are available from `/core`.
+They accept native HTML attributes and consumer-authored content.
+
+| Component | Contract |
+| --- | --- |
+| `Container` | Optional `as`, `maxWidth="72rem"`, and native HTML attributes |
+| `Stack` | Optional `as`, `direction="column"`, `gap`, and native HTML attributes |
+| `Prose` | Optional `as` and native HTML attributes; styles authored HTML |
+| `LinkButton` | Required `href`; optional Button `variant` and `size`; native anchor attributes |
+| `Separator` | Native `hr` attributes |
+| `VisuallyHidden` | Native `span` attributes; content remains available to assistive technology |
+
+Use LinkButton for navigation and Button for an action.
+Prose does not parse Markdown or sanitize untrusted HTML.
+Keep application navigation and page compositions in the consumer.

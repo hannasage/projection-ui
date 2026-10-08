@@ -1,0 +1,26 @@
+import { Meta, Canvas } from '@storybook/blocks'
+import * as ButtonStories from '../../stories/Button.stories'
+
+<Meta title="Guides/Introduction" />
+
+# Projection UI
+
+Projection UI provides React components and shared design values for consumer-themed interfaces.
+The default appearance uses a dark palette, a chartreuse accent, and the IBM Plex Mono font family.
+Your application supplies its own theme and font assets.
+
+Start with <a href="./?path=/docs/guides-installation--docs" target="_top">Installation</a>, then read <a href="./?path=/docs/guides-theming--docs" target="_top">Theming</a>.
+Use the component pages to try controls and inspect their prop contracts.
+A prop is a value that a React component receives.
+
+## Package scope
+
+The library includes reusable controls, forms, surfaces, charts, tables, sorting, and notifications.
+The core entry includes content primitives for ordinary page layouts.
+Application routes, business data, and 3D scenes belong in your application.
+
+This documentation describes the local 0.2 candidate.
+A candidate is a version that receives checks before publication.
+It does not promise 1.0 API stability.
+
+<Canvas of={ButtonStories.Primary} />

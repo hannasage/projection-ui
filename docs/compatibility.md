@@ -2,14 +2,21 @@
 
 ## Package entry points
 
-The published package declares these entry points:
+The 0.2 candidate declares these entry points:
 
 | Import | Declared target |
 | --- | --- |
 | `@hannasage/projection-ui` with ESM | `dist/index.js` |
 | `@hannasage/projection-ui` with CommonJS | `dist/index.cjs` |
 | TypeScript declarations | `dist/src/index.d.ts` |
-| `@hannasage/projection-ui/tokens` | `dist/tokens/theme.css` |
+| `/core` | `dist/core.js`, `dist/core.cjs`, `dist/src/core.d.ts` |
+| `/charts` | `dist/charts.js`, `dist/charts.cjs`, `dist/src/charts.d.ts` |
+| `/sortable` | `dist/sortable.js`, `dist/sortable.cjs`, `dist/src/sortable.d.ts` |
+| `/toast` | `dist/toast.js`, `dist/toast.cjs`, `dist/src/toast.d.ts` |
+| `/foundations` | `dist/foundations.js`, `dist/foundations.cjs`, `dist/src/foundations.d.ts` |
+| `/tokens` | `dist/tokens/theme.css` |
+| `/styles` | `dist/tokens/scoped.css` |
+| `/reset` | `dist/tokens/reset.css` |
 
 ESM is JavaScript's import and export module format.
 CommonJS is the module format that uses `require`.
@@ -23,9 +30,12 @@ declare module '@hannasage/projection-ui/tokens'
 
 The token export is a stylesheet, not a typed JavaScript module.
 
-The peer ranges appear in [the README](../README.md#install) and `package.json`.
+Subpaths isolate runtime bundle imports.
+They do not reduce npm peer installation requirements.
+The peer ranges appear in [the README](../README.md#choose-an-entry) and `package.json`.
 A declared lower bound does not establish compatibility with every newer major version.
-The repository does not publish a tested browser or framework support matrix.
+Consumer fixtures define the versions that receive package checks.
+The release notes record passing evidence before publication.
 Test the built package in your application before an upgrade.
 
 ## Next.js and server rendering
@@ -35,14 +45,16 @@ The package includes interactive components that use React hooks and browser API
 For an App Router application, import these components through a client component with `'use client'`.
 Import the token stylesheet through an application entry that your framework accepts.
 
-The package output does not supply a tested client/server entry-point contract.
+The candidate preserves client directives in interactive entry points.
+The Next.js fixture exercises server and client boundaries against the packed artifact.
 Test the client boundary, initial theme, and hydration in your application.
 Hydration connects browser interactions to server-rendered HTML.
 
 ## Accessibility
 
 ThemeProvider writes values but does not check contrast.
-The current repository does not include an automated accessibility test suite.
+The Storybook browser checks run axe against rendered examples.
+An axe scan finds common accessibility defects automatically.
 Do not infer an accessibility guarantee from a component name or its ARIA attributes.
 ARIA attributes describe interface semantics for assistive technology.
 
@@ -57,7 +69,6 @@ Before shipping an application:
 - Test the reduced-motion preference against animations and transitions.
 - Test text and control contrast in every supported palette.
 
-The current Modal closes on Escape and backdrop click but does not trap or restore focus.
-SortableList currently configures a pointer sensor without a keyboard sensor.
-The current DataTable updates a sort indicator without reordering rows.
-These components need application-level review before use in those interactions.
+The candidate adds dialog focus containment and return, keyboard sortable movement, and row ordering for table sorts.
+Review these interactions in your application after an upgrade.
+Custom themes and compositions still need application-level accessibility tests.

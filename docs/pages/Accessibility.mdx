@@ -1,0 +1,32 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Guides/Accessibility" />
+
+# Accessibility
+
+The component examples expose labels, disabled states, errors, and keyboard interactions.
+An accessible name tells assistive technology what a control does.
+ARIA attributes describe control semantics.
+They do not establish compliance by themselves.
+
+## Keyboard review
+
+Use Tab and Shift+Tab to move between controls.
+Use Enter or Space to activate a button.
+Use arrow keys to change a radio selection or range value.
+In a sortable list, press Space on a handle, use arrow keys, then press Space to drop.
+Press Escape to cancel a move or close a dialog.
+
+For a dialog, make sure that focus enters it, stays inside it, and returns to its opener.
+For a table, make sure that a sort changes row order and that keyboard users can activate rows.
+
+## Application responsibilities
+
+Provide labels for controls and text equivalents for charts.
+Keep focus visible in every custom palette.
+Associate hints and errors with their fields.
+Test reduced motion, screen readers, zoom, and custom theme contrast.
+
+An axe scan finds common accessibility defects automatically.
+It does not replace a manual review of keyboard and assistive technology behavior.
+The [component guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) describes each contract.

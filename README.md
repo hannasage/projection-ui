@@ -1,127 +1,139 @@
 # Projection UI
 
-React components and design tokens for interfaces that share a visual system.
-Projection UI starts with a dark palette. Your application supplies its colors, font, and radius through `ThemeProvider`.
+React components and shared design values for consumer-themed interfaces.
+The default appearance uses a dark palette and a chartreuse accent.
+Your application supplies its colors, fonts, and radius through `ThemeProvider`.
 
 ```tsx
-import { Badge, Button, Card } from '@hannasage/projection-ui'
+import { Badge, Button, Card } from '@hannasage/projection-ui/core'
 
-<Card border="accent">
-  <Badge>Selected work</Badge>
-  <h2>A clear interface starts with a shared language.</h2>
-  <Button type="button" variant="primary">Explore</Button>
-</Card>
+export function ProjectExample() {
+  return (
+    <Card border="accent">
+      <Badge dot={false}>Example project</Badge>
+      <h2>Shared components</h2>
+      <Button type="button" variant="primary">Explore example</Button>
+    </Card>
+  )
+}
 ```
 
-## Install
+This branch prepares the `0.2.0-next.0` candidate.
+A candidate receives consumer checks before publication.
+The new subpaths below describe that candidate, not the published `0.1.5` package.
 
-Peer dependencies are packages that your application supplies.
-The package declares these ranges:
+## Install the candidate locally
 
-| Package | Range |
-| --- | --- |
-| `react`, `react-dom` | `>=19.0.0` |
-| `recharts` | `>=3.0.0` |
-| `zustand` | `>=5.0.0` |
-| `@dnd-kit/core` | `>=6.0.0` |
-| `@dnd-kit/sortable` | `>=10.0.0` |
-| `@dnd-kit/utilities` | `>=3.2.2` |
+A peer dependency is a package that your application supplies.
+The core runtime imports React and React DOM.
+The package retains all existing peer requirements.
+npm also installs the declared chart, drag, and toast peers, even when you use only `/core`.
+Build and pack the candidate from this repository:
 
 ```bash
-npm install @hannasage/projection-ui react@19 react-dom@19 recharts@3 zustand@5 @dnd-kit/core@6 @dnd-kit/sortable@10 @dnd-kit/utilities@3
+npm ci
+npm run build
+npm pack
 ```
 
-These are declared ranges, not a tested compatibility matrix.
-The root entry imports the chart, drag, and toast packages even when you use only a basic component.
+In your application, install the generated tarball with its actual file path:
+
+```bash
+npm install /path/to/packed-candidate.tgz react@19 react-dom@19
+```
+
+For the existing registry release, use its root imports and [0.1.5 documentation](https://github.com/hannasage/projection-ui/tree/main).
+The candidate does not promise 1.0 API stability.
 
 ## Quick start
 
-Import the token stylesheet once in your application entry.
-A token is a named value that components share.
+Import scoped styles once in your application entry.
+A CSS variable is a named value that styles share.
+The provider sets those values inside its wrapper.
 
 ```tsx
-import '@hannasage/projection-ui/tokens'
-import { Badge, Button, Card, ThemeProvider } from '@hannasage/projection-ui'
-import type { UITheme } from '@hannasage/projection-ui'
-
-const theme: UITheme = {
-  bg: '#07090C',
-  surface: '#0D1117',
-  border: '#1B2535',
-  text: '#DDE3EE',
-  muted: '#8396AB',
-  primary: '#C9F53A',
-  primaryFg: '#07090C',
-  danger: '#FF5252',
-  font: "'IBM Plex Mono', monospace",
-  radius: 'soft',
-}
+import '@hannasage/projection-ui/styles'
+import { Badge, Button, Card, DEFAULT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
 
 export default function App() {
   return (
-    <ThemeProvider
-      theme={theme}
-      style={{ background: 'var(--ui-bg)', color: 'var(--ui-text)', padding: 24 }}
-    >
+    <ThemeProvider theme={DEFAULT_THEME} style={{ background: 'var(--ui-bg)', color: 'var(--ui-text)', padding: 24 }}>
       <Card border="accent">
-        <Badge>Selected work</Badge>
-        <h1>Build with a shared visual system.</h1>
-        <Button type="button" variant="primary" onClick={() => console.log('Explore')}>
-          Explore
-        </Button>
+        <Badge dot={false}>Example project</Badge>
+        <h1>Build with shared components.</h1>
+        <Button type="button" variant="primary">Explore example</Button>
       </Card>
     </ThemeProvider>
   )
 }
 ```
 
-The font value selects a font family. The package does not download or bundle that font.
-`ThemeProvider` sets CSS variables on its element. Pass a new theme object to change those values.
+The package selects a font family but does not bundle or download font files.
+Existing `UITheme` objects remain compatible.
+Optional body and display font roles fall back to the existing `font` field.
+
+## Choose an entry
+
+| Import | Contents | Runtime peers |
+| --- | --- | --- |
+| `/core` | Theme, foundations, surfaces, actions, forms, modal, skeleton, table, content primitives | React and React DOM |
+| `/charts` | AreaChart, BarChart, LineChart, DonutChart | React, React DOM, Recharts |
+| `/sortable` | SortableList, SortableItem, arrayMove | React, React DOM, dnd-kit |
+| `/toast` | ToastContainer, useToastStore | React, React DOM, Zustand |
+| Root | Combined compatibility entry | All feature peers |
+
+The package declares React and React DOM `>=19.0.0`, Recharts `>=3.0.0`, and Zustand `>=5.0.0`.
+The dnd-kit ranges are core `>=6.0.0`, sortable `>=10.0.0`, and utilities `>=3.2.2`.
+Declared ranges do not prove compatibility with every later version.
+Read [the compatibility guide](docs/compatibility.md) for tested consumers.
+
+## Select styles
+
+`/styles` scopes shared component rules to theme wrappers.
+`/reset` supplies explicit page-wide rules.
+`/tokens` retains the legacy global rules for existing consumers.
+Read [the migration guide](docs/pages/Migration.mdx) before changing an existing stylesheet import.
 
 ## Components
 
 | Group | Exports |
 | --- | --- |
-| Theme and surfaces | `ThemeProvider`, `Card`, `Badge` |
-| Actions | `Button`, `ButtonGroup` |
-| Forms | `Input`, `Select`, `Textarea`, `Toggle`, `Slider` |
-| Feedback | `Modal`, `Skeleton`, `ToastContainer` |
-| Data | `DataTable` |
-| Drag and drop | `SortableList`, `SortableItem` |
-| Charts | `AreaChart`, `BarChart`, `LineChart`, `DonutChart` |
+| Foundations | ThemeProvider, DEFAULT_THEME, UI_FOUNDATIONS, RADIUS_SCALE |
+| Surfaces and actions | Card, Badge, Button, ButtonGroup, LinkButton |
+| Content | Container, Stack, Prose, Separator, VisuallyHidden |
+| Forms | Input, Select, Textarea, Toggle, Slider |
+| Feedback | Modal, Skeleton, ToastContainer, useToastStore |
+| Data | DataTable |
+| Sorting | SortableList, SortableItem, arrayMove |
+| Charts | AreaChart, BarChart, LineChart, DonutChart |
 
-The package also exports `useToastStore`, `arrayMove`, `RADIUS_SCALE`, `UITheme`, and component prop types.
-`Toast` is a data type, not an exported React component.
+The package exports component prop types and `UITheme`.
+`Toast` is a data type, not a React component.
+Application routes, business data, and 3D scenes belong in consuming applications.
 
-## Read the guides
-
-- [Component APIs and examples](docs/components.md)
-- [Themes and CSS tokens](docs/theming.md)
-- [Package compatibility and accessibility](docs/compatibility.md)
-- [Local component previews](docs/development.md)
-- [Release requirements](docs/releases.md)
-- [Documentation site specification](docs/site-spec.md)
-
-## Check a local change
+## Read and try the guides
 
 ```bash
-npm ci
-npm run typecheck
-npm run lint
-npm test
-npm run build
+npm run build:storybook
 ```
 
-The tests install a packed artifact in a temporary consumer and compile the documented examples.
-They check package compatibility, not browser or accessibility behavior.
+The command builds the docs from an installed packed candidate.
+The static site appears in `storybook-static`.
+The guides cover installation, themes, tokens, accessibility, migration, releases, and community.
+Every public component has a preview.
+No deployed documentation URL is declared yet.
+
+Read [the component reference](docs/components.md), [theme guide](docs/theming.md), and [development guide](docs/development.md).
+Read [the release contract](docs/releases.md) before publication.
 
 ## Contribute and give feedback
 
-Use [Issues](https://github.com/hannasage/projection-ui/issues) for bugs and feature requests.
-Request clearer examples in [the examples discussion](https://github.com/hannasage/projection-ui/discussions/5).
-Share compatibility needs in [the preservation discussion](https://github.com/hannasage/projection-ui/discussions/6).
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before a code change and [FEEDBACK.md](FEEDBACK.md) before a report.
-For a security concern, follow [SECURITY.md](SECURITY.md).
+Use [Issues](https://github.com/hannasage/projection-ui/issues) for defects and bounded requests.
+Use [Discussions](https://github.com/hannasage/projection-ui/discussions) for questions, examples, and design feedback.
+Share example needs in [the examples discussion](https://github.com/hannasage/projection-ui/discussions/5).
+Share upgrade constraints in [the preservation discussion](https://github.com/hannasage/projection-ui/discussions/6).
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [FEEDBACK.md](FEEDBACK.md), and [SECURITY.md](SECURITY.md) for each report path.
+No response deadline is promised.
 
 ## License
 

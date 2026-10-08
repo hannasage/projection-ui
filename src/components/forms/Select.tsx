@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 export interface SelectOption {
   value:    string
@@ -34,7 +34,10 @@ export function Select({
   id,
   ...rest
 }: SelectProps): React.ReactElement {
-  const selectId = id ?? (label ? `ui-select-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+  const generatedId = useId()
+  const selectId = id ?? `ui-select-${generatedId}`
+  const descriptionId = error ? `${selectId}-error` : hint ? `${selectId}-hint` : undefined
+  const describedBy = [rest['aria-describedby'], descriptionId].filter(Boolean).join(' ') || undefined
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
@@ -47,6 +50,8 @@ export function Select({
         <select
           id={selectId}
           {...rest}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : rest['aria-invalid']}
           style={{
             width:            '100%',
             paddingTop:       7,
@@ -59,7 +64,6 @@ export function Select({
             background:       'var(--ui-bg)',
             border:           `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
             borderRadius:     'var(--ui-radius-md)',
-            outline:          'none',
             appearance:       'none',
             WebkitAppearance: 'none',
             cursor:           'pointer',
@@ -93,12 +97,12 @@ export function Select({
         </span>
       </div>
       {error && (
-        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
           {hint}
         </span>
       )}

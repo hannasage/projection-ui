@@ -1,0 +1,42 @@
+import { Meta, Canvas } from '@storybook/blocks'
+import * as ThemeStories from '../../stories/ThemeProvider.stories'
+
+<Meta title="Guides/Theming" />
+
+# Theming
+
+`ThemeProvider` sets CSS variables on its wrapper.
+A CSS variable is a named value that styles share.
+Components read those values inside the provider.
+
+The existing required fields remain compatible.
+New body and display font roles fall back to `font`.
+The package selects font families but does not load font files.
+
+```tsx
+import { DEFAULT_THEME, ThemeProvider, Button } from '@hannasage/projection-ui/core'
+
+export function NestedExample() {
+  return (
+    <ThemeProvider theme={DEFAULT_THEME}>
+      <Button type="button">Outer theme</Button>
+      <ThemeProvider theme={{ ...DEFAULT_THEME, radius: 'sharp' }}>
+        <Button type="button">Nested sharp radius</Button>
+      </ThemeProvider>
+    </ThemeProvider>
+  )
+}
+```
+
+<Canvas of={ThemeStories.Nested} />
+
+## Styles and resets
+
+`/styles` scopes component rules to `data-ui-theme` wrappers.
+`/reset` supplies explicit page-wide rules.
+`/tokens` preserves the legacy page rules for existing consumers.
+Do not replace `/tokens` automatically in an existing application.
+Read <a href="./?path=/docs/guides-migration--docs" target="_top">Migration</a> before that change.
+
+A custom palette needs its own contrast tests.
+The provider does not enforce contrast.

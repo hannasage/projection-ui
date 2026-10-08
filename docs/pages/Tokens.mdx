@@ -1,0 +1,38 @@
+import { Meta, Canvas } from '@storybook/blocks'
+import * as TokenStories from '../../stories/Foundations.stories'
+
+<Meta title="Guides/Tokens" />
+
+# Tokens
+
+A token is a named design value.
+`DEFAULT_THEME` supplies the palette and theme fields.
+`UI_FOUNDATIONS` supplies shared scales.
+`RADIUS_SCALE` supplies the existing sharp, soft, and rounded presets.
+
+These previews read the packed package values.
+They do not maintain a separate token list.
+
+<Canvas of={TokenStories.Palette} />
+
+## Shared scales
+
+Type sizes pair with line-height values.
+Spacing, borders, elevation, and motion values remain available for consumer compositions.
+Use the scale exports and CSS variables instead of copying a value from this page.
+
+<Canvas of={TokenStories.Scales} />
+
+## Radius presets
+
+Select an existing radius preset to compare the same controls.
+The nested preview keeps the change within its own theme.
+
+<Canvas of={TokenStories.Radius} />
+
+## Responsive use
+
+Keep content widths fluid and allow labels to wrap.
+Place wide data tables and charts in containers with usable width.
+Use the same shared values in your application media queries.
+Test your actual copy at narrow widths and at 200 percent zoom.

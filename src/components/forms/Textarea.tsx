@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?:          string
@@ -24,7 +24,10 @@ export function Textarea({
   id,
   ...rest
 }: TextareaProps): React.ReactElement {
-  const textareaId = id ?? (label ? `ui-textarea-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+  const generatedId = useId()
+  const textareaId = id ?? `ui-textarea-${generatedId}`
+  const descriptionId = error ? `${textareaId}-error` : hint ? `${textareaId}-hint` : undefined
+  const describedBy = [rest['aria-describedby'], descriptionId].filter(Boolean).join(' ') || undefined
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
@@ -36,6 +39,8 @@ export function Textarea({
       <textarea
         id={textareaId}
         {...rest}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : rest['aria-invalid']}
         style={{
           width:        '100%',
           paddingTop:    7,
@@ -48,7 +53,6 @@ export function Textarea({
           background:   'var(--ui-bg)',
           border:       `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
           borderRadius: 'var(--ui-radius-md)',
-          outline:      'none',
           resize:       'vertical',
           minHeight:    80,
           boxSizing:    'border-box',
@@ -58,12 +62,12 @@ export function Textarea({
         }}
       />
       {error && (
-        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
           {hint}
         </span>
       )}

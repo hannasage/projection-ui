@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Guides/Installation" />
+
+# Installation
+
+The 0.2 candidate adds isolated feature imports.
+A peer dependency is a package that your application supplies.
+The core runtime imports React and React DOM.
+The package retains all existing peer requirements.
+npm also installs the declared chart, drag, and toast peers, even when you use only `/core`.
+
+For local review, install the tarball produced by `npm pack`.
+Replace the example path below with the path to that tarball.
+A tarball is the archive that npm installs.
+
+```bash
+npm install /path/to/packed-candidate.tgz react@19 react-dom@19
+```
+
+## Quick start
+
+Import scoped styles once in your application entry.
+The provider keeps the example theme within its wrapper.
+
+```tsx
+import '@hannasage/projection-ui/styles'
+import { Button, DEFAULT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
+
+export function Example() {
+  return (
+    <ThemeProvider theme={DEFAULT_THEME}>
+      <Button type="button" variant="primary">Start example</Button>
+    </ThemeProvider>
+  )
+}
+```
+
+## Feature imports
+
+Install `recharts@3` for `/charts`.
+Install `@dnd-kit/core@6`, `@dnd-kit/sortable@10`, and `@dnd-kit/utilities@3` for `/sortable`.
+Install `zustand@5` for `/toast`.
+The root import retains the combined feature entry for existing consumers.
+
+For Next.js App Router, place interactive imports in a file with `'use client'`.
+Load the stylesheet through the application entry that Next.js accepts.
+The [compatibility guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/compatibility.md) records the consumer checks.

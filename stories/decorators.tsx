@@ -1,25 +1,13 @@
-import React from 'react'
 import type { Decorator } from '@storybook/react'
-import { ThemeProvider } from '../src/components/ThemeProvider'
-import type { UITheme } from '../src/theme'
+import { ThemeProvider } from '@hannasage/projection-ui/core'
+import { DEFAULT_THEME } from '@hannasage/projection-ui/core'
 
-export const darkTheme: UITheme = {
-  bg:        '#07090C',
-  surface:   '#0D1117',
-  border:    '#1B2535',
-  text:      '#DDE3EE',
-  muted:     '#8396AB',
-  primary:   '#C9F53A',
-  primaryFg: '#07090C',
-  danger:    '#FF5252',
-  font:      "'IBM Plex Mono', monospace",
-  radius:    'soft',
-}
+export const darkTheme = DEFAULT_THEME
 
 export const withTheme: Decorator = (Story) => (
   <ThemeProvider
     theme={darkTheme}
-    style={{ background: 'var(--ui-bg)', minHeight: '100vh', padding: 24 }}
+    style={{ background: 'var(--ui-bg)', color: 'var(--ui-text)', fontFamily: 'var(--ui-font-body, var(--ui-font))', lineHeight: 1.55, padding: 16 }}
   >
     <Story />
   </ThemeProvider>

@@ -4,13 +4,15 @@
 Child components read those values.
 A nested provider can give one part of a page its own theme.
 
-Import `@hannasage/projection-ui/tokens` once to load fallback values and shared CSS rules.
-The stylesheet also affects focus rings, form controls, scrollbars, and text selection across the page.
+For new integrations, import `/styles` to scope shared component rules to theme wrappers.
+Import `/reset` only when your application needs explicit page rules.
+The legacy `/tokens` entry retains global focus, form, scrollbar, and selection rules.
 
 ## Theme fields
 
-Every field in `UITheme` is required.
-The palette below comes from `src/tokens/theme.css`.
+The existing fields below remain required.
+The 0.2 candidate adds optional fields without changing existing theme objects.
+The palette below comes from `DEFAULT_THEME` and the generated token stylesheet.
 
 | Field | CSS variable | Fallback |
 | --- | --- | --- |
@@ -64,3 +66,19 @@ export function CompactPanel({ theme }: { theme: UITheme }) {
 Use the application's theme state to pass a different `UITheme` object.
 The library does not ship a theme picker, a persistence mechanism, or a light palette preset.
 Test text, focus, and control contrast for each palette that your application offers.
+
+## Optional semantic and font roles
+
+| Field | CSS variable | Default |
+| --- | --- | --- |
+| `fontBody` | `--ui-font-body` | Existing `font` value |
+| `fontDisplay` | `--ui-font-display` | Existing `font` value |
+| `success` | `--ui-success` | `#51CF66` |
+| `warning` | `--ui-warning` | `#FFB347` |
+| `focus` | `--ui-focus` | Existing `primary` value |
+| `backdrop` | `--ui-backdrop` | `rgba(0,0,0,0.55)` |
+
+`DEFAULT_THEME` supplies the existing theme fields.
+`UI_FOUNDATIONS` supplies type, line-height, spacing, border, elevation, motion, and semantic values.
+The generated CSS properties use the same foundation source.
+The [token preview](pages/Tokens.mdx) reads the actual package exports.

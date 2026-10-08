@@ -1,9 +1,10 @@
 # Release requirements
 
 A release must give consumers a package whose exports, examples, and compatibility claims agree.
-The current package version is `0.1.5`.
+The published baseline is `0.1.5`.
+This work prepares `0.2.0-next.0` before stable `0.2.0`.
+The [changelog](../CHANGELOG.md) describes the candidate.
 The repository includes packed-package contract tests.
-It does not currently include a release workflow or changelog.
 
 ## Version scope
 
@@ -33,7 +34,9 @@ Review sourcemaps before publication because they can include source content.
 ## Prerelease gates
 
 Run `npm test` to exercise the current package contract.
-The release must also add browser interaction, accessibility, and framework-consumer checks.
+The current tests include browser interactions, accessibility checks, and framework consumers.
+The [CI workflow](../.github/workflows/ci.yml) runs these checks on pull requests and pushes to `main`.
+It uses Node 24.11.0 and uploads the checked Storybook build.
 A release candidate must pass:
 
 - Effective TypeScript, lint, unit, interaction, and library-build checks.
@@ -50,15 +53,24 @@ If a gate fails, fix the candidate before publication.
 
 ## Publishing identity
 
-Use [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) from an approved GitHub Actions workflow.
-Trusted publishing authenticates a workflow without a long-lived npm write token.
-The package owner configures the exact repository, workflow filename, and optional release environment on npm.
+The [publish workflow](../.github/workflows/publish.yml) accepts `v0.2.0` and `v0.2.0-next.*` tags.
+The tag must match the package version and its changelog entry.
+Its verification job runs the package, consumer, browser, and docs gates before packing the candidate.
+Its separate publish job downloads that exact tarball; it does not rebuild it.
 
-For explicit owner approval before a package goes live, use [npm staged publishing](https://docs.npmjs.com/staged-publishing/).
-Staged publishing requires npm 11.15.0 or later and Node 22.14.0 or later.
-The owner reviews the staged artifact and approves it with two-factor authentication.
-Recheck these requirements before implementing the workflow.
+The publish job uses Node 24.11.0 and npm 11.6.1.
+It requires the protected `npm-publish` GitHub environment and [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
+Trusted publishing uses OpenID Connect (OIDC), which gives the approved workflow a short-lived identity instead of a stored npm write token.
+The package owner must configure the exact repository, workflow filename, and `npm-publish` environment on npm.
+The owner must also set the required environment reviewers on GitHub before any release tag is pushed.
 
+The workflow publishes directly after environment approval.
+It records provenance, which links the package to its build.
+Prerelease versions use `next`; stable `0.2.0` uses `latest`.
+The workflow checks that exactly one tarball matches the approved package version.
+
+[npm staged publishing](https://docs.npmjs.com/staged-publishing/) remains an owner option for a separate release process.
+It is not used by this workflow.
 Do not put npm tokens in examples, issue reports, or workflow logs.
 Package publication requires maintainer authorization.
 

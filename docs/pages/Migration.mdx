@@ -1,0 +1,36 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Guides/Migration" />
+
+# Migration from 0.1.5
+
+The 0.2 candidate retains root imports, existing required theme fields, radius presets, and `/tokens`.
+Existing theme objects do not need new fields.
+Keep your current imports first, then make optional changes separately.
+
+## Isolate optional features
+
+Use `/core` for basic controls and content primitives.
+Use `/charts`, `/sortable`, or `/toast` when you need those features.
+The package retains all required feature peers during npm installation.
+Subpaths isolate bundle imports without reducing that install requirement.
+
+```tsx
+import { Button } from '@hannasage/projection-ui/core'
+import { LineChart } from '@hannasage/projection-ui/charts'
+import { SortableList } from '@hannasage/projection-ui/sortable'
+import { ToastContainer } from '@hannasage/projection-ui/toast'
+```
+
+## Select styles deliberately
+
+Keep `/tokens` if your page depends on its global rules.
+For a new scoped integration, use `/styles`.
+Add `/reset` only when you want page-wide rules.
+
+## Review changed interactions
+
+Table sorting now orders rows.
+Supply `sortValue(row)` for a derived sortable value, or `compare(a, b)` for a custom comparison.
+Review dialog focus, radio arrow keys, switch activation, and sortable keyboard movement after your upgrade.
+Make sure that your application does not duplicate the library behavior.

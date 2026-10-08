@@ -25,6 +25,7 @@ const variables = [
 let consumerRequire;
 let esm;
 let cjs;
+let archive;
 
 function npm(args) {
   const executable = process.env.npm_execpath;
@@ -54,6 +55,7 @@ before(async () => {
   });
   const [packed] = JSON.parse(npm(['pack', '--json', '--ignore-scripts', '--pack-destination', temporary]));
   assert.ok(packed.filename, 'npm pack must return a tarball');
+  archive = join(temporary, packed.filename);
   mkdirSync(fixture);
   writeFileSync(join(fixture, 'package.json'), JSON.stringify({ name: 'projection-ui-contract-consumer', private: true, type: 'module' }));
   npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund', join(temporary, packed.filename)]);
@@ -74,7 +76,7 @@ before(async () => {
 for (const format of ['ESM', 'CommonJS']) {
   test(`${format} exposes the documented public runtime API`, () => {
     const api = format === 'ESM' ? esm : cjs;
-    assert.deepEqual(Object.keys(api).sort(), expectedExports);
+    for (const name of expectedExports) assert.ok(name in api, `${format} preserves ${name}`);
     for (const name of expectedExports.filter(name => name !== 'RADIUS_SCALE')) {
       assert.equal(typeof api[name], 'function', `${format} ${name} must be callable`);
     }
@@ -97,6 +99,50 @@ test('the installed package supplies its stylesheet and declaration targets', ()
   for (const variable of variables) assert.match(css, new RegExp(`--ui-${variable}\\s*:`));
   for (const [role, value] of Object.entries(esm.RADIUS_SCALE.soft)) {
     assert.match(css, new RegExp(`--ui-radius-${role}\\s*:\\s*${value}`));
+  }
+});
+
+test('additive foundations preserve the legacy default theme and radius values', () => {
+  assert.equal(esm.DEFAULT_THEME.primary, '#C9F53A');
+  assert.equal(esm.DEFAULT_THEME.font, "'IBM Plex Mono', monospace");
+  assert.equal(esm.DEFAULT_THEME.radius, 'soft');
+  assert.deepEqual(esm.RADIUS_SCALE.soft, { sm: '4px', md: '6px', lg: '10px', full: '9999px' });
+  assert.ok(esm.UI_FOUNDATIONS.space.md);
+  assert.ok(esm.UI_FOUNDATIONS.motion.fast);
+});
+
+test('every JavaScript, CSS, and declaration entry exists; client boundaries stay explicit', () => {
+  const installed = join(fixture, 'node_modules', '@hannasage', 'projection-ui');
+  for (const [entry, target] of Object.entries(manifest.exports)) {
+    const paths = typeof target === 'string' ? [target] : Object.values(target);
+    for (const path of paths) assert.ok(readFileSync(join(installed, path)).length, `${entry}: ${path} is packed`);
+    if (typeof target !== 'string') assert.equal(Object.keys(target)[0], 'types', `${entry} resolves types first`);
+    if (target.import && entry !== './foundations') assert.match(readFileSync(join(installed, target.import), 'utf8'), /^['"]use client['"]/);
+  }
+  assert.doesNotMatch(readFileSync(join(installed, manifest.exports['./foundations'].import), 'utf8'), /['"]use client['"]/);
+  assert.ok(readdirSync(installed).includes('LICENSE'), 'license accompanies the candidate');
+});
+
+test('a default npm install still supplies the legacy root feature peers', () => {
+  const clean = join(temporary, 'default-install');
+  mkdirSync(clean);
+  writeFileSync(join(clean, 'package.json'), JSON.stringify({name:'projection-default-install',private:true}));
+  // No peer bypass or dependency symlinks: this exercises npm's normal installation.
+  npm(['install', '--prefix', clean, '--legacy-peer-deps=false', '--ignore-scripts', '--package-lock=false', '--no-audit', '--no-fund', archive, 'react@19.2.5', 'react-dom@19.2.5']);
+  const require = createRequire(join(clean, 'package.json'));
+  const api = require(packageName);
+  for (const name of expectedExports) assert.ok(name in api, `Fresh install preserves ${name}`);
+  for (const name of ['recharts','zustand','@dnd-kit/core','@dnd-kit/sortable','@dnd-kit/utilities']) assert.ok(require.resolve(name), `${name} is supplied by the normal required peer install`);
+});
+
+test('feature entries share component and store identities with the legacy root', async () => {
+  const entry = join(fixture, 'feature-entries.mjs');
+  writeFileSync(entry, ['core','charts','sortable','toast','foundations'].map(name => `export * as ${name} from '${packageName}/${name}'`).join('\n'));
+  const features = await import(pathToFileURL(entry).href);
+  for (const name of Object.keys(features)) {
+    const commonjs = consumerRequire(`${packageName}/${name}`);
+    for (const [member, value] of Object.entries(features[name])) assert.equal(value, esm[member], `${name}/${member} shares the ESM root identity`);
+    for (const [member, value] of Object.entries(commonjs)) assert.equal(value, cjs[member], `${name}/${member} shares the CommonJS root identity`);
   }
 });
 
@@ -123,20 +169,21 @@ test('both module formats render the documented theme and component composition'
 test('README and guide TSX examples compile against the installed tarball', () => {
   const examples = join(fixture, 'examples');
   mkdirSync(examples);
-  const guides = ['README.md', ...readdirSync(join(repository, 'docs')).filter(name => name.endsWith('.md')).sort().map(name => `docs/${name}`)];
+  function walk(folder) { return readdirSync(join(repository, folder), {withFileTypes:true}).flatMap(entry => entry.isDirectory() ? walk(`${folder}/${entry.name}`) : /\.(md|mdx)$/.test(entry.name) ? [`${folder}/${entry.name}`] : []) }
+  const guides = ['README.md', ...walk('docs').sort()];
   let count = 0;
   for (const guide of guides) {
     const markdown = readFileSync(join(repository, guide), 'utf8');
     const blocks = [...markdown.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/g)];
     if (guide === 'README.md') assert.ok(blocks.length >= 2, 'README must include its overview and quick-start examples');
     for (const [index, block] of blocks.entries()) {
-      writeFileSync(join(examples, `${guide.replaceAll('/', '-').replace(/\.md$/, '')}-${index + 1}.tsx`), `${block[1]}\n`);
+      writeFileSync(join(examples, `${guide.replaceAll('/', '-').replace(/\.mdx?$/, '')}-${index + 1}.tsx`), `${block[1]}\n`);
       count += 1;
     }
   }
   assert.ok(count >= 2, 'documentation examples must not be an empty compile');
   // Match the stylesheet asset declaration documented in docs/compatibility.md.
-  writeFileSync(join(examples, 'assets.d.ts'), `declare module '${packageName}/tokens'\n`);
+  writeFileSync(join(examples, 'assets.d.ts'), ['tokens','styles','reset'].map(name => `declare module '${packageName}/${name}'`).join('\n'));
   const configuration = join(fixture, 'tsconfig.json');
   writeFileSync(configuration, JSON.stringify({
     compilerOptions: { target: 'ES2020', lib: ['ES2020', 'DOM', 'DOM.Iterable'], module: 'ESNext', moduleResolution: 'bundler', jsx: 'react-jsx', strict: true, skipLibCheck: true, noEmit: true },

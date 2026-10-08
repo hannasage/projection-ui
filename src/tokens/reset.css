@@ -1,0 +1,10 @@
+/* Explicit opt-in page rules; import scoped.css for component tokens. */
+:where(select, input, textarea, button, a):focus-visible { outline: 2px solid var(--ui-focus, var(--ui-primary, #C9F53A)); outline-offset: 2px; border-radius: 3px; }
+input[type="range"] { accent-color: var(--ui-primary, #C9F53A); cursor: pointer; }
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--ui-bg); }
+::-webkit-scrollbar-thumb { background: var(--ui-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ui-primary); }
+::selection { background: var(--ui-primary); color: var(--ui-primary-fg); }

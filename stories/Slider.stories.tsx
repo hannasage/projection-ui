@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { Slider } from '../src/components/Slider'
+import { Slider } from '@hannasage/projection-ui/core'
 import { withTheme, darkTheme } from './decorators'
-import { ThemeProvider } from '../src/components/ThemeProvider'
+import { ThemeProvider } from '@hannasage/projection-ui/core'
 
-const meta: Meta<typeof Slider> = {
+const meta: Meta<typeof Slider> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },
   title:      'Components/Slider',
   component:  Slider,
   decorators: [withTheme],
@@ -32,7 +32,7 @@ export const WithValueFormat: Story = {
       step={0.1}
       value={4.5}
       valueFormat={(v) => `${v.toFixed(1)}%`}
-      hint="Current high-yield savings rate"
+      hint="Synthetic rate for this example"
     />
   ),
 }
@@ -57,7 +57,7 @@ export const Disabled: Story = {
 }
 
 export const NoLabel: Story = {
-  render: () => <Controlled min={0} max={100} />,
+  render: () => <Controlled aria-label="Preview level" min={0} max={100} />,
 }
 
 export const RadiusSharp: Story = {

@@ -1,0 +1,53 @@
+/* Generated from src/foundations.ts. Only themed wrappers and their children are styled. */
+:where([data-ui-theme]) {
+  --ui-bg: #07090C;
+  --ui-surface: #0D1117;
+  --ui-border: #1B2535;
+  --ui-text: #DDE3EE;
+  --ui-muted: #8396AB;
+  --ui-primary: #C9F53A;
+  --ui-primary-fg: #07090C;
+  --ui-danger: #FF5252;
+  --ui-font: 'IBM Plex Mono', monospace;
+  --ui-font-body: var(--ui-font);
+  --ui-font-display: var(--ui-font);
+  --ui-focus: var(--ui-primary);
+  --ui-success: #51CF66;
+  --ui-warning: #FFB347;
+  --ui-backdrop: rgba(0,0,0,0.55);
+  --ui-radius-sm: 4px;
+  --ui-radius-md: 6px;
+  --ui-radius-lg: 10px;
+  --ui-radius-full: 9999px;
+  --ui-font-size-xs: 10px;
+  --ui-font-size-sm: 12px;
+  --ui-font-size-md: 13px;
+  --ui-font-size-lg: 16px;
+  --ui-font-size-xl: 20px;
+  --ui-line-height-tight: 1.25;
+  --ui-line-height-body: 1.55;
+  --ui-space-xs: 4px;
+  --ui-space-sm: 8px;
+  --ui-space-md: 12px;
+  --ui-space-lg: 16px;
+  --ui-space-xl: 24px;
+  --ui-space-2xl: 32px;
+  --ui-border-width-default: 1px;
+  --ui-border-width-focus: 2px;
+  --ui-elevation-toast: 0 8px 32px rgba(0,0,0,0.35);
+  --ui-elevation-modal: 0 24px 80px rgba(0,0,0,0.45);
+  --ui-motion-fast: 0.12s;
+  --ui-motion-normal: 0.18s;
+  --ui-motion-shimmer: 1.4s;
+}
+:where([data-ui-theme]) :where(select, input, textarea, button, a):focus-visible { outline: 2px solid var(--ui-focus, var(--ui-primary, #C9F53A)); outline-offset: 2px; border-radius: 3px; }
+:where([data-ui-theme]) input[type="range"] { accent-color: var(--ui-primary, #C9F53A); cursor: pointer; }
+:where([data-ui-theme]) input[type="number"] { -moz-appearance: textfield; }
+:where([data-ui-theme]) input[type="number"]::-webkit-outer-spin-button, :where([data-ui-theme]) input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+:where([data-ui-theme]) .ui-prose :where(h1,h2,h3,h4,h5,h6) { font-family: var(--ui-font-display, var(--ui-font)); line-height: var(--ui-line-height-tight); }
+:where([data-ui-theme]) .ui-prose :where(a) { color: var(--ui-primary); text-underline-offset: 3px; }
+:where([data-ui-theme]) .ui-prose :where(pre) { overflow-x: auto; }
+@media (prefers-reduced-motion: reduce) {
+  :where([data-ui-theme]) .ui-skeleton, :where([data-ui-theme]) .ui-toast { animation: none !important; }
+  :where([data-ui-theme]) :where(button, input, [role="radio"], .ui-toggle-thumb) { transition: none !important; }
+}
