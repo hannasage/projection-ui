@@ -5,7 +5,7 @@ import { withTheme } from '../decorators'
 const meta: Meta<typeof AreaChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },
   title:      'Charts/AreaChart',
   component:  AreaChart,
-  render: args => <><AreaChart {...args} /><table><caption>Synthetic chart values</caption><thead><tr><th scope="col">Label</th>{args.series.map(series => <th key={series.key} scope="col">{series.label ?? series.key}</th>)}</tr></thead><tbody>{args.data.map((row, index) => <tr key={index}><th scope="row">{String(row[args.xKey])}</th>{args.series.map(series => <td key={series.key}>{String(row[series.key])}</td>)}</tr>)}</tbody></table></>,
+  render: args => <><AreaChart {...args} /><table tabIndex={0}><caption>Synthetic chart values</caption><thead><tr><th scope="col">Label</th>{args.series.map(series => <th key={series.key} scope="col">{series.label ?? series.key}</th>)}</tr></thead><tbody>{args.data.map((row, index) => <tr key={index}><th scope="row">{String(row[args.xKey])}</th>{args.series.map(series => <td key={series.key}>{String(row[series.key])}</td>)}</tr>)}</tbody></table></>,
   decorators: [withTheme],
   tags:       ['autodocs'],
 }
