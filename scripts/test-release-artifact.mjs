@@ -14,7 +14,7 @@ try {
   assert.equal(packed.files.length,69,'The library keeps its reviewed artifact inventory');
   assert.ok(packed.files.every(file=>file.path.startsWith('dist/')||['README.md','LICENSE','package.json'].includes(file.path)),'No docs application or unrelated files enter npm');
   const archive = resolve(temporary,packed.filename);
-  const result = spawnSync(process.execPath,['--test','--test-concurrency=1','tests/frameworks.test.mjs','tests/package-contract.test.mjs','tests/runtime.test.mjs'],{stdio:'inherit',env:{...process.env,PROJECTION_UI_TARBALL:archive},timeout:300_000});
+  const result = spawnSync(process.execPath,['--test','--test-concurrency=1','tests/frameworks.test.mjs','tests/package-contract.test.mjs','tests/runtime.test.mjs','tests/charts.test.mjs'],{stdio:'inherit',env:{...process.env,PROJECTION_UI_TARBALL:archive},timeout:300_000});
   if (result.error) throw result.error;
   assert.equal(result.status,0,'Final consumers test the exact archive without rebuilding the library');
   const [after] = JSON.parse(execFileSync('npm',['pack','--dry-run','--json','--ignore-scripts'],{encoding:'utf8'}));

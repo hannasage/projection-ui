@@ -18,8 +18,9 @@ export function ProjectExample() {
 }
 ```
 
-This branch prepares the `0.2.0-next.1` candidate.
-A candidate receives consumer checks before publication.
+This branch prepares the unpublished `0.2.0-next.1` alpha.
+An alpha is a preview that receives consumer checks before publication.
+The current preview includes the shared neon chart palette and cursor proximity glow.
 The new subpaths below describe that candidate, not the published `0.1.5` package.
 
 ## Install the candidate locally

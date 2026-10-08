@@ -83,6 +83,8 @@ for (const format of ['ESM', 'CommonJS']) {
     for (const name of expectedExports.filter(name => name !== 'RADIUS_SCALE')) {
       assert.equal(typeof api[name], 'function', `${format} ${name} must be callable`);
     }
+    assert.equal(api.DEFAULT_CHART_COLORS.length, 6, `${format} supplies the shared chart palette`);
+    assert.equal(api.DEFAULT_CHART_COLORS[0], 'var(--ui-primary)', `${format} chart defaults follow the existing theme primary`);
     const input = ['first', 'second', 'third'];
     assert.deepEqual(api.arrayMove(input, 0, 2), ['second', 'third', 'first']);
     assert.deepEqual(input, ['first', 'second', 'third']);

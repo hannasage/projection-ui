@@ -61,7 +61,11 @@ The preview must not overwrite the documentation page's theme.
 Use synthetic data and licensed assets.
 The site must not execute visitor-submitted code or fetch examples from arbitrary URLs.
 Use locally authored examples.
-The initial site requires no accounts, tracking, cookie banner, or external font service.
+The reader serves Syne headings, IBM Plex Sans reading text, and IBM Plex Mono code and labels.
+Font assets are bundled by the docs build; the browser does not contact an external font service.
+Copyright notices and the full SIL Open Font License texts ship in `docs-site/public/font-licenses/`.
+The reader requires no application accounts, tracking, or cookie banner.
+Hosted Preview deployments retain the host account protection.
 The static export appears in `docs-site/out`.
 It includes `/markdown/`, `/llms.txt`, `/llms-full.txt`, and `/release.json`.
 The release metadata names the package version and tarball integrity.

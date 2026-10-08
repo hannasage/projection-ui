@@ -1,0 +1,8 @@
+Projection UI documentation fonts
+
+Syne: headings. License: Syne-OFL.txt
+IBM Plex Sans: reading text. License: IBM-Plex-Sans-OFL.txt
+IBM Plex Mono: code and labels. License: IBM-Plex-Mono-OFL.txt
+
+These fonts are served with the documentation under the SIL Open Font License 1.1.
+The component package does not include font files.

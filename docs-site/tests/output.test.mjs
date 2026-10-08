@@ -23,5 +23,16 @@ test('plain content and the explorer identify the same packed candidate', () => 
   assert.match(read('llms-full.txt'), /```tsx\nimport/);
   assert.doesNotMatch(read('llms-full.txt'), /<Canvas|<Meta|<Example/);
   const explorer = JSON.parse(read('examples/index.json'));
-  assert.equal(Object.keys(explorer.entries).length, 113);
+  assert.equal(Object.keys(explorer.entries).length, 114);
+  assert.equal(explorer.entries['charts-chartpalette--default'].type, 'story');
+});
+
+test('served documentation includes all font copyright notices and licenses', () => {
+  assert.match(read('index.html'), /font-licenses\/NOTICE\.txt/);
+  for (const name of ['Syne','IBM-Plex-Sans','IBM-Plex-Mono']) {
+    const license = read(`font-licenses/${name}-OFL.txt`);
+    assert.match(license, /Copyright/);
+    assert.match(license, /SIL OPEN FONT LICENSE Version 1\.1/);
+    assert.match(license, /PERMISSION & CONDITIONS/);
+  }
 });

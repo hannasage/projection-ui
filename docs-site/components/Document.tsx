@@ -13,5 +13,6 @@ export function Document({ slug }: { slug?: string[] }) {
     <DocsDescription>{page.data.description}</DocsDescription>
     <p className="document-source"><a href={`/markdown/${page.slugs.length ? page.slugs.join('/') : 'index'}.md`}>Read this page as Markdown</a></p>
     <DocsBody><MDX components={{ ...defaultComponents, Example }} /></DocsBody>
+    <p className="document-source"><a href="/font-licenses/NOTICE.txt">Font licenses</a></p>
   </DocsPage>;
 }

@@ -42,6 +42,8 @@ try {
     await page.evaluate(() => document.fonts.ready);
     const codeViewports = page.locator('[data-radix-scroll-area-viewport]');
     assert.ok(await codeViewports.evaluateAll(nodes => nodes.every(node => node.tabIndex === 0 && node.getAttribute('aria-label'))), `${entry.id} code examples must have named keyboard scroll targets`);
+    const exampleViewports = page.locator('.docs-story > div:first-child');
+    assert.ok(await exampleViewports.evaluateAll(nodes => nodes.every(node => node.tabIndex === 0 && node.getAttribute('role') === 'region' && node.getAttribute('aria-label'))), `${entry.id} component previews must have named keyboard scroll targets`);
     await page.addScriptTag({path:axe});
     const result = await page.evaluate(async () => window.axe.run(document.body, {runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}));
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
@@ -104,6 +106,23 @@ try {
       });
       await page.keyboard.press('ArrowDown');
       await page.waitForFunction(previous => document.querySelector('.docs-story > div:first-child').scrollTop > previous, before);
+    }
+    if (['guides-tokens--docs', 'forms-input--docs', 'forms-textarea--docs'].includes(entry.id)) {
+      const viewport = entry.id === 'guides-tokens--docs'
+        ? exampleViewports.filter({ has: page.locator('[id="story--components-projectionglow--default"]') })
+        : exampleViewports.filter({ has: page.locator('input:disabled, textarea:disabled') });
+      assert.equal(await viewport.count(), 1, `${entry.id} retains its noninteractive example`);
+      await viewport.evaluate(node => { node.style.maxHeight = '80px'; node.scrollTop = 0; });
+      assert.ok(await viewport.evaluate(node => node.scrollHeight > node.clientHeight), `${entry.id} constrained preview really scrolls`);
+      await viewport.focus();
+      assert.ok(await viewport.evaluate(node => document.activeElement === node), `${entry.id} preview receives keyboard focus without enabling its controls`);
+      await page.keyboard.press('ArrowDown');
+      await viewport.evaluate(node => new Promise((resolve, reject) => {
+        const deadline = performance.now() + 2000;
+        const inspect = () => node.scrollTop > 0 ? resolve() : performance.now() > deadline ? reject(new Error('Component preview did not scroll with ArrowDown')) : requestAnimationFrame(inspect);
+        inspect();
+      }));
+      await viewport.evaluate(node => node.style.removeProperty('max-height'));
     }
     const wideCode = await codeViewports.evaluateAll(nodes => nodes.findIndex(node => node.scrollWidth > node.clientWidth + 1));
     if (wideCode !== -1) {

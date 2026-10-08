@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-next.1 unpublished alpha
 
 - Export DEFAULT_CHART_COLORS from the chart and root entries. The first color follows the theme primary color.
 - Add mouse proximity glow to area, bar, donut, and line marks. Reduced motion, forced colors, touch, and pen skip the decorative effect.
@@ -8,9 +8,9 @@
 - Keep nonempty custom chart colors unchanged; empty strings use the shared palette.
 - Give each area chart its own gradient IDs.
 
-## 0.2.0-next.1 candidate
+### Package foundations
 
-This entry describes the local candidate before npm publication.
+This entry describes the local alpha before npm publication.
 Existing root imports, required theme fields, CSS variable meanings, and radius presets remain available.
 Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 
