@@ -64,3 +64,34 @@ test('landing has its own layout and keeps an explicit reader home', async () =>
   assert.match(reader,/DocsLayout/);
   assert.doesNotMatch(readFileSync(new URL('../docs-site/app/(docs)/layout.tsx',import.meta.url),'utf8'),/DocsLayout/);
 });
+
+test('reader fonts use checked-in files without a Google build dependency', async () => {
+  const { readFileSync } = await import('node:fs');
+  const layout = readFileSync(new URL('../docs-site/app/layout.tsx',import.meta.url),'utf8');
+  assert.match(layout,/from 'next\/font\/local'/);
+  assert.doesNotMatch(layout,/next\/font\/google/);
+  const fonts = [...layout.matchAll(/path: '([^']+\.woff2)'/g)];
+  assert.equal(fonts.length,4,'The reader needs two variable font files and both mono weights');
+  for (const [,path] of fonts) assert.equal(readFileSync(new URL('../docs-site/app/'+path,import.meta.url)).subarray(0,4).toString(),'wOF2');
+  for (const role of ['heading','body','code']) assert.match(layout,new RegExp(`--reader-${role}`));
+});
+
+test('local font metadata covers the reader families and weights', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { default: loader } = await import('../node_modules/next/dist/compiled/@next/font/dist/fontkit/index.js');
+  const font = name => loader.default(readFileSync(new URL('../docs-site/public/fonts/'+name,import.meta.url)));
+  for (const [name,family,weights] of [
+    ['syne-latin-variable.woff2','Syne',[700,800]],
+    ['ibm-plex-sans-latin-variable.woff2','IBM Plex Sans',[400,500,600]],
+  ]) {
+    const face = font(name);
+    assert.equal(face.familyName,family);
+    for (const weight of weights) assert.ok(face.variationAxes.wght.min<=weight && face.variationAxes.wght.max>=weight, `${family} covers ${weight}`);
+    assert.ok(face.hasGlyphForCodePoint(65));
+  }
+  for (const weight of [400,500]) {
+    const face = font(`ibm-plex-mono-latin-${weight}.woff2`);
+    assert.match(face.familyName,/^IBM Plex Mono/);
+    assert.equal(face['OS/2'].usWeightClass,weight);
+  }
+});

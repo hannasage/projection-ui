@@ -49,3 +49,11 @@ test('landing and reader keep separate usable entry points', () => {
   assert.doesNotMatch(landing,/id="nd-sidebar"/);
   assert.match(read('docs/index.html'),/Read this page as Markdown/);
 });
+
+test('static documentation serves the checked-in font binaries', () => {
+  for (const name of ['syne-latin-variable.woff2','ibm-plex-sans-latin-variable.woff2','ibm-plex-mono-latin-400.woff2','ibm-plex-mono-latin-500.woff2']) {
+    const served = readFileSync(new URL('../out/fonts/'+name,import.meta.url));
+    const source = readFileSync(new URL('../public/fonts/'+name,import.meta.url));
+    assert.deepEqual(served,source,`${name} keeps its verified licensed bytes`);
+  }
+});
