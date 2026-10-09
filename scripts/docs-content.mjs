@@ -36,7 +36,7 @@ export function componentDocuments(contracts, entries, manifest) {
       return `\`${dependency} ${range}\``;
     }).join(', ');
     const runtime = dependencies ? `Package runtime dependencies: ${dependencies}.\nWhen you install Projection UI, npm installs these dependencies automatically.\n` : '';
-    const mdx = `## Component contract\n\n| Required props | Options and defaults |\n| --- | --- |\n| ${required} | ${options} |\n\nShared application peers: ${peers}.\nYour application supplies React 19 and React DOM 19.\n${runtime}\n\nRead the [full component reference](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for supported values and interaction behavior.\n\n## Examples\n\n` + examples.map(entry => `<Example id="${entry.id}" title="${name}: ${entry.name}" />`).join('\n\n') + '\n';
+    const mdx = `## Component contract\n\n| Required props | Options and defaults |\n| --- | --- |\n| ${required} | ${options} |\n\nShared application peers: ${peers}.\nYour application supplies React 19 and React DOM 19.\n${runtime}\n\nRead the [full component reference](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for supported values and interaction behavior.\n\n## Examples\n\n` + examples.map(entry => `<Example id="${entry.id}" title="${name}: ${entry.name}" />`).join('\n\n') + '\n';
     return { title:name, slug:`components/${kebab(name)}`, mdx, markdown:`# ${name}\n\n${plain(mdx)}` };
   });
 }

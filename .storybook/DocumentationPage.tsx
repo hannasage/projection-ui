@@ -13,7 +13,7 @@ function ComponentContract() {
     <h2>Component contract</h2>
     <table><thead><tr><th scope="col">Required props</th><th scope="col">Options and defaults</th></tr></thead>
       <tbody><tr><td>{contract[0]}</td><td>{contract[1]}</td></tr></tbody></table>
-    <p><a href="https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md">Read the full component reference</a> for value choices and interaction behavior.</p>
+    <p><a href="https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md">Read the full component reference</a> for value choices and interaction behavior.</p>
   </section>
 }
 

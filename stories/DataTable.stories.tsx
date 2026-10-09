@@ -4,7 +4,7 @@ import { DataTable } from '@hannasage/projection-ui/core'
 import type { Column } from '@hannasage/projection-ui/core'
 import { withTheme } from './decorators'
 
-const meta: Meta<typeof DataTable> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },  title: 'Components/DataTable', component: DataTable, decorators: [withTheme], tags: ['autodocs'] }
+const meta: Meta<typeof DataTable> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },  title: 'Components/DataTable', component: DataTable, decorators: [withTheme], tags: ['autodocs'] }
 export default meta
 type Story = StoryObj<typeof DataTable>
 

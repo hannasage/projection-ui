@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { DEFAULT_CHART_COLORS, DonutChart } from '@hannasage/projection-ui/charts'
 import { withTheme } from '../decorators'
 
-const meta: Meta<typeof DonutChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },
+const meta: Meta<typeof DonutChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },
   title:      'Charts/DonutChart',
   component:  DonutChart,
   render: args => <><DonutChart {...args} /><table tabIndex={0}><caption>Synthetic category values</caption><thead><tr><th scope="col">Category</th><th scope="col">Value</th></tr></thead><tbody>{args.data.map(slice => <tr key={slice.key}><th scope="row">{slice.label}</th><td>{slice.value}</td></tr>)}</tbody></table></>,

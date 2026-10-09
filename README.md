@@ -6,7 +6,7 @@ You still have to build the app.
 
 [Documentation](https://docs.projectionui.dev) · [Component explorer](https://docs.projectionui.dev/examples/) · [Give feedback](https://github.com/hannasage/projection-ui/discussions)
 
-![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime and mint on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/materials-paired.png)
+![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime and mint on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/materials-paired.png)
 
 This branch prepares the unpublished `0.2.0-next.2` alpha.
 An alpha is a preview that receives consumer checks before publication.
@@ -14,7 +14,7 @@ The screenshots show real components from the packed library.
 The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
 The instructions below describe this candidate, not the published `0.1.5` package.
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
+![](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/theme-divider.svg)
 
 ## Install the candidate locally
 
@@ -38,7 +38,7 @@ npm install /path/to/packed-candidate.tgz
 ```
 
 For the existing registry release, use its root imports and [0.1.5 documentation on npm](https://www.npmjs.com/package/@hannasage/projection-ui/v/0.1.5).
-Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
+Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
 The candidate does not promise 1.0 API stability.
 
 ## Quick start
@@ -68,9 +68,9 @@ The package selects a font family but does not bundle or download font files.
 Existing `UITheme` objects remain compatible.
 Optional body and display font roles fall back to the existing `font` field.
 
-![Buttons in Coastal Day and Projection, with add item, disabled reset, and quiet actions.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/controls-paired.png)
+![Buttons in Coastal Day and Projection, with add item, disabled reset, and quiet actions.](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/controls-paired.png)
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
+![](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/theme-divider.svg)
 
 ## Give it your theme
 
@@ -111,14 +111,14 @@ The [theme guide](https://docs.projectionui.dev/docs/theming/) covers custom val
 All entries share the application's React 19 and React DOM 19.
 Feature imports keep their JavaScript isolated; installing the package still downloads its runtime dependencies.
 You do not install feature packages separately.
-Read [the compatibility guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/compatibility.md) for tested consumers.
+Read [the compatibility guide](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/compatibility.md) for tested consumers.
 
 ## Add a chart
 
 Import the feature you need.
 The package manages Recharts and its other feature dependencies.
 
-![Real bar charts in Coastal Day and Projection, with a text table that gives the same example values.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/charts-paired.png)
+![Real bar charts in Coastal Day and Projection, with a text table that gives the same example values.](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/charts-paired.png)
 
 ```tsx
 import { BarChart } from '@hannasage/projection-ui/charts'
@@ -149,7 +149,7 @@ These values are example data.
 Pair charts with a text summary or table for readers who cannot use the visual.
 Read the [accessibility guide](https://docs.projectionui.dev/docs/accessibility/).
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
+![](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/theme-divider.svg)
 
 ## Select styles
 
@@ -180,9 +180,9 @@ Application routes, business data, and 3D scenes belong in consuming application
 It inherits the theme accent and stays still by default.
 Read [the token guide](https://docs.projectionui.dev/docs/tokens/) for its optional reveal and reduced-motion behavior.
 
-![A real Projection form with a project input, progress bar, slider, toggle, and gradient save button.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/projection-dark.png)
+![A real Projection form with a project input, progress bar, slider, toggle, and gradient save button.](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/projection-dark.png)
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
+![](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/theme-divider.svg)
 
 ## Read and try the guides
 
@@ -201,7 +201,7 @@ It marks application examples as compositions, not separate package exports.
 The gallery includes a flat appearance selector.
 The [text index](https://docs.projectionui.dev/llms.txt) links all guides and component contracts.
 
-Read [the component reference](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md), [theme guide](https://docs.projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/development.md).
+Read [the component reference](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md), [theme guide](https://docs.projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/development.md).
 Read [the release contract](https://docs.projectionui.dev/docs/releases/) before publication.
 
 ## Contribute and give feedback
@@ -210,7 +210,7 @@ Use [Issues](https://github.com/hannasage/projection-ui/issues) for defects and 
 Use [Discussions](https://github.com/hannasage/projection-ui/discussions) for questions, examples, and design feedback.
 Share example needs in [the examples discussion](https://github.com/hannasage/projection-ui/discussions/5).
 Share upgrade constraints in [the preservation discussion](https://github.com/hannasage/projection-ui/discussions/6).
-Read [CONTRIBUTING.md](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/CONTRIBUTING.md), [FEEDBACK.md](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/FEEDBACK.md), and [SECURITY.md](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/SECURITY.md) for each report path.
+Read [CONTRIBUTING.md](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/CONTRIBUTING.md), [FEEDBACK.md](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/FEEDBACK.md), and [SECURITY.md](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/SECURITY.md) for each report path.
 No response deadline is promised.
 
 ## License

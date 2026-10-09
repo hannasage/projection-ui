@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { DEFAULT_CHART_COLORS, LineChart } from '@hannasage/projection-ui/charts'
 import { withTheme } from '../decorators'
 
-const meta: Meta<typeof LineChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md) for required props and interaction behavior.' } } },  title: 'Charts/LineChart', component: LineChart, decorators: [withTheme], tags: ['autodocs'] }
+const meta: Meta<typeof LineChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },  title: 'Charts/LineChart', component: LineChart, decorators: [withTheme], tags: ['autodocs'] }
 export default meta
 type Story = StoryObj<typeof LineChart>
 
