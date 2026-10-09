@@ -30,14 +30,20 @@ test('flat core themes preserve the released palettes', () => {
   assert.equal(foundations.FERNWOOD_FLAT_THEME.font, "'IBM Plex Mono', monospace");
   assert.equal(foundations.PROJECTION_THEME.partner, '#35F5AA');
 });
-test('Projection Light uses soft silver and compatibility aliases while default stays dark', () => {
-  assert.equal(foundations.PROJECTION_LIGHT_THEME.name, 'Projection Light');
-  assert.equal(foundations.PROJECTION_LIGHT_THEME.bg, '#F3F6F5');
-  assert.equal(foundations.PROJECTION_LIGHT_THEME.surface, '#FAFBFB');
-  assert.equal(foundations.PROJECTION_LIGHT_THEME, foundations.FERNWOOD_THEME);
+test('Coastal Day is the primary light theme and Fernwood remains available', () => {
+  assert.equal(foundations.COASTAL_DAY_THEME, foundations.THEME_PRESETS['coastal-day']);
+  assert.equal(foundations.PROJECTION_LIGHT_THEME, foundations.COASTAL_DAY_THEME);
+  assert.equal(foundations.PROJECTION_LIGHT_THEME.name, 'Coastal Day');
+  assert.equal(foundations.PROJECTION_LIGHT_THEME.primary, '#00C8FF');
+  assert.equal(foundations.PROJECTION_LIGHT_THEME.partner, '#397BFF');
+  assert.equal(foundations.PROJECTION_LIGHT_THEME.bg, '#F6FBFF');
+  assert.equal(foundations.PROJECTION_LIGHT_THEME.surface, '#FFFFFF');
+  assert.equal(foundations.FERNWOOD_THEME.name, 'Fernwood');
+  assert.equal(foundations.THEME_PRESETS['projection-light'], foundations.FERNWOOD_THEME);
+  assert.notEqual(foundations.FERNWOOD_THEME, foundations.PROJECTION_LIGHT_THEME);
   assert.equal(foundations.PROJECTION_LIGHT_FLAT_THEME, foundations.FERNWOOD_FLAT_THEME);
-  assert.equal(foundations.PROJECTION_LIGHT_FLAT_THEME.name, 'Projection Light Flat');
-  assert.equal(foundations.THEME_PRESETS['projection-light'], foundations.PROJECTION_LIGHT_THEME);
+  assert.equal(foundations.FERNWOOD_FLAT_THEME.name, 'Fernwood Flat');
   assert.equal(foundations.THEME_PRESETS.projection, foundations.PROJECTION_THEME);
   assert.equal(foundations.DEFAULT_THEME.mode, 'dark');
+  assert.equal(new Set(Object.values(foundations.THEME_PRESETS).map(theme => theme.name)).size, 14);
 });

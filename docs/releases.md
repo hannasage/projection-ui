@@ -46,7 +46,7 @@ A release candidate must pass:
 - ESM, CommonJS, token CSS, and declaration-resolution tests against the tarball.
 - A Vite consumer build and a Next.js consumer build with server and client boundaries.
 - Existing-theme and nested-provider compatibility tests.
-- A bundle check that keeps declared peers external.
+- A bundle check that keeps shared React peers and package-managed runtime dependencies external.
 - Security and license reviews of dependencies, assets, workflows, and public artifacts.
 
 Do not substitute source imports for tarball imports in consumer fixtures.

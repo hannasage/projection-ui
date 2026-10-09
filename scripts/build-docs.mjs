@@ -7,7 +7,7 @@ import { packFixture, repository } from '../tests/helpers/packed.mjs';
 import { componentDocuments, transformGuide } from './docs-content.mjs';
 
 const site = join(repository, 'docs-site');
-const packed = packFixture('docs', ['react','react-dom','recharts','zustand','@dnd-kit/core','@dnd-kit/sortable','@dnd-kit/utilities','@types']);
+const packed = packFixture('docs', ['@types']);
 function run(command, args, cwd = repository, env = process.env) {
   const result = spawnSync(command, args, {cwd, env, stdio:'inherit', timeout:300_000});
   if (result.error) throw result.error;
@@ -27,7 +27,7 @@ try {
   const guides = readdirSync(join(repository,'docs/pages')).filter(file => file.endsWith('.mdx')).map(file => transformGuide(readFileSync(join(repository,'docs/pages',file),'utf8'), `docs/pages/${file}`, entries));
   assert.equal(guides.length, 8);
   const contracts = JSON.parse(readFileSync(join(repository,'docs/component-contracts.json'),'utf8'));
-  const components = componentDocuments(contracts,entries,manifest.peerDependencies);
+  const components = componentDocuments(contracts,entries,manifest);
   assert.equal(components.length,Object.keys(contracts).length);
   assert.ok(components.length > 0, 'Component contracts must not be empty');
   const records = [...guides,...components];
@@ -55,7 +55,7 @@ try {
   writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
   writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');
   cpSync(join(repository,'storybook-static'),join(site,'public/examples'),{recursive:true});
-  const {PROJECTION_THEME:theme, PROJECTION_LIGHT_THEME:lightTheme} = await import(pathToFileURL(join(packed.installed,'dist/foundations.js')).href);
+  const {PROJECTION_THEME:theme, COASTAL_DAY_THEME:lightTheme} = await import(pathToFileURL(join(packed.installed,'dist/foundations.js')).href);
   mkdirSync(join(site,'.generated'),{recursive:true});
   const readerTheme = (selector, values) => `${selector} { --color-fd-background: ${values.bg}; --color-fd-foreground: ${values.text}; --color-fd-primary: ${values.primary}; --color-fd-primary-foreground: ${values.primaryFg}; --color-fd-muted: ${values.surface}; --color-fd-muted-foreground: ${values.muted}; --color-fd-border: ${values.border}; --color-fd-popover: ${values.surface}; --color-fd-popover-foreground: ${values.text}; --color-fd-card: ${values.surface}; --color-fd-card-foreground: ${values.text}; --color-fd-secondary: ${values.surface}; --color-fd-secondary-foreground: ${values.text}; --color-fd-accent: ${values.border}; --color-fd-accent-foreground: ${values.text}; --color-fd-ring: ${values.primary}; }\n`;
   writeFileSync(join(site,'.generated/theme.css'), readerTheme(':root',lightTheme)+readerTheme('.dark',theme));

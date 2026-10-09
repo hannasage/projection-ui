@@ -4,18 +4,18 @@ import { Meta } from '@storybook/blocks'
 
 # Installation
 
-The 0.2 candidate adds isolated feature imports.
+In an existing React 19 application, install one Projection UI package.
+The library manages its chart, drag, and toast dependencies.
+npm downloads them automatically.
+React 19 and React DOM 19 remain shared application peers.
 A peer dependency is a package that your application supplies.
-The core runtime imports React and React DOM.
-The package retains all existing peer requirements.
-npm also installs the declared chart, drag, and toast peers, even when you use only `/core`.
-
+This `0.2.0-next.1` candidate is unpublished.
 For local review, install the tarball produced by `npm pack`.
 Replace the example path below with the path to that tarball.
 A tarball is the archive that npm installs.
 
 ```bash
-npm install /path/to/packed-candidate.tgz react@19 react-dom@19
+npm install /path/to/packed-candidate.tgz
 ```
 
 ## Quick start
@@ -38,9 +38,9 @@ export function Example() {
 
 ## Feature imports
 
-Install `recharts@3` for `/charts`.
-Install `@dnd-kit/core@6`, `@dnd-kit/sortable@10`, and `@dnd-kit/utilities@3` for `/sortable`.
-Install `zustand@5` for `/toast`.
+Import `/charts`, `/sortable`, or `/toast` when you need those features.
+You do not install their dependencies separately.
+These entries isolate JavaScript imports; they do not remove dependency downloads.
 The root import retains the combined feature entry for existing consumers.
 
 For Next.js App Router, place interactive imports in a file with `'use client'`.

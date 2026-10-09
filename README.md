@@ -2,7 +2,9 @@
 
 React components and shared design values for consumer-themed interfaces.
 Projection is the default dark theme, with a lime to blue-green gradient.
-Projection Light uses softer silver white surfaces and neon green accents.
+Coastal Day uses pale blue surfaces and bright blue accents.
+`PROJECTION_LIGHT_THEME` remains its compatibility alias.
+Fernwood retains the green light palette.
 Your application supplies its colors, fonts, and radius through `ThemeProvider`.
 
 ```tsx
@@ -27,10 +29,11 @@ The new subpaths below describe that candidate, not the published `0.1.5` packag
 
 ## Install the candidate locally
 
-A peer dependency is a package that your application supplies.
-The core runtime imports React and React DOM.
-The package retains all existing peer requirements.
-npm also installs the declared chart, drag, and toast peers, even when you use only `/core`.
+In an existing React 19 application, install one Projection UI package.
+The library manages its chart, drag, and toast dependencies.
+npm downloads them automatically with the package.
+React 19 and React DOM 19 stay shared with your application.
+They are peer dependencies: packages that your application supplies.
 Build and pack the candidate from this repository:
 
 ```bash
@@ -42,7 +45,7 @@ npm pack
 In your application, install the generated tarball with its actual file path:
 
 ```bash
-npm install /path/to/packed-candidate.tgz react@19 react-dom@19
+npm install /path/to/packed-candidate.tgz
 ```
 
 For the existing registry release, use its root imports and [0.1.5 documentation on npm](https://www.npmjs.com/package/@hannasage/projection-ui/v/0.1.5).
@@ -77,17 +80,17 @@ Optional body and display font roles fall back to the existing `font` field.
 
 ## Choose an entry
 
-| Import | Contents | Runtime peers |
+| Import | Contents | Package-managed runtime |
 | --- | --- | --- |
-| `/core` | Theme, foundations, surfaces, actions, forms, modal, skeleton, table, content primitives | React and React DOM |
-| `/charts` | AreaChart, BarChart, LineChart, DonutChart | React, React DOM, Recharts |
-| `/sortable` | SortableList, SortableItem, arrayMove | React, React DOM, dnd-kit |
-| `/toast` | ToastContainer, useToastStore | React, React DOM, Zustand |
-| Root | Combined compatibility entry | All feature peers |
+| `/core` | Theme, foundations, surfaces, actions, forms, modal, skeleton, table, content primitives | None |
+| `/charts` | AreaChart, BarChart, LineChart, DonutChart | Recharts and react-is |
+| `/sortable` | SortableList, SortableItem, arrayMove | dnd-kit |
+| `/toast` | ToastContainer, useToastStore | Zustand |
+| Root | Combined compatibility entry | All feature dependencies |
 
-The package declares React and React DOM `>=19.0.0`, Recharts `>=3.0.0`, and Zustand `>=5.0.0`.
-The dnd-kit ranges are core `>=6.0.0`, sortable `>=10.0.0`, and utilities `>=3.2.2`.
-Declared ranges do not prove compatibility with every later version.
+All entries share the application's React 19 and React DOM 19.
+Feature imports keep their JavaScript isolated; installing the package still downloads its runtime dependencies.
+You do not install feature packages separately.
 Read [the compatibility guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/compatibility.md) for tested consumers.
 
 ## Select styles
@@ -101,7 +104,7 @@ Read [the migration guide](https://docs.projectionui.dev/docs/migration/) before
 
 | Group | Exports |
 | --- | --- |
-| Foundations | ThemeProvider, DEFAULT_THEME, UI_FOUNDATIONS, RADIUS_SCALE, THEME_PRESETS, Projection and Projection Light presets |
+| Foundations | ThemeProvider, DEFAULT_THEME, UI_FOUNDATIONS, RADIUS_SCALE, THEME_PRESETS, Projection, Coastal Day, and Fernwood presets |
 | Surfaces and actions | Card, Badge, Button, ButtonGroup, LinkButton, ProjectionGlow |
 | Content | Container, Stack, Prose, Separator, VisuallyHidden |
 | Forms | Input, Select, Textarea, Toggle, Slider |

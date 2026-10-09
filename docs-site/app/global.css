@@ -39,7 +39,7 @@ code, pre, kbd, .document-source { font-family: var(--reader-code), monospace; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 .landing-shell { --landing-accent: #c9f53a; --landing-ink: #e7eaf0; --landing-muted: #a6b3c5; --landing-bg: #07090c; --landing-border: #25303d; background: var(--landing-bg); color: var(--landing-ink); }
-:root:not(.dark) .landing-shell { --landing-accent: #49602a; --landing-ink: #17202a; --landing-muted: #526371; --landing-bg: #f3f6f5; --landing-border: #ced8d4; }
+:root:not(.dark) .landing-shell { --landing-accent: var(--color-fd-foreground); --landing-ink: #17202a; --landing-muted: #485463; --landing-bg: #f6fbff; --landing-border: #bfcbd8; }
 .landing-nav, .landing-footer { width: min(1240px,100%); margin: 0 auto; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .landing-nav { border-bottom: 1px solid var(--landing-border); }
 .landing-wordmark { font-family: var(--reader-heading),sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.035em; }

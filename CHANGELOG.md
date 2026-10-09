@@ -2,7 +2,8 @@
 
 ## 0.2.0-next.1 unpublished alpha
 
-- Add 14 theme presets, with Projection as the default dark theme and Projection Light as its silver white pair.
+- Add theme presets, with Projection as the default dark theme and Coastal Day as its blue light pair.
+- Keep Fernwood as the green light preset and preserve the original flat palettes.
 - Add flat modes that retain the v0.1 palettes for the core pair.
 - Add Surface, GradientBackground, and GradientText with scoped glass, edge light, and underglow styles.
 - Add Avatar, Checkbox, RadioGroup, Tabs, Accordion, Alert, Notification, Progress, Spinner, Tooltip, and Carousel.
@@ -50,8 +51,10 @@ Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 
 ### Compatibility
 
-The package retains the required feature peers for npm installation.
-Subpaths isolate bundle imports without changing that install contract.
+The package manages Recharts, react-is, dnd-kit, and Zustand as runtime dependencies.
+npm installs them automatically with Projection UI.
+React 19 and React DOM 19 remain shared application peers.
+Subpaths isolate JavaScript imports without removing dependency downloads.
 The core and foundation entries exclude chart, drag, and toast implementations.
 Optional font roles fall back to the existing font field.
 The `/tokens` entry retains legacy page rules.

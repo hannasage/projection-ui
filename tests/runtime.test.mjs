@@ -9,7 +9,7 @@ import { repository, packFixture } from './helpers/packed.mjs';
 
 let packed, server, browser, page, url;
 before(async () => {
-  packed = packFixture('runtime', ['react', 'react-dom', 'recharts', 'zustand', '@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities']);
+  packed = packFixture('runtime');
   writeFileSync(join(packed.fixture, 'index.html'), '<!doctype html><html lang="en"><title>Package contract</title><div id="root"></div><script type="module" src="/main.tsx"></script></html>');
   writeFileSync(join(packed.fixture, 'main.tsx'), readFileSync(join(repository, 'tests/fixtures/runtime/main.tsx')));
   writeFileSync(join(packed.fixture, 'scoped.html'), '<!doctype html><html lang="en"><title>Scoped styles</title><div id="root"></div><script type="module" src="/scoped.tsx"></script></html>');

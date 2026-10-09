@@ -13,8 +13,10 @@ Keep your current imports first, then make optional changes separately.
 
 Use `/core` for basic controls and content primitives.
 Use `/charts`, `/sortable`, or `/toast` when you need those features.
-The package retains all required feature peers during npm installation.
-Subpaths isolate bundle imports without reducing that install requirement.
+The package now manages chart, drag, and toast runtime dependencies.
+npm installs them automatically; remove separate feature installation steps.
+React 19 and React DOM 19 remain shared application peers.
+Subpaths isolate JavaScript imports without removing dependency downloads.
 
 ```tsx
 import { Button } from '@hannasage/projection-ui/core'
@@ -39,8 +41,9 @@ Make sure that your application does not duplicate the library behavior.
 ## Choose a core appearance
 
 Projection stays the default dark theme.
-Projection Light uses silver white surfaces with neon accents.
-Use `PROJECTION_FLAT_THEME` or `PROJECTION_LIGHT_FLAT_THEME` for the earlier core palettes and flat surfaces.
+Coastal Day is the primary light theme, with bright blue accents.
+Fernwood retains the green light palette.
+Use `PROJECTION_FLAT_THEME` or `FERNWOOD_FLAT_THEME` for the earlier core palettes and flat surfaces.
 Existing custom themes still work without new fields.
 Card now uses glass, edge light, and underglow by default.
 Set `material="solid"`, `edgeLight={false}`, and `underglow={false}` to choose a quiet card.

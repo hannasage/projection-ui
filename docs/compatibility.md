@@ -31,9 +31,10 @@ declare module '@hannasage/projection-ui/tokens'
 The token export is a stylesheet, not a typed JavaScript module.
 
 Subpaths isolate runtime bundle imports.
-They do not reduce npm peer installation requirements.
-The peer ranges appear in [the README](../README.md#choose-an-entry) and `package.json`.
-A declared lower bound does not establish compatibility with every newer major version.
+npm installs the package-managed chart, drag, and toast dependencies automatically.
+React 19 and React DOM 19 remain shared application peers.
+The dependency ranges appear in `package.json`.
+Declared ranges do not establish compatibility with every newer version.
 Consumer fixtures define the versions that receive package checks.
 The release notes record passing evidence before publication.
 Test the built package in your application before an upgrade.

@@ -37,7 +37,7 @@ export function ThemeProvider({
     '--ui-partner': theme.partner ?? 'var(--ui-primary)',
     '--ui-glow': theme.glow ?? '0.65',
     '--ui-gradient-start': theme.mode === 'light' ? theme.text : theme.primary,
-    '--ui-gradient-end': theme.mode === 'light' ? '#145A38' : (theme.partner ?? theme.primary),
+    '--ui-gradient-end': theme.mode === 'light' ? 'color-mix(in srgb, var(--ui-text) 65%, var(--ui-partner))' : (theme.partner ?? theme.primary),
     '--ui-font-display': fontOverride ? 'var(--ui-font)' : theme.fontDisplay ?? 'var(--ui-font)',
     '--ui-success': theme.success ?? UI_FOUNDATIONS.semantic.success,
     '--ui-warning': theme.warning ?? UI_FOUNDATIONS.semantic.warning,

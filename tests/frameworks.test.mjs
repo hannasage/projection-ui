@@ -10,15 +10,18 @@ let packed;
 before(() => { packed = packFixture('frameworks', ['react', 'react-dom', '@types', 'typescript', 'next']); });
 after(() => { if (packed) rmSync(packed.temporary, {recursive:true,force:true}); });
 
-test('core executes in ESM and CommonJS when feature modules are deliberately absent', async () => {
+test('core executes without loading managed feature runtimes', async () => {
   const require = createRequire(join(packed.fixture, 'package.json'));
   const core = require('@hannasage/projection-ui/core');
   assert.equal(typeof core.Button, 'function');
-  for (const dependency of ['recharts','zustand','@dnd-kit/core']) assert.throws(() => require.resolve(dependency), {code:'MODULE_NOT_FOUND'});
+  for (const dependency of ['recharts','zustand','@dnd-kit/core']) {
+    assert.ok(require.resolve(dependency), `${dependency} is installed by the package`);
+    assert.ok(!Object.keys(require.cache).some(path=>path.includes(`/node_modules/${dependency}/`)), `${dependency} is not loaded by core`);
+  }
   writeFileSync(join(packed.fixture, 'esm.mjs'), `export * from '@hannasage/projection-ui/core'`);
   assert.equal(typeof (await import(pathToFileURL(join(packed.fixture, 'esm.mjs')).href)).Button, 'function');
 });
-test('declarations resolve under bundler and NodeNext without feature modules', () => {
+test('declarations resolve under bundler and NodeNext through the isolated core entry', () => {
   writeFileSync(join(packed.fixture, 'consumer.tsx'), `import { Button, ThemeProvider, type UITheme } from '@hannasage/projection-ui/core'\nimport { DEFAULT_THEME } from '@hannasage/projection-ui/foundations'\nconst theme: UITheme = DEFAULT_THEME\nexport const app = <ThemeProvider theme={theme}><Button>Continue</Button></ThemeProvider>\n`);
   writeFileSync(join(packed.fixture, 'consumer.cts'), `import { Button, type ButtonProps } from '@hannasage/projection-ui/core'\nconst props: ButtonProps = {variant:'primary'}\nexport const button = Button\nexport {props}\n`);
   for (const mode of ['bundler','NodeNext']) {
@@ -30,7 +33,11 @@ test('declarations resolve under bundler and NodeNext without feature modules', 
 test('Vite builds the real packed React-only entry without chart, sortable, or store imports', () => {
   cpSync(join(repository, 'tests/fixtures/vite/main.tsx'), join(packed.fixture, 'main.tsx'));
   writeFileSync(join(packed.fixture, 'index.html'), '<div id="root"></div><script type="module" src="/main.tsx"></script>');
-  run(process.execPath, [join(repository, 'node_modules/vite/bin/vite.js'), 'build', '--config', join(repository, 'tests/fixtures/vite/vite.config.mjs')], packed.fixture);
+  writeFileSync(join(packed.fixture, 'vite.config.mjs'), `export default {build:{minify:false},plugins:[{name:'core-import-graph',generateBundle(){this.emitFile({type:'asset',fileName:'core-modules.json',source:JSON.stringify([...this.getModuleIds()])})}}]}`);
+  run(process.execPath, [join(repository, 'node_modules/vite/bin/vite.js'), 'build', '--config', join(packed.fixture, 'vite.config.mjs')], packed.fixture);
+  const modules=JSON.parse(readFileSync(join(packed.fixture,'dist/core-modules.json'),'utf8'));
+  assert.ok(modules.some(path=>path.includes('/projection-ui/dist/core.js')));
+  assert.ok(!modules.some(path=>/\/node_modules\/(?:recharts|zustand|@dnd-kit)\//.test(path)), 'core import graph excludes feature runtimes');
   assert.ok(readFileSync(join(packed.fixture, 'dist/index.html'), 'utf8').includes('assets/'));
 });
 test('Next App Router builds both server and client components from the packed package', () => {
@@ -43,6 +50,6 @@ test('Next App Router builds both server and client components from the packed p
   // The framework sees one intentionally created lockfile, never another workspace's.
   writeFileSync(join(packed.fixture, 'package-lock.json'), JSON.stringify({name:manifest.name,version:'1.0.0',lockfileVersion:3,packages:{'':{name:manifest.name,version:'1.0.0',dependencies:manifest.dependencies}}}));
   mkdirSync(join(packed.fixture, '.next'), {recursive:true});
-  run(process.execPath, [join(repository, 'node_modules/next/dist/bin/next'), 'build', '--webpack'], packed.fixture, 240_000);
+  run(process.execPath, [join(packed.fixture, 'node_modules/next/dist/bin/next'), 'build', '--webpack'], packed.fixture, 240_000);
   assert.ok(readFileSync(join(packed.fixture, '.next/server/app/index.html'), 'utf8').includes('Next packed server page'));
 });

@@ -101,8 +101,11 @@ export function PaletteExample() {
 
 ## Modern presets and flat core palettes
 
-`PROJECTION_THEME` and `PROJECTION_LIGHT_THEME` supply modern materials.
-`PROJECTION_FLAT_THEME` and `PROJECTION_LIGHT_FLAT_THEME` retain the original core palettes.
+`PROJECTION_THEME` and `COASTAL_DAY_THEME` supply the primary dark and light materials.
+`PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
+`FERNWOOD_THEME` retains the green light palette.
+`PROJECTION_FLAT_THEME` and `FERNWOOD_FLAT_THEME` retain the original core palettes.
+`PROJECTION_LIGHT_FLAT_THEME` remains an alias for Fernwood Flat.
 `THEME_PRESETS` holds the modern palette set.
 Each entry contains a name, its mode, and shared theme roles.
 

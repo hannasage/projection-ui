@@ -75,7 +75,7 @@ The release metadata names the package version and tarball integrity.
 - Build the site from a clean install and the packed release candidate.
 - Render every public component and its documented variants.
 - Compile code examples against the packed package without source aliases.
-- Make sure that every API page names its required peers and actual props.
+- Make sure that every API page names its shared React peers, package-managed runtime dependencies, and actual props.
 - Make sure that theme switches affect only the intended preview.
 - Run keyboard and automated accessibility checks on navigation and examples.
 - Make sure that reduced motion disables decorative animation.

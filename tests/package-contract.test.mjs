@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, readdirSync, symlinkSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, realpathSync, lstatSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -60,15 +60,10 @@ before(async () => {
     archive = join(temporary, packed.filename);
   }
   mkdirSync(fixture);
-  writeFileSync(join(fixture, 'package.json'), JSON.stringify({ name: 'projection-ui-contract-consumer', private: true, type: 'module' }));
+  writeFileSync(join(fixture, 'package.json'), JSON.stringify({ name: 'projection-ui-contract-consumer', private: true, type: 'module', dependencies:{react:'19.2.5','react-dom':'19.2.5'},devDependencies:{'@types/react':'19.2.15','@types/react-dom':'19.2.3','@types/node':'24.12.4'} }));
+  npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund']);
   npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund', archive]);
 
-  // The consumer supplies existing peers. Its library comes only from the tarball.
-  for (const dependency of [...Object.keys(manifest.peerDependencies), '@types']) {
-    const target = join(fixture, 'node_modules', dependency);
-    mkdirSync(dirname(target), { recursive: true });
-    symlinkSync(join(repository, 'node_modules', dependency), target, 'junction');
-  }
   consumerRequire = createRequire(join(fixture, 'package.json'));
   cjs = consumerRequire(packageName);
   const consumerModule = join(fixture, 'esm-consumer.mjs');
@@ -130,16 +125,25 @@ test('every JavaScript, CSS, and declaration entry exists; client boundaries sta
   assert.ok(readdirSync(installed).includes('LICENSE'), 'license accompanies the candidate');
 });
 
-test('a default npm install still supplies the legacy root feature peers', () => {
-  const clean = join(temporary, 'default-install');
+for (const legacy of [false,true]) test(`archive-only npm install owns feature runtimes (legacy peers: ${legacy})`, () => {
+  const clean = join(temporary, `install-${legacy}`);
   mkdirSync(clean);
-  writeFileSync(join(clean, 'package.json'), JSON.stringify({name:'projection-default-install',private:true}));
-  // No peer bypass or dependency symlinks: this exercises npm's normal installation.
-  npm(['install', '--prefix', clean, '--legacy-peer-deps=false', '--ignore-scripts', '--package-lock=false', '--no-audit', '--no-fund', archive, 'react@19.2.5', 'react-dom@19.2.5']);
-  const require = createRequire(join(clean, 'package.json'));
-  const api = require(packageName);
-  for (const name of expectedExports) assert.ok(name in api, `Fresh install preserves ${name}`);
-  for (const name of ['recharts','zustand','@dnd-kit/core','@dnd-kit/sortable','@dnd-kit/utilities']) assert.ok(require.resolve(name), `${name} is supplied by the normal required peer install`);
+  writeFileSync(join(clean, 'package.json'), JSON.stringify({name:'projection-install',private:true,dependencies:{react:'19.2.5','react-dom':'19.2.5'}}));
+  const install=['install','--prefix',clean,`--legacy-peer-deps=${legacy}`,'--ignore-scripts','--package-lock=false','--no-audit','--no-fund'];
+  npm(install);
+  const require=createRequire(join(clean,'package.json'));
+  const hostReact=require('react');
+  npm([...install,archive]);
+  const api=require(packageName);
+  for(const name of expectedExports) assert.ok(name in api,`Fresh archive install preserves ${name}`);
+  for(const name of ['core','charts','sortable','toast','foundations']) assert.ok(require(`${packageName}/${name}`));
+  for(const name of ['recharts','zustand','@dnd-kit/core','@dnd-kit/sortable','@dnd-kit/utilities','react-is']) {
+    assert.ok(require.resolve(name),`${name} is supplied by the archive dependency contract`);
+    assert.equal(lstatSync(join(clean,'node_modules',name)).isSymbolicLink(),false,`${name} is actually installed`);
+    const runtimeRequire=createRequire(require.resolve(name));
+    assert.equal(realpathSync(runtimeRequire.resolve('react')),realpathSync(require.resolve('react')),`${name} resolves the host React`);
+    assert.equal(runtimeRequire('react'),hostReact,`${name} uses one React identity`);
+  }
 });
 
 test('feature entries share component and store identities with the legacy root', async () => {

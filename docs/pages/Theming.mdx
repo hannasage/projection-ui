@@ -68,17 +68,19 @@ Provide a readable text equivalent for chart values.
 
 ## Modern and flat core themes
 
-Use `PROJECTION_THEME` or `PROJECTION_LIGHT_THEME` for modern materials.
-Use `PROJECTION_FLAT_THEME` or `PROJECTION_LIGHT_FLAT_THEME` for the original core palettes.
+Use `PROJECTION_THEME` or `COASTAL_DAY_THEME` for modern materials.
+`PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
+Use `FERNWOOD_THEME` for the green light palette.
+Use `PROJECTION_FLAT_THEME` or `FERNWOOD_FLAT_THEME` for the original core palettes.
 Flat appearance keeps surfaces solid and removes gradient fills and decorative light.
 The modern presets remain available in `THEME_PRESETS`.
 
 ```tsx
-import { Card, PROJECTION_LIGHT_FLAT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
+import { Card, FERNWOOD_FLAT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
 
 export function FlatExample() {
-  return <ThemeProvider theme={PROJECTION_LIGHT_FLAT_THEME}>
-    <Card>Original Projection Light palette with a solid surface.</Card>
+  return <ThemeProvider theme={FERNWOOD_FLAT_THEME}>
+    <Card>Original Fernwood palette with a solid surface.</Card>
   </ThemeProvider>
 }
 ```

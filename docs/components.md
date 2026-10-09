@@ -305,7 +305,7 @@ Carousel auto-advance is opt-in. It pauses for focus, hover, hidden pages, and r
 
 ## Gallery compositions
 
-The paired gallery uses Projection Light on the left and Projection on the right.
+The paired gallery uses Coastal Day on the left and Projection on the right.
 Its appearance switch selects modern materials or the flat core palettes.
 Profile, team, sign-in, dashboard, calendar, and other application examples are compositions.
 They combine exported components and native HTML. They are not separate component exports.
