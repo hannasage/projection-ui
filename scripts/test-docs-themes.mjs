@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { createRequire } from 'node:module';
 import { chromium, webkit } from '@playwright/test';
@@ -14,7 +14,7 @@ const server = createServer((request, response) => {
     let file = resolve(root, '.' + decodeURIComponent(pathname));
     if (file !== root && !file.startsWith(root + sep)) { response.writeHead(403).end(); return; }
     if (statSync(file).isDirectory()) file = resolve(file, 'index.html');
-    response.setHeader('Content-Type', { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' }[extname(file)] ?? 'application/octet-stream');
+    response.setHeader('Content-Type', { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.mp3': 'audio/mpeg' }[extname(file)] ?? 'application/octet-stream');
     response.end(readFileSync(file));
   } catch { response.writeHead(404).end(); }
 });
@@ -63,7 +63,7 @@ try {
   for (const width of [390, 1440]) {
     for (const mode of ['light', 'dark']) {
       const context = await browser.newContext({ viewport: { width, height: 1000 } });
-      await context.addInitScript(theme => { if (window.top === window) localStorage.setItem('projection-docs-theme', theme); }, mode);
+      await context.addInitScript(theme => { if (window.top === window && !localStorage.getItem('projection-docs-theme')) localStorage.setItem('projection-docs-theme', theme); }, mode);
       await context.addInitScript(() => {
         window.__canvasContexts = [];
         for (const prototype of [HTMLCanvasElement.prototype, globalThis.OffscreenCanvas?.prototype].filter(Boolean)) {
@@ -77,7 +77,9 @@ try {
       const toggleLandingTheme = async next => {
         const picker = page.locator('.landing-theme-picker');
         if (!await picker.evaluate(node => node.open)) await picker.locator('summary').click();
-        await picker.getByRole('button', { name: next === 'light' ? 'Coastal Day (light)' : 'Projection (dark)', exact: true }).click();
+        const control = picker.locator('.landing-mode-control');
+        for (let attempt = 0; attempt < 3 && await control.getAttribute('data-color-mode') !== next; attempt++) { const previous = await control.getAttribute('data-color-mode'); await control.click(); await page.waitForFunction(previous => document.querySelector('.landing-mode-control')?.dataset.colorMode !== previous, previous); }
+        assert.equal(await control.getAttribute('data-color-mode'), next);
         await picker.locator('summary').click();
       };
       let releaseChunks;
@@ -257,30 +259,43 @@ try {
       assert.equal((await themeTrigger.innerText()).trim(), '', 'The theme control uses its icon and color without visible text');
       assert.ok((await themeTrigger.evaluate(node => getComputedStyle(node).backgroundImage)).includes('linear-gradient'));
       const swatches = page.locator('.landing-theme-swatch');
-      assert.deepEqual(await swatches.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))), ['Projection (dark)', 'Ember Tide (dark)', 'Noir Bloom (dark)', 'Coastal Day (light)', 'Dust & Flame (light)', 'Confetti Studio (light)']);
+      assert.deepEqual(await swatches.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))), ['Projection / Coastal Day', 'Ember Tide / Dust & Flame', 'Noir Bloom / Confetti Studio']);
       const boxes = await swatches.evaluateAll(nodes => nodes.map(node => { const box = node.getBoundingClientRect(); return {x:box.x,y:box.y,w:box.width,h:box.height,gradient:getComputedStyle(node).backgroundImage}; }));
       for (const box of boxes) { assert.ok(Math.abs(box.w - box.h) < 1, 'Theme swatches are square'); assert.ok(box.w >= 44, 'Theme swatches remain touch targets'); assert.ok(box.gradient.includes('linear-gradient'), 'Each swatch shows its primary gradient'); }
-      assert.equal(boxes[0].y, boxes[2].y, 'Dark themes share the top row');
-      assert.equal(boxes[3].y, boxes[5].y, 'Light themes share the bottom row');
-      for (let i = 0; i < 3; i++) { assert.equal(boxes[i].x, boxes[i+3].x, 'Theme pairs align in columns'); assert.ok(boxes[i].y < boxes[i+3].y); }
+      assert.equal(boxes[0].y, boxes[2].y, 'Three palettes share a single row');
+      assert.match(boxes[0].gradient, /135deg/);
+      assert.match(boxes[0].gradient, /rgb\(201, 245, 58\)/);
+      assert.match(boxes[0].gradient, /rgb\(0, 200, 255\) 50%/, 'The core swatch splits diagonally into dark and light gradients');
       assert.equal(await page.locator('.landing-theme-swatch[aria-pressed="true"]').count(), 1, 'Only the selected theme is marked');
       const menu = await page.locator('.landing-theme-menu').boundingBox();
       assert.equal(await page.evaluate(({x, y}) => Boolean(document.elementFromPoint(x, y)?.closest('.landing-theme-menu')), {x: menu.x + menu.width - 15, y: menu.y + 40}), true, 'The theme menu stays above the sparkle controls');
       for (const [family, name, accent] of mode === 'light'
         ? [['ember', 'Dust & Flame', '#ff842b'], ['bloom', 'Confetti Studio', '#b56aff']]
         : [['ember', 'Ember Tide', '#ff8c2b'], ['bloom', 'Noir Bloom', '#ff39ab']]) {
-        await page.getByRole('button', { name: `${name} (${mode})`, exact: true }).click();
+        await page.getByRole('button', { name: family === 'ember' ? 'Ember Tide / Dust & Flame' : 'Noir Bloom / Confetti Studio', exact: true }).click();
         await page.waitForFunction(expected => getComputedStyle(document.querySelector('.landing-shell')).getPropertyValue('--ui-primary').trim().toLowerCase() === expected, accent);
         await page.getByText(name, { exact: true }).waitFor();
-        assert.equal(await page.getByRole('button', { name: `${name} (${mode})`, exact: true }).getAttribute('aria-pressed'), 'true');
+        assert.equal(await page.getByRole('button', { name: family === 'ember' ? 'Ember Tide / Dust & Flame' : 'Noir Bloom / Confetti Studio', exact: true }).getAttribute('aria-pressed'), 'true');
         await page.waitForFunction(() => document.querySelector('.nav-sparkles')?.dataset.sparklesState === 'active');
         assert.equal(await glowBand.locator('canvas').count(), 1, 'New pairs retain one canvas');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Theme picker fits the viewport');
         if (width === 1440) await page.screenshot({ path: `/tmp/projection-landing-${family}-${mode}.png`, fullPage: true });
       }
-      await page.getByRole('button', { name: mode === 'light' ? 'Coastal Day (light)' : 'Projection (dark)', exact: true }).click();
+      await page.getByRole('button', { name: 'Projection / Coastal Day', exact: true }).click();
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('.landing-theme-picker').evaluate(node => node.open), false, 'Escape closes the theme picker');
+      await toggleLandingTheme('system');
+      await page.emulateMedia({ colorScheme: 'light' });
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.landing-shell')).getPropertyValue('--ui-primary').trim() === '#00C8FF');
+      assert.equal(await page.evaluate(() => localStorage.getItem('projection-docs-theme')), 'system');
+      await page.emulateMedia({ colorScheme: 'dark' });
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.landing-shell')).getPropertyValue('--ui-primary').trim() === '#C9F53A');
+      await page.reload();
+      await page.locator('.landing-theme-picker summary').click();
+      await page.waitForFunction(() => document.querySelector('.landing-mode-control')?.dataset.colorMode === 'system');
+      await page.locator('.landing-theme-picker summary').click();
+      await toggleLandingTheme(mode);
+
       await page.getByRole('radio', { name: 'Flat', exact: true }).click();
       for (const button of [copyButton, page.getByRole('button', { name: 'Save project', exact: true })]) assert.equal(await button.evaluate(node => getComputedStyle(node).boxShadow), 'none', 'Flat filled buttons have no ambient light');
       await page.waitForFunction(() => !document.querySelector('.nav-light canvas'));
@@ -288,6 +303,35 @@ try {
       console.log(`Landing ${mode} at ${width}px: retained theme, copy CTA, outlined links, controls, 2D sparkles, proximity light, scroll motion, Flat, and motion safeguards passed.`);
       await context.close();
     }
+  }
+  const soundFiles = ['modern-blip', 'modern-treasure', 'flat-chip', 'flat-pop'].map(name => `/sounds/${name}.mp3`);
+  if (soundFiles.every(file => existsSync(join(root, file)))) {
+    const nativeContext = await browser.newContext();
+    const nativePage = await nativeContext.newPage();
+    await nativePage.goto(origin);
+    const decoded = await nativePage.evaluate(async files => {
+      const context = new AudioContext();
+      try {
+        return await Promise.all(files.map(async file => {
+          const response = await fetch(file);
+          if (!response.ok) throw new Error(`Missing cue: ${file}`);
+          const buffer = await context.decodeAudioData(await response.arrayBuffer());
+          const output = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+          const source = output.createBufferSource();
+          const gain = output.createGain();
+          source.buffer = buffer;
+          gain.gain.value = .4;
+          source.connect(gain); gain.connect(output.destination); source.start();
+          const rendered = await output.startRendering();
+          let peak = 0;
+          for (let channel = 0; channel < rendered.numberOfChannels; channel++) for (const value of rendered.getChannelData(channel)) peak = Math.max(peak, Math.abs(value));
+          return { file, duration: buffer.duration, peak };
+        }));
+      } finally { await context.close(); }
+    }, soundFiles);
+    for (const cue of decoded) { assert.ok(cue.duration > .1 && cue.duration < 1.1, `${cue.file} stays finite`); assert.ok(cue.peak > .005 && cue.peak < .5, `${cue.file} remains audible without clipping`); }
+    console.log('Licensed MP3 cues decode and render without clipping:', JSON.stringify(decoded));
+    await nativeContext.close();
   }
   const audioContext = await browser.newContext({ viewport: { width: 390, height: 900 } });
   await audioContext.addInitScript(() => {
@@ -298,11 +342,13 @@ try {
       state = 'suspended'; currentTime = 0; destination = {};
       constructor() { log.contexts.push(this); }
       createGain() { return { gain: parameter(), connect() {}, disconnect() {} }; }
-      createOscillator() { const node = { type: '', frequency: parameter(), stops: [], connect() {}, disconnect() {}, start() {}, stop(time) { this.stops.push(time); } }; log.sources.push(node); return node; }
+      decodeAudioData(bytes) { return Promise.resolve({ duration: .8, byteLength: bytes.byteLength }); }
+      createBufferSource() { const node = { buffer: null, stops: [], connect() {}, disconnect() {}, start() { this.started = true; }, stop(time) { this.stops.push(time); } }; log.sources.push(node); return node; }
       resume() { return new Promise((resolve, reject) => log.pending.push({ resolve: () => { this.state = 'running'; resolve(); }, reject })); }
       close() { this.closed = true; return Promise.resolve(); }
     };
   });
+  await audioContext.route('**/sounds/*.mp3', route => route.fulfill({ status: 200, contentType: 'audio/mpeg', body: Buffer.from('synthetic audio fixture') }));
   const audioPage = await audioContext.newPage();
   const audioErrors = [];
   audioPage.on('pageerror', error => audioErrors.push(error.message));
@@ -315,17 +361,19 @@ try {
   await audioPage.evaluate(() => window.__appearanceAudio.pending[2].resolve());
   await audioPage.getByRole('button', { name: 'Mute style sounds', exact: true }).waitFor();
   await audioPage.evaluate(() => { window.__appearanceAudio.pending[1].resolve(); window.__appearanceAudio.pending[0].reject(new Error('Blocked')); });
-  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 2, 'Only Flat sounds after rapid pending resumes');
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 1, 'Only Flat sounds after rapid pending resumes');
   await audioPage.getByRole('button', { name: 'Mute style sounds', exact: true }).click();
-  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.every(source => source.stops.length === 2)), true, 'Mute stops all active voices');
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.every(source => source.stops.length === 1)), true, 'Mute stops all active voices');
   await audioPage.getByRole('radio', { name: 'Modern', exact: true }).click();
-  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 2, 'Muted style changes stay silent');
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 1, 'Muted style changes stay silent');
   await audioPage.getByRole('button', { name: 'Enable style sounds', exact: true }).click();
-  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 10, 'Enable plays the current Modern cue');
+  await audioPage.waitForFunction(() => window.__appearanceAudio.sources.length === 2);
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 2, 'Enable plays the current Modern cue');
   await audioPage.getByRole('radio', { name: 'Flat', exact: true }).click();
-  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.slice(2, 10).every(source => source.stops.length === 2)), true, 'Flat cuts the Modern hum off');
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.slice(1, 2).every(source => source.stops.length === 1)), true, 'Flat cuts the Modern cue off');
+  await audioPage.waitForFunction(() => window.__appearanceAudio.sources.length === 3);
   await audioPage.evaluate(() => { Object.defineProperty(document, 'hidden', { value: true, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
-  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.slice(-2).every(source => source.stops.length === 2)), true, 'Hidden pages stop their cue');
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.slice(-1).every(source => source.stops.length === 1)), true, 'Hidden pages stop their cue');
   await audioPage.getByRole('link', { name: 'Read the docs', exact: true }).click();
   await audioPage.locator('#nd-page').waitFor();
   assert.equal(new URL(audioPage.url()).pathname, '/docs/', 'Navigation remains usable after sound cancellation');

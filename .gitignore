@@ -20,3 +20,4 @@ release-artifacts
 docs-site/public/archives
 docs-site/public/docs-versions.json
 docs-site/public/downloads
+docs-site/public/sounds/*.mp3

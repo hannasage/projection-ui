@@ -177,3 +177,7 @@ code, pre, kbd, .document-source { font-family: var(--reader-code), monospace; }
 .landing-sound-control { width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--ui-border); border-radius: 8px; background: color-mix(in srgb,var(--ui-surface) 90%,transparent); color: var(--ui-accent-text); cursor: pointer; }
 .landing-sound-control svg { width: 18px; height: 18px; }
 .landing-sound-control:disabled { cursor: default; opacity: .5; }
+
+.landing-theme-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.landing-theme-menu .landing-mode-control { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; flex: none; background: var(--ui-bg); color: var(--ui-accent-text); }
+.landing-mode-control svg { width: 18px; height: 18px; }

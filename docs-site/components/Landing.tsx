@@ -36,7 +36,7 @@ const clientReady = () => true;
 const serverReady = () => false;
 
 export function Landing() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme, theme: colorMode } = useTheme();
   const motionRef = useLandingMotion();
   const sounds = useAppearanceAudio();
   const hydrated = useSyncExternalStore(subscribeToHydration, clientReady, serverReady);
@@ -52,6 +52,8 @@ export function Landing() {
     catch { setPromptStatus('Copy failed. Select the prompt text to copy it.'); }
   };
   const light = hydrated && resolvedTheme === 'light';
+  const mode = hydrated && colorMode ? colorMode : 'dark';
+  const nextMode = mode === 'dark' ? 'light' : mode === 'light' ? 'system' : 'dark';
   const selected = pairs[pair];
   const palette = light ? selected.light : selected.dark;
   const theme = appearance !== 'flat' ? palette : pair === 'core' ? (light ? COASTAL_DAY_FLAT_THEME : PROJECTION_FLAT_THEME) : { ...palette, appearance: 'flat' as const };
@@ -65,16 +67,20 @@ export function Landing() {
           <summary aria-label="Choose theme" title="Themes" style={{ backgroundImage: `linear-gradient(135deg, ${palette.primary}, ${palette.partner})`, color: palette.primaryFg }}><PaletteIcon /></summary>
           <div className="landing-theme-menu">
             <p>Flexing on you with our themes lol</p>
-            <div className="landing-theme-grid" role="group" aria-label="Themes: dark above, light below">
-              {(['dark', 'light'] as const).flatMap(mode => (Object.keys(pairs) as (keyof typeof pairs)[]).map(key => {
-                const swatch = pairs[key][mode];
-                const active = pair === key && light === (mode === 'light');
-                return <button key={`${key}-${mode}`} type="button" className="landing-theme-swatch" aria-label={`${swatch.name} (${mode})`} title={`${swatch.name} (${mode})`} aria-pressed={active} style={{ backgroundImage: `linear-gradient(135deg, ${swatch.primary}, ${swatch.partner})`, color: swatch.primaryFg }} onClick={() => { setPair(key); setTheme(mode); }}>
+            <div className="landing-theme-grid" role="group" aria-label="Theme palettes">
+              {(Object.keys(pairs) as (keyof typeof pairs)[]).map(key => {
+                const value = pairs[key];
+                const swatch = light ? value.light : value.dark;
+                const active = pair === key;
+                const gradient = key === 'core'
+                  ? `linear-gradient(135deg, ${value.dark.primary}, ${value.dark.partner} 50%, ${value.light.primary} 50%, ${value.light.partner})`
+                  : `linear-gradient(135deg, ${swatch.primary}, ${swatch.partner})`;
+                return <button key={key} type="button" className="landing-theme-swatch" aria-label={value.label} title={value.label} aria-pressed={active} style={{ backgroundImage: gradient, color: swatch.primaryFg }} onClick={() => setPair(key)}>
                   {active && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>}
                 </button>;
-              }))}
+              })}
             </div>
-            <span className="landing-theme-current">{theme.name}</span>
+            <div className="landing-theme-footer"><span className="landing-theme-current">{theme.name}</span><button type="button" className="landing-mode-control" data-color-mode={mode} aria-label={`Color mode: ${mode}. Switch to ${nextMode}.`} title={`Color mode: ${mode}. Switch to ${nextMode}.`} onClick={() => setTheme(nextMode)}><ModeIcon mode={mode} /></button></div>
           </div>
         </details>
       </nav>
@@ -135,3 +141,5 @@ function StarIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="curren
 function PaletteIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M10 2a8 8 0 1 0 0 16h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.6H15a3 3 0 0 0 3-3.2A8 8 0 0 0 10 2Z" /><path d="M6 6h.01M10 5h.01M14 7h.01M5 10h.01" strokeLinecap="round" strokeWidth="2.5" /></svg>; }
 
 function SoundIcon({ active }: { active: boolean }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m11 5-5 4H3v6h3l5 4Z" />{active ? <><path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14" /></> : <path d="m16 9 6 6m0-6-6 6" />}</svg>; }
+
+function ModeIcon({ mode }: { mode: string }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">{mode === 'system' ? <><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4" /></> : mode === 'light' ? <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" /></> : <path d="M20.5 13A9 9 0 0 1 11 3.5 9 9 0 1 0 20.5 13Z" />}</svg>; }

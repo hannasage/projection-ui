@@ -138,9 +138,9 @@ test('landing prompt and graphics notices ship with the static preview', () => {
   assert.match(landing, /<pre[^>]*aria-label="AI setup prompt"[^>]*><code>/);
   assert.match(landing, /An appetizer while you wait/);
   assert.match(landing, /Flexing on you with our themes lol/);
-  assert.equal((landing.match(/class="landing-theme-swatch"/g) ?? []).length, 6);
-  assert.match(landing, /aria-label="Projection \(dark\)"/);
-  assert.match(landing, /aria-label="Confetti Studio \(light\)"/);
+  assert.equal((landing.match(/class="landing-theme-swatch"/g) ?? []).length, 3);
+  assert.match(landing, /aria-label="Projection \/ Coastal Day"/);
+  assert.match(landing, /aria-label="Noir Bloom \/ Confetti Studio"/);
   assert.match(landing, /Keep up, human/);
   assert.match(landing, /Go forth, make incredible things/);
   assert.match(landing, /Being built to build things that look good/);

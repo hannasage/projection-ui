@@ -46,3 +46,20 @@ The same deployment serves the landing page at `/` and the reader at `/docs/`.
 After the checks pass, deploy the complete `docs-site/out` directory to Vercel.
 Keep its `vercel.json`, `/api/search`, `/examples/`, and `/font-licenses/` files.
 Make sure that the landing page, reader, and gallery work in Preview before production deployment.
+
+## Landing sounds
+
+The landing uses four optional licensed cues from `public/sounds/`.
+The audio files stay outside public GitHub and the npm package.
+Supply licensed MP3 files before the website build:
+
+- `modern-blip.mp3`
+- `modern-treasure.mp3`
+- `flat-chip.mp3`
+- `flat-pop.mp3`
+
+The website build copies these files into `out/sounds/` when they are present.
+The page stays usable without audio when a cue is missing or the browser blocks playback.
+The browser tests use synthetic fixtures for playback control and test the licensed files locally when available.
+Splice licenses apply to the supplied cues, not the repository's MIT license.
+Read [Splice's terms](https://splice.com/terms) before you distribute licensed audio in another project.
