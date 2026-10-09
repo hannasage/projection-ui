@@ -52,6 +52,23 @@ test('landing and reader keep separate usable entry points', () => {
   assert.match(read('docs/index.html'),/Read this page as Markdown/);
 });
 
+test('landing offers the matching editable kit and official Figma agent setup', () => {
+  const landing = read('index.html');
+  const section = landing.match(/<section[^>]+aria-labelledby="landing-figma-title"[\s\S]*?<\/section>/)?.[0];
+  assert.ok(section, 'The design kit needs a visible landing section');
+  const manifest = JSON.parse(read('downloads/design-package.json'));
+  assert.ok(section.includes(`href="/downloads/projection-ui-design-${manifest.version}.zip"`));
+  assert.match(section, /href="\/docs\/releases\/#editable-figma-kit"/);
+  assert.match(section, /href="https:\/\/developers\.figma\.com\/docs\/figma-mcp-server\/remote-server-installation\/"/);
+  assert.match(section, /importer package, not a \.fig file/);
+  assert.match(section, /Design and prototype your layouts first\./);
+  assert.match(section, /Hop into Figma or/);
+  const card = section.match(/<div[^>]+class="[^"]*landing-figma-tools[^"]*"[\s\S]*?<\/div><a class="landing-figma-guide"/);
+  assert.ok(card, 'The connection guide follows the card');
+  assert.ok(card[0].includes('Download Figma kit') && card[0].includes('Import instructions'));
+  assert.match(section, /class="landing-figma-mark"[^>]*fill="none"[^>]*stroke="currentColor"/);
+});
+
 test('static documentation serves the checked-in font binaries', () => {
   for (const name of ['syne-latin-variable.woff2','ibm-plex-sans-latin-variable.woff2','ibm-plex-mono-latin-400.woff2','ibm-plex-mono-latin-500.woff2']) {
     const served = readFileSync(new URL('../out/fonts/'+name,import.meta.url));

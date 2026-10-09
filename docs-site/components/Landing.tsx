@@ -6,6 +6,7 @@ import '@hannasage/projection-ui/styles';
 import { NavLight } from './NavLight';
 import { useLandingMotion } from './useLandingMotion';
 import { useAppearanceAudio } from './useAppearanceAudio';
+import { FigmaMark } from './FigmaMark';
 
 // The theme bootstrap script runs before React. Keep its palette through hydration.
 const bootstrapPalette = {
@@ -121,6 +122,25 @@ export function Landing() {
         <div><h2>Make vibe coding even easier.</h2><p>Quit being so wasteful, your agent is tired of re-coding the same components and styles everywhere.</p><a href="/docs/installation/">Start with installation</a></div>
         <div><h2>Shiiinnnyyyy! <SparkleIcon /></h2><p>Ooey gooey glass and those neon glowing lights, oh my god it&apos;s perfect! Flat styles available, but not advised.</p><a href="/docs/theming/">Explore the themes</a></div>
         <div><h2>Keep up, human.</h2><p>Look, we&apos;re built by agents for agents, we move fast. Keep up with our new hotness if you don&apos;t want to look old and busted.</p><a href="https://github.com/hannasage/projection-ui">Star on GitHub <StarIcon /></a></div>
+      </section>
+      <section className="landing-figma" aria-labelledby="landing-figma-title">
+        <div className="landing-figma-copy">
+          <GradientText as="h2" id="landing-figma-title">Design and prototype your layouts first.</GradientText>
+          <p>Hop into Figma or (more likely) let your agent hop in and design interfaces first before you file the spec for your coding agents.</p>
+        </div>
+        <div className="landing-figma-downloads">
+          <GradientBackground variant="spotlight" className="landing-figma-tools">
+            <FigmaMark flat={appearance === 'flat'} primary={palette.primary} partner={palette.partner} ink={palette.text} light={light} />
+            <ul><li>Native components</li><li>Editable text</li><li>Theme variables</li></ul>
+            <p>Light and dark. Modern and Flat. Kit 0.2.0-next.2.</p>
+            <div className="landing-actions">
+              <LinkButton className="landing-glow-button" data-proximity-glow variant="primary" appearance="gradient" href="/downloads/projection-ui-design-0.2.0-next.2.zip" download>Download Figma kit <ArrowIcon /></LinkButton>
+              <LinkButton className="landing-outline landing-glow-button" data-proximity-glow href="/docs/releases/#editable-figma-kit" style={{ background: 'transparent', color: 'var(--ui-accent-text)', borderColor: 'var(--ui-primary)' }}>Import instructions <ArrowIcon /></LinkButton>
+            </div>
+            <p className="landing-figma-note">The ZIP is a local importer package, not a .fig file.</p>
+          </GradientBackground>
+          <a className="landing-figma-guide" href="https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/">Connect Figma to your agent <ArrowIcon /></a>
+        </div>
       </section>
       <section className="landing-last" aria-labelledby="landing-last-title">
         <div data-scroll-scene="closing">
