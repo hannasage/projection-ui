@@ -17,11 +17,13 @@ export function NavLight({ flat, light }: { flat: boolean; light: boolean }) {
     let visible = true;
     const sync = () => {
       const allowed = !reduced.matches && !forced.matches;
+      node.dataset.lightState = !allowed ? 'still' : document.hidden ? 'hidden' : visible ? 'visible' : 'offscreen';
       setMotionAllowed(allowed);
       setEligible(allowed && visible && !document.hidden);
     };
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); });
-    observer.observe(node);
+    // Observe the normal-flow nav, not its masked absolute light layer.
+    observer.observe(node.parentElement ?? node);
     document.addEventListener('visibilitychange', sync);
     reduced.addEventListener('change', sync);
     forced.addEventListener('change', sync);
