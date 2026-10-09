@@ -48,6 +48,8 @@ try {
         const reference = page.getByRole('region', { name: 'Prop reference', exact: true });
         await reference.waitFor();
         if (id === 'components-button--docs') await reference.getByRole('table').waitFor();
+        if (id === 'forms-select--docs') await reference.getByText('The authored component contract above lists the available props.', { exact: true }).waitFor();
+        assert.equal(await reference.getByText('Controls give you an easy to use interface to test your components.', { exact: false }).count(), 0, 'Read-only prop references do not show the editable Controls empty state');
         await page.getByRole('heading', { name: 'Component contract', exact: true }).waitFor();
         await reference.getByText('Open a story in Canvas and use the Controls panel to edit its props.', { exact: true }).waitFor();
         assert.equal(await reference.locator('input, select, textarea, [aria-readonly], .rejt-tree').count(), 0, `${id} keeps Docs props readable without editable control widgets`);

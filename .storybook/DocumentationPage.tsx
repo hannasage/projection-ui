@@ -18,5 +18,7 @@ function ComponentContract() {
 }
 
 export function DocumentationPage() {
-  return <><Title /><Subtitle /><Description /><Primary /><ComponentContract /><section aria-label="Prop reference"><h2>Props</h2><p>Open a story in Canvas and use the Controls panel to edit its props.</p><ArgTypes /></section><Stories /></>
+  const resolved = useOf('meta', ['meta'])
+  const hasPropMetadata = Object.keys(resolved.preparedMeta.argTypes).length > 0
+  return <><Title /><Subtitle /><Description /><Primary /><ComponentContract /><section aria-label="Prop reference"><h2>Props</h2><p>Open a story in Canvas and use the Controls panel to edit its props.</p>{hasPropMetadata ? <ArgTypes /> : <p style={{ color: 'var(--preview-text, #DDE3EE)' }}>The authored component contract above lists the available props.</p>}</section><Stories /></>
 }
