@@ -4,13 +4,15 @@ import { readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { extname, resolve, sep } from 'node:path';
 import { chromium } from '@playwright/test';
+import { socialPreview } from '../docs-site/lib/social-preview.ts';
 
 const root = resolve('docs-site/out');
 const contracts = JSON.parse(readFileSync('docs/component-contracts.json', 'utf8'));
 const routes = ['/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
 routes.push(...['', 'installation', 'theming', 'components', 'toasts', 'examples'].map(slug => `/docs/0.1.5/${slug ? slug + '/' : ''}`));
-const mime = {'.zip':'application/zip','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
-const server = createServer((request,response)=>{
+const mime = {'.zip':'application/zip','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
+function staticServer(root) {
+  return createServer((request,response)=>{
   try {
     const pathname = decodeURIComponent(new URL(request.url,'http://localhost').pathname);
     let path = resolve(root, '.'+pathname);
@@ -20,9 +22,13 @@ const server = createServer((request,response)=>{
     response.setHeader('Content-Type',pathname==='/api/search'?'application/json':mime[extname(path)]??'application/octet-stream');
     response.end(readFileSync(path));
   } catch { response.writeHead(404).end(); }
-});
-await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  });
+}
+const server = staticServer(root);
+const storybookServer = staticServer(resolve('storybook-static'));
+await Promise.all([server, storybookServer].map(server => new Promise(resolve => server.listen(0, '127.0.0.1', resolve))));
 const origin = `http://127.0.0.1:${server.address().port}`;
+const storybookOrigin = `http://127.0.0.1:${storybookServer.address().port}`;
 const browser = await chromium.launch({headless:true});
 const axe = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const failures = [];
@@ -30,6 +36,70 @@ const widths = process.env.DOCS_WIDTHS ? process.env.DOCS_WIDTHS.split(',').map(
 assert.ok(widths.length && widths.every(width=>[390,768,1440].includes(width)),'Reader widths must use the supported viewport set');
 const localLinks = new Set(['/api/search-0.1.5','/archives/0.1.5/llms.txt','/archives/0.1.5/llms-full.txt','/llms.txt','/llms-full.txt','/release.json','/api/search','/examples/','/examples/index.json']);
 try {
+  const crawlerContext = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const crawlerPage = await crawlerContext.newPage();
+    const sharedTags = {
+      'og:type': 'website',
+      'og:site_name': 'Projection UI',
+      'og:title': socialPreview.title,
+      'og:description': socialPreview.description,
+      'og:image': socialPreview.image,
+      'og:image:width': String(socialPreview.width),
+      'og:image:height': String(socialPreview.height),
+      'og:image:type': 'image/png',
+      'og:image:alt': socialPreview.alt,
+      'twitter:card': 'summary_large_image',
+      'twitter:title': socialPreview.title,
+      'twitter:description': socialPreview.description,
+      'twitter:image': socialPreview.image,
+      'twitter:image:alt': socialPreview.alt,
+    };
+    const editions = JSON.parse(readFileSync(resolve(root, 'docs-versions.json'), 'utf8'));
+    const currentEdition = editions.versions.find(edition => edition.id === 'current');
+    const titles = {
+      '/': 'Projection UI · Yes. Another UI library.',
+      '/docs/': 'Projection UI · Projection UI',
+      '/docs/installation/': 'Installation · Projection UI',
+      '/docs/0.1.5/': 'Projection UI 0.1.5 · 0.1.5 · Projection UI',
+      '/docs/0.1.5/installation/': 'Installation · 0.1.5 · Projection UI',
+    };
+    for (const route of [...routes, '/examples/', 'standalone Storybook']) {
+      const response = await crawlerPage.goto(route === 'standalone Storybook' ? storybookOrigin + '/' : origin + route, { waitUntil: 'domcontentloaded' });
+      assert.equal(response.status(), 200, `Crawler page resolves: ${route}`);
+      for (const [name, content] of Object.entries(sharedTags)) {
+        const tags = crawlerPage.locator(`head meta[${name.startsWith('og:') ? 'property' : 'name'}="${name}"]`);
+        assert.equal(await tags.count(), 1, `Initial HTML contains one ${name}: ${route}`);
+        assert.equal(await tags.getAttribute('content'), content, `Initial HTML uses shared ${name}: ${route}`);
+      }
+      if (route !== '/examples/' && route !== 'standalone Storybook') {
+        assert.equal(await crawlerPage.locator('head meta[property="og:url"]').count(), 0, `The shared preview does not assign a global page URL: ${route}`);
+        const canonicalOrigin = route.startsWith('/docs/') && !route.startsWith('/docs/0.1.5/') ? 'https://docs.projectionui.dev' : 'https://projectionui.dev';
+        assert.equal(await crawlerPage.locator('head link[rel="canonical"]').getAttribute('href'), canonicalOrigin + route, `The route keeps its canonical URL: ${route}`);
+        const description = route === '/'
+          ? 'React components, glass morphism, and themes. Give your AI the prompt or try the live Storybook.'
+          : route.startsWith('/docs/0.1.5/') ? 'Projection UI 0.1.5 archive' : `Projection UI ${currentEdition.label} ${currentEdition.status}`;
+        assert.equal(await crawlerPage.locator('head meta[name="description"]').getAttribute('content'), description, `The route keeps its SEO description: ${route}`);
+        if (titles[route]) assert.equal(await crawlerPage.title(), titles[route], `The route keeps its SEO title: ${route}`);
+      }
+    }
+    const originalImage = readFileSync('docs-site/public/social/projection-ui.png');
+    for (const url of [origin + '/social/projection-ui.png', origin + '/examples/social/projection-ui.png', storybookOrigin + '/social/projection-ui.png']) {
+      const route = new URL(url).pathname;
+      const response = await fetch(url);
+      assert.equal(response.status, 200, `The local social image resolves: ${route}`);
+      assert.equal(response.headers.get('content-type'), 'image/png', `The social image has the PNG media type: ${route}`);
+      const image = Buffer.from(await response.arrayBuffer());
+      assert.deepEqual(image.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), `The social image has a PNG signature: ${route}`);
+      assert.equal(image.toString('ascii', 12, 16), 'IHDR', `The PNG contains its dimensions: ${route}`);
+      assert.equal(image.readUInt32BE(16), 1200, `The social image is 1200 pixels wide: ${route}`);
+      assert.equal(image.readUInt32BE(20), 630, `The social image is 630 pixels high: ${route}`);
+      assert.deepEqual(image, originalImage, `The route serves the checked-in image: ${route}`);
+    }
+    console.log(`Verified initial social metadata on ${routes.length + 2} pages and all three local PNG routes without JavaScript.`);
+  } finally {
+    await crawlerContext.close();
+  }
   for (const width of widths) {
     const context = await browser.newContext({viewport:{width,height:900},permissions:['clipboard-read','clipboard-write']});
     const page = await context.newPage();
@@ -270,4 +340,4 @@ try {
   }
   assert.deepEqual(failures,[],`Reader accessibility/runtime failures:\n${JSON.stringify(failures,null,2)}`);
   console.log(`Verified ${localLinks.size} local links and ${routes.length} reader pages at ${widths.length} widths.`);
-} finally { await browser.close(); await new Promise(resolve=>server.close(resolve)); }
+} finally { await browser.close(); await Promise.all([server, storybookServer].map(server => new Promise(resolve => server.close(resolve)))); }
