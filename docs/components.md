@@ -223,7 +223,7 @@ They accept native HTML attributes and consumer-authored content.
 | `Container` | Optional `as`, `maxWidth="72rem"`, and native HTML attributes |
 | `Stack` | Optional `as`, `direction="column"`, `gap`, and native HTML attributes |
 | `Prose` | Optional `as` and native HTML attributes; styles authored HTML |
-| `LinkButton` | Required `href`; optional Button `variant` and `size`; native anchor attributes |
+| `LinkButton` | Required `href`; optional Button `variant` and `size`; `appearance="solid"` (default) or `"gradient"`; native anchor attributes |
 | `Separator` | Native `hr` attributes |
 | `VisuallyHidden` | Native `span` attributes; content remains available to assistive technology |
 

@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFileSync, statSync } from 'node:fs';
-import { extname, resolve, sep } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
+import { createRequire } from 'node:module';
 import { chromium } from '@playwright/test';
 
+const require = createRequire(import.meta.url);
+const { PNG } = require(join(dirname(require.resolve('playwright-core/package.json')), 'lib/utilsBundle.js'));
 const root = resolve('docs-site/out');
 const server = createServer((request, response) => {
   try {
@@ -77,16 +80,21 @@ try {
         const bootButton = await page.getByRole('button', { name: 'Save project', exact: true }).evaluate(node => getComputedStyle(node).backgroundImage);
         assert.ok(bootButton.includes(mode === 'light' ? 'rgb(54, 159, 255)' : 'rgb(161, 245, 91)'), 'Server-rendered primary button uses the retained partner endpoint');
         if (mode === 'light') assert.ok(!bootButton.includes('rgb(161, 245, 91)'), 'Light boot has no lime endpoint in primary buttons');
+        assert.equal(await page.getByRole('link', { name: 'Read the docs', exact: true }).evaluate(node => getComputedStyle(node).backgroundImage), bootButton, 'Before hydration, the docs link shares the primary button gradient');
       } finally { releaseChunks(); }
       await page.waitForFunction(theme => document.querySelector('.landing-shell')?.getAttribute('data-ui-mode') === theme, mode);
       await page.evaluate(() => document.fonts.ready);
       const expected = mode === 'light' ? '#00C8FF' : '#C9F53A';
       const card = page.locator('.landing-project-card');
-      assert.equal(await card.evaluate(node => getComputedStyle(node).getPropertyValue('--ui-primary').trim()), expected);
+      assert.equal(await card.evaluate(node => getComputedStyle(node).getPropertyValue('--ui-primary').trim().toLowerCase()), expected.toLowerCase());
       const glow = await card.evaluate(node => getComputedStyle(node, '::after').backgroundImage);
       assert.ok(glow.includes(mode === 'light' ? 'rgb(0, 200, 255)' : 'rgb(201, 245, 58)'), 'Underglow follows the selected core palette');
       if (mode === 'light') assert.ok(!glow.includes('rgb(201, 245, 58)'), 'Retained light mode never uses the dark lime underglow');
       assert.equal(await page.locator('#landing-title.ui-gradient-text').count(), 1, 'The hero uses the library gradient heading');
+      const docsLink = page.getByRole('link', { name: 'Read the docs', exact: true });
+      assert.equal(await docsLink.getAttribute('href'), '/docs/');
+      assert.equal(await docsLink.evaluate(node => node.classList.contains('ui-link-button')), true, 'The CTA uses the library navigation component');
+      assert.equal(await docsLink.evaluate(node => getComputedStyle(node).backgroundImage), await page.getByRole('button', { name: 'Save project', exact: true }).evaluate(node => getComputedStyle(node).backgroundImage), 'The docs link shares the primary button gradient');
       const flow = page.locator('.landing-flow');
       assert.equal(await flow.getAttribute('aria-hidden'), 'true');
       assert.equal(await flow.evaluate(node => getComputedStyle(node).pointerEvents), 'none');
@@ -94,12 +102,13 @@ try {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Landing does not overflow');
       await page.getByRole('radio', { name: 'Flat', exact: true }).click();
       assert.equal(await flow.evaluate(node => getComputedStyle(node).display), 'none', 'Flat removes decorative flowing light');
+      assert.equal(await docsLink.evaluate(node => getComputedStyle(node).backgroundImage), 'none', 'Flat keeps the docs link solid');
       assert.equal(await card.evaluate(node => getComputedStyle(node, '::after').display), 'none', 'Flat removes the material underglow');
       await page.getByRole('radio', { name: 'Modern', exact: true }).click();
       const opposite = mode === 'light' ? 'dark' : 'light';
       await page.getByRole('button', { name: `Switch to ${opposite} theme`, exact: true }).click();
       await page.waitForFunction(theme => document.querySelector('.landing-shell')?.getAttribute('data-ui-mode') === theme, opposite);
-      assert.equal(await card.evaluate(node => getComputedStyle(node).getPropertyValue('--ui-primary').trim()), opposite === 'light' ? '#00C8FF' : '#C9F53A', 'Live toggling changes the material palette');
+      assert.equal(await card.evaluate(node => getComputedStyle(node).getPropertyValue('--ui-primary').trim().toLowerCase()), opposite === 'light' ? '#00c8ff' : '#c9f53a', 'Live toggling changes the material palette');
       await page.getByRole('button', { name: `Switch to ${mode} theme`, exact: true }).click();
       await page.waitForFunction(theme => document.querySelector('.landing-shell')?.getAttribute('data-ui-mode') === theme, mode);
 
@@ -107,18 +116,48 @@ try {
       await page.getByRole('button', { name: 'Save project', exact: true }).click();
       await page.getByRole('status').filter({ hasText: 'Saved in this preview.' }).waitFor();
       const hero = page.locator('.landing-hero');
+      await page.evaluate(() => scrollTo(0, 0));
+      await page.waitForFunction(() => document.querySelector('.landing-hero').getBoundingClientRect().top >= 0);
       const box = await hero.boundingBox();
-      await page.mouse.move(box.x + box.width * .8, box.y + 30);
-      if (width > 680) await page.waitForFunction(() => document.querySelector('.landing-flow-pointer')?.style.transform.includes('translate'));
+      const core = flow.locator('[data-trail-path="core"]');
+      await page.mouse.move(0, 0);
+      const clip = { x: box.x + 10, y: box.y + 4, width: Math.floor(box.width - 20), height: 40 };
+      const idle = PNG.sync.read(await page.screenshot({ clip }));
+      await page.mouse.move(box.x + box.width * .1, box.y + 24);
+      await page.mouse.move(box.x + box.width * .85, box.y + 24, { steps: 16 });
+      await page.waitForFunction(() => document.querySelector('[data-trail-path="core"]')?.getTotalLength() > 30);
+      assert.match(await core.getAttribute('d'), / Q /, 'The trail draws lagging curves rather than translating a static decoration');
+      const active = PNG.sync.read(await page.screenshot({ clip }));
+      let visiblePixels = 0;
+      for (let i = 0; i < idle.data.length; i += 4) {
+        if (Math.max(...[0, 1, 2].map(channel => Math.abs(active.data[i + channel] - idle.data[i + channel]))) >= 10) visiblePixels++;
+      }
+      assert.ok(visiblePixels >= 35, `${mode} ${width}px horizontal mouse motion paints visible light (${visiblePixels} pixels)`);
+      await page.screenshot({ path: `/tmp/projection-trail-${mode}-${width}.png`, fullPage: false });
+      await page.waitForFunction(() => document.querySelector('.landing-flow')?.dataset.trailState === 'idle');
+      assert.equal(await core.getAttribute('d'), '', 'The ribbon clears after settling');
+      await page.mouse.move(box.x + box.width * .25, box.y + 26, { steps: 4 });
+      await page.keyboard.press('Escape');
+      assert.equal(await core.getAttribute('d'), '', 'Keyboard input clears the decorative trail');
+      await page.mouse.move(box.x + box.width * .55, box.y + 26, { steps: 4 });
+      await page.waitForFunction(() => document.querySelector('[data-trail-path="core"]')?.getTotalLength() > 5);
+      await page.evaluate(() => scrollBy(0, 10));
+      await page.waitForFunction(() => document.querySelector('[data-trail-path="core"]')?.getAttribute('d') === '');
+      assert.equal(await core.getAttribute('d'), '', 'Page scrolling clears the trail without further pointer movement');
+      for (const pointerType of ['touch', 'pen']) {
+        await hero.dispatchEvent('pointermove', { pointerType, clientX: box.x + 50, clientY: box.y + 24 });
+        assert.equal(await core.getAttribute('d'), '', `${pointerType} does not draw a mouse trail`);
+      }
       await page.setViewportSize({ width, height: 500 });
       await page.locator('.landing-last').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.landing-hero').getBoundingClientRect().bottom <= 0);
       assert.ok(await hero.evaluate(node => node.getBoundingClientRect().bottom <= 0), 'Hero is fully outside the viewport before testing its pause');
       await page.waitForFunction(() => document.querySelector('.landing-flow')?.getAttribute('data-in-view') === 'false');
-      assert.equal(await flow.locator('.landing-flow-drift').evaluate(node => getComputedStyle(node).animationPlayState), 'paused', 'Offscreen hero pauses its finite motion');
+      assert.equal(await flow.getAttribute('data-trail-state'), 'paused', 'Offscreen hero stops the trail frame loop');
+      assert.equal(await core.getAttribute('d'), '', 'Offscreen clears trail geometry');
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await hero.scrollIntoViewIfNeeded();
-      assert.equal(await flow.locator('.landing-flow-drift').evaluate(node => getComputedStyle(node).animationName), 'none', 'Reduced motion keeps static light');
+      assert.equal(await flow.locator('.landing-flow-canvas').evaluate(node => getComputedStyle(node).display), 'none', 'Reduced motion retains a static arc and removes the mouse ribbon');
       await page.emulateMedia({ forcedColors: 'active' });
       assert.equal(await flow.evaluate(node => getComputedStyle(node).display), 'none', 'Forced colors remove decorative light');
       assert.deepEqual(errors, [], 'Landing effects and working controls cause no runtime errors');

@@ -93,7 +93,7 @@
   ],
   "LinkButton": [
     "href",
-    "Native anchor attributes; Button variant and size"
+    "Native anchor attributes; Button variant and size; appearance=\"solid\" (default) or \"gradient\""
   ],
   "Separator": [
     "None",

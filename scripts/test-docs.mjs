@@ -77,10 +77,10 @@ try {
         const checkCTA = async () => {
           const colors = await page.locator('.landing-primary').evaluate(node=>{
             const probe=document.createElement('span'); probe.style.cssText='background:var(--color-fd-primary);color:var(--color-fd-primary-foreground)'; document.body.append(probe);
-            const actual={background:getComputedStyle(node).backgroundColor,color:getComputedStyle(node).color};
-            const expected={background:getComputedStyle(probe).backgroundColor,color:getComputedStyle(probe).color}; probe.remove(); return {actual,expected};
+            const actual={background:getComputedStyle(node).backgroundImage,color:getComputedStyle(node).color};
+            const expected={background:getComputedStyle(document.querySelector('.landing-card-actions button')).backgroundImage,color:getComputedStyle(probe).color}; probe.remove(); return {actual,expected};
           });
-          assert.deepEqual(colors.actual,colors.expected,'The landing action uses the current theme accent and its foreground');
+          assert.deepEqual(colors.actual,colors.expected,'The docs link uses the same library gradient and foreground as the primary button');
         };
         await checkCTA();
         assert.equal(await page.getByRole('textbox',{name:'Project name',exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim().replaceAll('"','')).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-body').trim().split(',').map(value=>value.trim().replaceAll('"','')).join(',')),'Live controls use the self-hosted reading font');
