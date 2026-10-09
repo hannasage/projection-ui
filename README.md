@@ -1,5 +1,16 @@
 # Projection UI
 
+<p>
+  <a href="https://github.com/hannasage/projection-ui/pull/7"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/status-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/status-dark.svg" alt="Release status: alpha candidate" height="28"></picture></a>
+  <a href="https://www.npmjs.com/package/@hannasage/projection-ui"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/npm-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/npm-dark.svg" alt="Published npm releases" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/build-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/build-dark.svg" alt="Open the current build status on GitHub Actions" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/license-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/license-dark.svg" alt="License: MIT" height="28"></picture></a>
+  <a href="#install-the-candidate-locally"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-dark.svg" alt="Requirements: React and React DOM 19 or newer" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/compatibility.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/types-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/types-dark.svg" alt="TypeScript declarations included" height="28"></picture></a>
+  <a href="#choose-an-entry"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/runtime-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/runtime-dark.svg" alt="The package manages chart, sorting, and toast dependencies" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/FEEDBACK.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/support-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/support-dark.svg" alt="Community support through GitHub Issues and Discussions" height="28"></picture></a>
+</p>
+
 Yes. Another UI library.
 React components, shared themes, and a thing for light.
 You still have to build the app.
@@ -14,7 +25,7 @@ The screenshots show real components from the packed library.
 The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
 The instructions below describe this candidate, not the published `0.1.5` package.
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg)
+<img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
 ## Install the candidate locally
 
@@ -70,7 +81,7 @@ Optional body and display font roles fall back to the existing `font` field.
 
 ![Buttons in Coastal Day and Projection, with add item, disabled reset, and quiet actions.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/controls-paired.png)
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg)
+<img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
 ## Give it your theme
 
@@ -151,7 +162,7 @@ These values are example data.
 Pair charts with a text summary or table for readers who cannot use the visual.
 Read the [accessibility guide](https://docs.projectionui.dev/docs/accessibility/).
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg)
+<img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
 ## Select styles
 
@@ -184,7 +195,7 @@ Read [the token guide](https://docs.projectionui.dev/docs/tokens/) for its optio
 
 ![A real Projection form with a project input, progress bar, slider, toggle, and gradient save button.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/projection-dark.png)
 
-![](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg)
+<img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
 ## Read and try the guides
 
