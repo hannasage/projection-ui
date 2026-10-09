@@ -80,7 +80,7 @@ try {
             const actual={background:getComputedStyle(node).backgroundImage,color:getComputedStyle(node).color};
             const expected={background:getComputedStyle(document.querySelector('.landing-card-actions button')).backgroundImage,color:getComputedStyle(probe).color}; probe.remove(); return {actual,expected};
           });
-          assert.deepEqual(colors.actual,colors.expected,'The docs link uses the same library gradient and foreground as the primary button');
+          assert.deepEqual(colors.actual,colors.expected,'The copy action uses the same library gradient and foreground as the primary button');
         };
         await checkCTA();
         assert.equal(await page.getByRole('textbox',{name:'Project name',exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim().replaceAll('"','')).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-body').trim().split(',').map(value=>value.trim().replaceAll('"','')).join(',')),'Live controls use the self-hosted reading font');
@@ -94,14 +94,18 @@ try {
         await page.getByRole('radio',{name:'Flat',exact:true}).click();
         assert.equal(await page.locator('.landing-shell').getAttribute('data-ui-appearance'),'flat','The landing applies its selected appearance');
         await page.getByRole('radio',{name:'Modern',exact:true}).click();
+        await page.locator('.landing-theme-picker summary').click();
         await page.getByRole('button',{name:'Switch to light theme',exact:true}).click();
+        await page.locator('.landing-theme-picker summary').click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('light'));
         await page.waitForFunction(()=>document.getAnimations().every(animation=>animation.playState!=='running'||animation.effect?.getTiming().iterations===Infinity));
         await checkCTA();
         const lightLandingAudit = await page.evaluate(()=>window.axe.run(document.body,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}));
         assert.deepEqual(lightLandingAudit.violations.map(item=>({id:item.id,nodes:item.nodes.map(node=>node.target)})),[],'Light landing has no tested WCAG violations');
         await page.screenshot({path:`/tmp/projection-landing-light-${width}.png`,fullPage:true});
+        await page.locator('.landing-theme-picker summary').click();
         await page.getByRole('button',{name:'Switch to dark theme',exact:true}).click();
+        await page.locator('.landing-theme-picker summary').click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
 
       }

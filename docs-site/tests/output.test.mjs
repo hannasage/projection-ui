@@ -131,9 +131,18 @@ test('the design download matches its version and published fingerprint', async 
 
 test('landing prompt and graphics notices ship with the static preview', () => {
   const landing = read('index.html');
-  assert.match(landing, /Just give our site to your AI/);
+  assert.match(landing, /Take even more effort out of vibe coding/);
+  assert.match(landing, /React components, glass morphism/);
   assert.match(landing, /Oh great AI, take this elite component library/);
-  assert.match(landing, /Copy AI prompt/);
+  assert.match(landing, /Copy AI Prompt/);
+  assert.match(landing, /<pre[^>]*aria-label="AI setup prompt"[^>]*><code>/);
+  assert.match(landing, /An appetizer while you wait/);
+  assert.match(landing, /Flexing on you with our themes lol/);
+  assert.match(landing, /Ember Tide \/ Dust/);
+  assert.match(landing, /Noir Bloom \/ Confetti Studio/);
+  assert.match(landing, /Keep up, human/);
+  assert.match(landing, /Go forth, make incredible things/);
+  assert.match(landing, /Being built to build things that look good/);
   assert.doesNotMatch(landing, /You still have to build the app\. Sorry\./);
   const notice = read('third-party/NOTICE.txt');
   assert.match(notice, /tsParticles 4\.4\.0/);

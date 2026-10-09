@@ -22,7 +22,12 @@ export function SparklesCore({ particleColor }: { particleColor: string }) {
   const loaded = useCallback((value?: Container) => {
     if (!mounted.current) { value?.destroy(); return; }
     container.current = value;
-    if (value && ref.current) ref.current.dataset.sparklesState = 'active';
+    if (value && ref.current) {
+      ref.current.dataset.sparklesState = 'active';
+      ref.current.dataset.particleCount = String(value.particles.count);
+      const color = value.particles.get(0)?.getFillColor();
+      if (color) ref.current.dataset.particleColor = `hsl(${color.h} ${color.s}% ${color.l}%)`;
+    }
   }, []);
   const options = useMemo<ISourceOptions>(() => ({
     background: { color: { value: 'transparent' } },
@@ -33,8 +38,8 @@ export function SparklesCore({ particleColor }: { particleColor: string }) {
     pauseOnOutsideViewport: true,
     interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
     particles: {
-      color: { value: particleColor },
-      number: { value: 54, density: { enable: false } },
+      paint: { color: { value: particleColor } },
+      number: { value: 70, density: { enable: false } },
       shape: { type: 'circle' },
       links: { enable: false },
       collisions: { enable: false },
