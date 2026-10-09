@@ -57,3 +57,14 @@ test('static documentation serves the checked-in font binaries', () => {
     assert.deepEqual(served,source,`${name} keeps its verified licensed bytes`);
   }
 });
+
+test('static deployment retains the docs-domain redirect and its real destination', () => {
+  const config = JSON.parse(read('vercel.json'));
+  assert.deepEqual(config,JSON.parse(readFileSync(new URL('../public/vercel.json',import.meta.url),'utf8')));
+  const redirect = config.redirects.find(rule=>rule.source==='/' && rule.has?.some(condition=>condition.type==='host' && condition.value==='docs.projectionui.dev'));
+  assert.ok(redirect,'The docs domain needs its own reader entry point');
+  assert.equal(redirect.destination,'/docs/');
+  assert.equal(redirect.permanent,false);
+  assert.match(read(redirect.destination.slice(1)+'index.html'),/Read this page as Markdown/);
+  assert.match(read('index.html'),/Yes\. Another UI library\./,'Other hosts retain the landing page');
+});

@@ -34,4 +34,16 @@ Serve `docs-site/out` as static files.
 Keep its `/api/search` file and `/examples/` directory available.
 The site needs no server runtime, environment secrets, visitor accounts, external search service, or font download.
 
-The public site is [Projection UI documentation](https://projection-ui-docs.vercel.app).
+The landing page belongs at [projectionui.dev](https://projectionui.dev).
+The reader belongs at [docs.projectionui.dev](https://docs.projectionui.dev).
+DNS records, which point each domain to its host, still need changes.
+Keep the Vercel Preview deployment available for review while those changes wait.
+
+`public/vercel.json` carries the static deployment configuration.
+The build copies it into `out/vercel.json`.
+On the docs domain, it redirects `/` to the reader at `/docs/`.
+Other hosts keep the landing page at `/`.
+
+After the checks pass, deploy the complete `docs-site/out` directory to Vercel.
+Keep its `vercel.json`, `/api/search`, `/examples/`, and `/font-licenses/` files.
+Make sure that the landing page, reader, and gallery work in Preview before you change DNS.

@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "framework": null,
+  "buildCommand": null,
+  "installCommand": null,
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "docs.projectionui.dev"
+        }
+      ],
+      "destination": "/docs/",
+      "permanent": false
+    }
+  ]
+}
