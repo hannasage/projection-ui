@@ -135,6 +135,15 @@ test('landing prompt and graphics notices ship with the static preview', () => {
   assert.match(landing, /Oh great AI, take this elite component library/);
   assert.match(landing, /Copy AI prompt/);
   assert.doesNotMatch(landing, /You still have to build the app\. Sorry\./);
-  assert.match(read('third-party/three-MIT.txt'), /The MIT License/);
+  const notice = read('third-party/NOTICE.txt');
+  assert.match(notice, /Kevin Levron/);
+  assert.match(notice, /CC BY-NC-SA 4\.0/);
+  assert.match(notice, /runtime remains unmodified/i);
+  assert.match(notice, /not included in the Projection UI npm package/);
+  const effect = read('effects/tubes-cursor.html');
+  assert.match(effect, /import\('https:\/\/cdn\.jsdelivr\.net\/npm\/threejs-components@0\.0\.19\/build\/cursors\/tubes1\.min\.js'\)/);
+  assert.match(effect, /event\.source !== parent/);
+  assert.match(effect, /event\.data\.nonce !== nonce/);
+  assert.ok(effect.length < 20000, 'The local graphics adapter does not redistribute the upstream runtime');
   assert.match(landing, /third-party\/NOTICE\.txt/);
 });

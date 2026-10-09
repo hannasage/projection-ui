@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neon tubes</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}canvas{display:block;width:100%;height:100%;pointer-events:none}</style></head>
+<body><canvas aria-hidden="true"></canvas>
+<script type="module">
+const canvas = document.querySelector('canvas');
+const nonce = location.hash.slice(1);
+let app = null, initializing = false, failed = false, latestPointer = null, latestPalette = null;
+const send = (type, details = {}) => parent.postMessage({ type, nonce, ...details }, '*');
+const fail = (error) => {
+  if (failed) return;
+  failed = true;
+  send('projection-error', { message: error instanceof Error ? error.message : String(error) });
+};
+addEventListener('error', event => { event.preventDefault(); fail(event.error || event.message); });
+addEventListener('unhandledrejection', event => { event.preventDefault(); fail(event.reason); });
+canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fail('WebGL context lost'); });
+function setPalette(colors, light) {
+  latestPalette = { colors, light };
+  if (!app) return;
+  app.tubes.setColors(colors);
+  const lights = light ? ['#00C8FF', '#369FFF', '#8B75FF', '#D9F3FF'] : ['#C9F53A', '#38E4B2', '#9B7CFF', '#E7FFB3'];
+  app.tubes.setLightsColors(lights);
+}
+function move() {
+  if (!app || !latestPointer || failed) return;
+  document.body.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse', clientX: latestPointer.x, clientY: latestPointer.y, isPrimary: true }));
+}
+async function initialize(data) {
+  if (initializing || app || failed) return;
+  initializing = true;
+  latestPalette = { colors: data.colors, light: !!data.light };
+  try {
+    await new Promise(resolve => {
+      const check = () => {
+        if (canvas.parentNode.offsetWidth > 0 && canvas.parentNode.offsetHeight > 0) {
+          observer.disconnect(); resolve();
+        }
+      };
+      const observer = new ResizeObserver(check); observer.observe(document.body); check();
+    });
+    const { default: TubesCursor } = await import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js');
+    if (failed) return;
+    data = latestPalette;
+    const lights = data.light ? ['#00C8FF', '#369FFF', '#8B75FF', '#D9F3FF'] : ['#C9F53A', '#38E4B2', '#9B7CFF', '#E7FFB3'];
+    app = TubesCursor(canvas, { bloom: !data.light, tubes: { colors: data.colors, lights: { intensity: 200, colors: lights } } });
+    setPalette(data.colors, data.light);
+    new ResizeObserver(() => { if (!failed) { try { app.three.resize(); } catch (error) { fail(error); } } }).observe(document.body);
+    const previousAfterRender = app.three.onAfterRender;
+    app.three.onAfterRender = function(time) {
+      previousAfterRender.call(app.three, time);
+      if (!failed) send('projection-frame');
+    };
+    send('projection-active'); move();
+  } catch (error) { fail(error); }
+}
+addEventListener('message', event => {
+  if (event.source !== parent || !event.data || typeof event.data !== 'object' || event.data.nonce !== nonce || failed) return;
+  const data = event.data;
+  try {
+    if (data.type === 'projection-init' && Array.isArray(data.colors) && data.colors.length && data.colors.every(color => typeof color === 'string')) void initialize(data);
+    if (data.type === 'projection-palette' && Array.isArray(data.colors) && data.colors.length && data.colors.every(color => typeof color === 'string')) setPalette(data.colors, !!data.light);
+    if (data.type === 'projection-move' && Number.isFinite(data.x) && Number.isFinite(data.y)) { latestPointer = { x: data.x, y: data.y }; move(); }
+  } catch (error) { fail(error); }
+});
+send('projection-ready');
+</script></body></html>

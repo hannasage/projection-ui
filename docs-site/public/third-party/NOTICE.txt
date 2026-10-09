@@ -1,2 +1,11 @@
-The landing page uses Three.js 0.180.0, released under the MIT License.
-Read three-MIT.txt for the license and copyright notice.
+The protected landing preview loads Tubes Cursor by Kevin Levron (soju22).
+Runtime: threejs-components 0.0.19, loaded from jsDelivr.
+https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js
+
+The author's demo identifies the effect as CC BY-NC-SA 4.0:
+https://codepen.io/soju22/pen/qEbdVjK
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Credit: Kevin Levron, Tubes Cursor.
+The runtime remains unmodified and is not included in the Projection UI npm package.
+The preview supplies theme colors and pointer input through an isolated frame.

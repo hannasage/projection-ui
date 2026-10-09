@@ -88,11 +88,12 @@ code, pre, kbd, .document-source { font-family: var(--reader-code), monospace; }
 .dark .prose code span[style*="--shiki-dark:#6A737D" i] { --shiki-dark: var(--color-fd-muted-foreground) !important; }
 
 /* Volumetric light stays behind content. The canvas never captures page gestures. */
-.landing-hero { position: relative; isolation: isolate; }
+.landing-hero { position: relative; isolation: isolate; background: var(--landing-bg); }
 .landing-copy, .landing-demo { position: relative; z-index: 1; }
 .landing-hero-wash { position: absolute !important; inset: 0 -40px; pointer-events: none; opacity: .3; background-color: transparent !important; z-index: -2; }
-.landing-flow { position: absolute; inset: 0; max-height: 660px; overflow: hidden; pointer-events: none; z-index: -1; }
-.landing-flow-canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
+.landing-flow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; mix-blend-mode: screen; opacity: .8; }
+.landing-flow-canvas { display: block; width: 100%; height: 100%; border: 0; pointer-events: none; }
+.landing-shell[data-ui-mode="light"] .landing-flow { mix-blend-mode: normal; opacity: .3; }
 .landing-flow[data-flow-state="unavailable"] { display: none; }
 .landing-shell[data-ui-appearance="flat"] :is(.landing-flow, .landing-hero-wash) { display: none; }
 .landing-shell .ui-gradient-text { background-size: 100% 100%; }
@@ -103,8 +104,8 @@ code, pre, kbd, .document-source { font-family: var(--reader-code), monospace; }
 .document-heading-light { position: absolute !important; inset: -24px -16px -8px; z-index: -1; pointer-events: none; opacity: .45; background-color: transparent !important; }
 .document-heading .document-title { margin: 0 0 14px; width: fit-content; max-width: 100%; }
 .document-heading > p { margin-bottom: 28px; }
-@media (max-width: 680px) { .landing-hero-wash { inset-inline: -20px; } .landing-flow { max-height: 200px; } .landing-shell:not([data-ui-appearance="flat"]) .landing-hero { padding-top: 220px; } .landing-hero:has(.landing-flow[data-flow-state="unavailable"]) { padding-top: 56px; } }
-@media (prefers-reduced-motion: reduce) { .landing-flow-canvas { display: none; } }
+@media (max-width: 680px) { .landing-hero-wash { inset-inline: -20px; } }
+@media (prefers-reduced-motion: reduce) { .landing-flow { display: none; } }
 @media (forced-colors: active) { .landing-flow, .landing-hero-wash, .document-heading-light { display: none; } .landing-shell .ui-gradient-text, .document-page .ui-gradient-text { background: none; color: CanvasText; } }
 
 .landing-shell { --landing-boot-partner: #369fff; }
@@ -114,6 +115,3 @@ code, pre, kbd, .document-source { font-family: var(--reader-code), monospace; }
 .landing-ai-prompt blockquote { margin: 0; font-size: 14px; line-height: 1.65; color: var(--landing-muted); }
 .landing-ai-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
 .landing-ai-actions [role="status"] { font-size: 12px; max-width: 28ch; }
-
-@media (max-width: 680px) and (prefers-reduced-motion: reduce) { .landing-shell:not([data-ui-appearance="flat"]) .landing-hero { padding-top: 56px; } }
-@media (max-width: 680px) and (forced-colors: active) { .landing-shell:not([data-ui-appearance="flat"]) .landing-hero { padding-top: 56px; } }

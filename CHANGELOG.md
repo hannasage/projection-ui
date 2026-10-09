@@ -12,7 +12,7 @@ This candidate includes the earlier unpublished alpha work and the final review 
 - Add Avatar, Checkbox, RadioGroup, Tabs, Accordion, Alert, Notification, Progress, Spinner, Tooltip, and Carousel.
 - Add material choices to Card and gradient or solid appearance to Button.
 - Add an optional gradient appearance to LinkButton. Existing links keep their solid appearance.
-- Give the landing hero original 3D neon tubes, with a bounded opening and smooth mouse response.
+- Add a cursor-driven Tubes Cursor effect to the protected landing preview, with theme colors and motion safeguards.
 - Use Syne for titles, IBM Plex Sans for reading and controls, and IBM Plex Mono for labels and code.
 - Add the paired 49-category gallery, theme explorer, and packed stories to the documentation preview.
 - Export DEFAULT_CHART_COLORS from the chart and root entries. The first color follows the theme primary color.
