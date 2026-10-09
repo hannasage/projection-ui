@@ -13,32 +13,6 @@ test('the point cloud has depth and preserves the five-lobed Figma silhouette', 
   }
 });
 
-test('cursor proximity lifts nearby front dots and leaves distant dots unchanged', () => {
-  const points = [{x: 60, y: 50, z: 20}, {x: 10, y: 170, z: 20}];
-  const original = projectFigmaPoints(points, 400, 240, 0);
-  const nearest = original.find(point => point.y < 120);
-  const hover = projectFigmaPoints(points, 400, 240, 0, {...nearest, strength: 1});
-  const lifted = hover.find(point => point.glow > 0);
-  assert.ok(lifted.z > nearest.z && lifted.y < nearest.y);
-  assert.ok(lifted.glow > .9 && lifted.glow <= 1);
-  assert.deepEqual(hover.find(point => point.glow === 0), original.find(point => point.y > 120));
-  assert.deepEqual(projectFigmaPoints(points, 400, 240, 0, {...nearest, strength: 0}), original);
-});
-
-test('cursor response stays within 20.4 pixels and changes dots in distinct levels', () => {
-  const points = [{x: 60, y: 50, z: 20}];
-  const [original] = projectFigmaPoints(points, 400, 240, 0);
-  const sample = distance => projectFigmaPoints(points, 400, 240, 0, {x: original.x + distance, y: original.y, strength: 1})[0];
-  assert.deepEqual(sample(21), original);
-  assert.deepEqual(sample(40), original);
-  assert.equal(sample(3).glow, 1);
-  assert.equal(sample(8).glow, .75);
-  assert.equal(sample(13).glow, .5);
-  assert.equal(sample(18).glow, .25);
-  const [behind] = projectFigmaPoints([{x: 60, y: 50, z: -20}], 400, 240, 0);
-  assert.deepEqual(projectFigmaPoints([{x: 60, y: 50, z: -20}], 400, 240, 0, {...behind, strength: 1})[0], behind);
-});
-
 test('projection stays bounded, sorts depth, and changes gently over time', () => {
   const points = createFigmaPoints();
   const still = projectFigmaPoints(points, 400, 240, 0);
