@@ -69,8 +69,8 @@ try {
           assert.deepEqual(colors.actual,colors.expected,'The landing action uses the current theme accent and its foreground');
         };
         await checkCTA();
-        assert.equal(await page.getByRole('textbox',{name:'Project name',exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim()).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-body').trim().split(',').map(value=>value.trim()).join(',')),'Live controls use the self-hosted reading font');
-        assert.equal(await page.getByText('In progress',{exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim()).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-code').trim().split(',').map(value=>value.trim()).join(',')),'Legacy labels use the self-hosted mono font');
+        assert.equal(await page.getByRole('textbox',{name:'Project name',exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim().replaceAll('"','')).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-body').trim().split(',').map(value=>value.trim().replaceAll('"','')).join(',')),'Live controls use the self-hosted reading font');
+        assert.equal(await page.getByText('In progress',{exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim().replaceAll('"','')).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-code').trim().split(',').map(value=>value.trim().replaceAll('"','')).join(',')),'Legacy labels use the self-hosted mono font');
         await page.getByRole('button',{name:'Save project',exact:true}).click();
         await page.getByText('Saved in this preview.',{exact:true}).waitFor();
         await page.getByRole('textbox',{name:'Project name',exact:true}).fill('');
