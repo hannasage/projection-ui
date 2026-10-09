@@ -58,6 +58,19 @@ try {
         await page.keyboard.press('ArrowRight');
         await viewport.evaluate(node=>new Promise((resolve,reject)=>{const deadline=performance.now()+2000;const inspect=()=>node.scrollLeft>0?resolve():performance.now()>deadline?reject(new Error('Code did not scroll with ArrowRight')):requestAnimationFrame(inspect);inspect()}));
       }
+      for (const tableViewport of await page.getByRole('group', { name: 'Scrollable reference table', exact: true }).all()) {
+        if (await tableViewport.evaluate(node => node.scrollWidth > node.clientWidth + 1)) {
+          assert.equal(await tableViewport.getAttribute('tabindex'), '0', 'Wide reference tables remain keyboard reachable');
+          await tableViewport.focus();
+          await tableViewport.evaluate(node => { node.scrollLeft = 0; });
+          await page.keyboard.press('ArrowRight');
+          await tableViewport.evaluate(node => new Promise((resolve, reject) => {
+            const deadline = performance.now() + 2000;
+            const inspect = () => node.scrollLeft > 0 ? resolve() : performance.now() > deadline ? reject(new Error('Reference table did not scroll with ArrowRight')) : requestAnimationFrame(inspect);
+            inspect();
+          }));
+        }
+      }
       if (errors.length || result.violations.length || measurements.overflow || measurements.bodySize!=='16px' || measurements.paragraphs.some(size=>size!=='16px')) failures.push({route,width,errors:[...errors],...measurements,violations:result.violations.map(item=>({id:item.id,impact:item.impact,nodes:item.nodes.map(node=>node.target)}))});
       if (route === '/') {
         assert.ok(await page.getByRole('progressbar',{name:'Setup progress',exact:true}).evaluate(node=>node.classList.contains('ui-progress')),'The landing renders the current packed progress component');

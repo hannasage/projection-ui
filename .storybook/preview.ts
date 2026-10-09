@@ -8,7 +8,7 @@ import { withPreviewTheme } from './PreviewTheme'
 
 const preview: Preview = {
   decorators: [withPreviewTheme],
-  initialGlobals: { theme: 'dark' },
+  initialGlobals: { theme: 'dark', a11y: { manual: true } },
   globalTypes: {
     theme: {
       description: 'Component appearance',
@@ -35,6 +35,7 @@ const preview: Preview = {
       },
     },
     backgrounds: { disable: true },
+    a11y: { manual: true },
     options: {
       storySort: { order: ['Guides', ['Introduction', 'Installation', 'Theming', 'Tokens', 'Accessibility', 'Migration', 'Releases', 'Community'], 'Foundations', 'Components', 'Forms', 'Charts'] },
     },

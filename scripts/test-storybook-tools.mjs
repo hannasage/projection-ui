@@ -35,6 +35,7 @@ try {
     await page.locator('#storybook-root > *').first().waitFor();
     await page.waitForFunction(() => document.documentElement.dataset.previewTheme === 'light');
     await page.evaluate(() => document.fonts.ready);
+    await page.waitForFunction(() => document.getAnimations().every(animation => animation.playState !== 'running' || animation.effect?.getTiming().iterations === Infinity));
     await page.addScriptTag({ path: axe });
     const result = await page.evaluate(() => window.axe.run(document.body, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }));
     assert.deepEqual(result.violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) })), [], `${id} has no tested light-mode WCAG violations`);
@@ -50,7 +51,9 @@ try {
   await page.getByRole('tab', { name: /Actions/ }).click();
   await page.getByText('onClick', { exact: true }).first().waitFor();
   await page.getByRole('tab', { name: /Accessibility/ }).click();
-  await page.getByRole('button', { name: /Run test|Rerun tests|Tests completed/ }).click();
+  await page.getByRole('button', { name: 'Run test', exact: true }).click();
+  await page.getByText(/Violations/).first().waitFor();
+  await page.getByRole('button', { name: /Rerun tests|Tests completed/ }).click();
   await page.getByText(/Violations/).first().waitFor();
   await page.getByRole('button', { name: 'Change the size of the preview', exact: true }).click();
   await page.getByText('Phone · 390px', { exact: true }).click();

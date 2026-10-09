@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "module": "ESNext",
@@ -14,7 +18,34 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "@hannasage/projection-ui/core": [
+        "./src/core.ts"
+      ],
+      "@hannasage/projection-ui/charts": [
+        "./src/charts.ts"
+      ],
+      "@hannasage/projection-ui/sortable": [
+        "./src/sortable.ts"
+      ],
+      "@hannasage/projection-ui/toast": [
+        "./src/toast.ts"
+      ],
+      "@hannasage/projection-ui/foundations": [
+        "./src/foundations.ts"
+      ],
+      "@hannasage/projection-ui": [
+        "./src/index.ts"
+      ],
+      "@hannasage/projection-ui/styles": [
+        "./src/styles.d.ts"
+      ]
+    }
   },
-  "include": ["vite.config.ts", ".storybook", "stories"]
+  "include": [
+    "vite.config.ts",
+    ".storybook",
+    "stories"
+  ]
 }

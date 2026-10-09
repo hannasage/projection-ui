@@ -84,3 +84,5 @@ code, pre, kbd, .document-source { font-family: var(--reader-code), monospace; }
 :root:not(.dark) :is(#nd-sidebar,#nd-sidebar-mobile,#nd-toc) a[data-active="true"] { color: var(--color-fd-foreground); }
 :root:not(.dark) :focus-visible { outline-color: var(--color-fd-foreground); }
 :root:not(.dark) ::selection { background: var(--color-fd-foreground); color: var(--color-fd-background); }
+
+.dark .prose code span[style*="--shiki-dark:#6A737D" i] { --shiki-dark: var(--color-fd-muted-foreground) !important; }

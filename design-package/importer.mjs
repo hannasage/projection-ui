@@ -202,18 +202,24 @@ export async function importProjectionDesign(figma, scene, tokens, version) {
     if (isLight || node.type === 'COMPONENT') node.setExplicitVariableModeForCollection(themeCollections.Modern.collection, isLight ? themeCollections.Modern.lightModeId : themeCollections.Modern.darkModeId);
   }
   const ignored = new Set(['width', 'height', 'fontWeight', 'boundVariables', 'explicitVariableModes', 'componentPropertyReferences', 'textStyleId', 'fillStyleId', 'strokeStyleId', 'effectStyleId', 'layoutSizingHorizontal', 'layoutSizingVertical']);
-  async function apply(node, original) {
+  // Native instance descendants inherit transforms and layout from their main
+  // component. Rewriting even the same x/y value is a forbidden override.
+  const inheritedGeometry = new Set(['x', 'y', 'width', 'height', 'rotation', 'relativeTransform', 'constraints', 'layoutMode', 'layoutWrap', 'primaryAxisSizingMode', 'counterAxisSizingMode', 'primaryAxisAlignItems', 'counterAxisAlignItems', 'counterAxisAlignContent', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing', 'counterAxisSpacing', 'layoutAlign', 'layoutGrow', 'layoutPositioning', 'layoutSizingHorizontal', 'layoutSizingVertical', 'clipsContent', 'vectorPaths', 'vectorNetwork', 'arcData', 'pointCount', 'innerRadius', 'textAutoResize']);
+  function restoreSizing(node, original) {
+    for (const key of ['layoutSizingHorizontal', 'layoutSizingVertical']) if (original.properties[key] && key in node) node[key] = original.properties[key];
+  }
+  async function apply(node, original, instanceDescendant = false) {
     const properties = original.properties;
-    node.name = original.name;
+    if (!instanceDescendant) node.name = original.name;
     if (node.type === 'TEXT') {
       const font = properties.fontName ?? original.segments?.[0]?.fontName;
       if (font) { await figma.loadFontAsync(font); node.fontName = font; }
       node.characters = properties.characters ?? '';
     }
-    if ('layoutMode' in node && properties.layoutMode !== undefined) node.layoutMode = properties.layoutMode;
-    if ('resize' in node) node.resize(Math.max(0.01, properties.width ?? node.width), Math.max(node.type === 'LINE' ? 0 : 0.01, properties.height ?? node.height));
+    if (!instanceDescendant && 'layoutMode' in node && properties.layoutMode !== undefined) node.layoutMode = properties.layoutMode;
+    if (!instanceDescendant && 'resize' in node) node.resize(Math.max(0.01, properties.width ?? node.width), Math.max(node.type === 'LINE' ? 0 : 0.01, properties.height ?? node.height));
     for (const [key, value] of Object.entries(properties)) {
-      if (ignored.has(key) || key === 'characters' || key === 'layoutMode' || key === 'fontName') continue;
+      if (ignored.has(key) || (instanceDescendant && inheritedGeometry.has(key)) || key === 'characters' || key === 'layoutMode' || key === 'fontName') continue;
       if (!(key in node)) throw new Error(`${original.type} does not support ${key}.`);
       node[key] = remap(normalizeColor(value, sourceLight.get(original.id) ?? false, key === 'gradientStops'));
     }
@@ -230,6 +236,7 @@ export async function importProjectionDesign(figma, scene, tokens, version) {
       }
     }
     for (const [field, alias] of Object.entries(properties.boundVariables ?? {})) {
+      if (instanceDescendant && inheritedGeometry.has(field)) continue;
       if (['fills', 'strokes', 'effects', 'layoutGrids', 'textRangeFills', 'componentProperties'].includes(field)) continue;
       const aliases = Array.isArray(alias) ? alias : [alias];
       if (aliases.length > 1 && new Set(aliases.map(item => item.id)).size > 1) throw new Error(`Mixed range variable ${field} on ${original.id} requires a separate importer.`);
@@ -285,6 +292,8 @@ export async function importProjectionDesign(figma, scene, tokens, version) {
       if (defaultValue === undefined) throw new Error(`Unresolved component property ${name}.`);
       propertyNames.set(name, node.addComponentProperty(name.split('#')[0], definition.type, defaultValue));
     }
+    // Finish the master layout before an instance can inherit its sizing.
+    restoreSizing(node, original);
     building.delete(original.id);
     done.add(original.id);
     return node;
@@ -301,7 +310,7 @@ export async function importProjectionDesign(figma, scene, tokens, version) {
     if (!node) continue;
     if (original.type === 'INSTANCE') patchInstance(node, original);
     if (original.properties.componentPropertyReferences) node.componentPropertyReferences = Object.fromEntries(Object.entries(original.properties.componentPropertyReferences).map(([key, name]) => [key, propertyNames.get(name) ?? name]));
-    for (const key of ['layoutSizingHorizontal', 'layoutSizingVertical']) if (original.properties[key] && key in node) node[key] = original.properties[key];
+    restoreSizing(node, original);
   }
   // Preserve variable bindings in native nested instances without detaching them.
   async function applyInstanceChildren(node, original) {
@@ -313,13 +322,10 @@ export async function importProjectionDesign(figma, scene, tokens, version) {
         ?? (matchingName.length === 1 ? matchingName[0] : undefined)
         ?? (indexed?.type === child.type && indexed?.name === child.name ? indexed : undefined);
       if (!target) throw new Error(`Instance child ${child.id} is missing.`);
-      await apply(target, child);
+      await apply(target, child, true);
       createdNodeIds.push(target.id);
       if (child.type === 'INSTANCE') patchInstance(target, child);
       if (child.children) await applyInstanceChildren(target, child);
-      // resize() changes automatic sizing to FIXED. Native instance descendants
-      // bypass the top-level node restoration, so restore them after their children.
-      for (const key of ['layoutSizingHorizontal', 'layoutSizingVertical']) if (child.properties[key] && key in target) target[key] = child.properties[key];
     }
   }
   for (const original of sourceNodes.values()) if (original.type === 'INSTANCE' && nodes.has(original.id)) await applyInstanceChildren(nodes.get(original.id), original);

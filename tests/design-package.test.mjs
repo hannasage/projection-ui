@@ -55,7 +55,7 @@ test('the distribution ZIP is deterministic, portable, and rejects traversal pat
   assert.throws(() => createZip([{ name: '../outside', data: Buffer.from('x') }]), /relative archive path/);
 });
 
-function mockFigma(scene) {
+function mockFigma(scene, { restrictInstanceGeometry = false } = {}) {
   let sequence = 0;
   const collections = [];
   const variables = [];
@@ -75,7 +75,7 @@ function mockFigma(scene) {
   function make(type) {
     const node = { ...structuredClone(properties), id: `new:${++sequence}`, type, name: type, children: [], parent: undefined, explicitVariableModes: {}, componentPropertyDefinitions: {},
       appendChild(child) { if (child.parent) child.parent.children = child.parent.children.filter(item => item !== child); this.children.push(child); child.parent = this; },
-      resize(width, height) { this.width = width; this.height = height; this.layoutSizingHorizontal = 'FIXED'; this.layoutSizingVertical = 'FIXED'; },
+      resize(width, height) { if (restrictInstanceGeometry && insideInstance(this)) throw new Error('Instance descendant geometry is inherited.'); this.width = width; this.height = height; this.layoutSizingHorizontal = 'FIXED'; this.layoutSizingVertical = 'FIXED'; },
       setExplicitVariableModeForCollection(collection, modeId) { this.explicitVariableModes[collection.id] = modeId; },
       setBoundVariable(field, variable) { this.boundVariables[field] = { type: 'VARIABLE_ALIAS', id: variable.id }; },
       addComponentProperty(name, propertyType, value) { const key = `${name}#new:${++sequence}`; this.componentPropertyDefinitions[key] = { type: propertyType, defaultValue: value }; return key; },
@@ -84,9 +84,14 @@ function mockFigma(scene) {
       clone() { const copy = make(this.type); for (const [key, value] of Object.entries(this)) if (!['id', 'parent', 'children'].includes(key) && typeof value !== 'function') copy[key] = structuredClone(value); this.children.forEach(child => copy.appendChild(child.clone())); return copy; },
       createInstance() { const copy = this.clone(); copy.type = 'INSTANCE'; copy.mainComponent = this; return copy; },
     };
+    if (restrictInstanceGeometry) for (const key of ['x', 'y', 'rotation', 'constraints', 'layoutMode', 'layoutSizingHorizontal', 'layoutSizingVertical', 'layoutAlign', 'layoutGrow', 'layoutPositioning']) if (key in node) {
+      let current = node[key];
+      Object.defineProperty(node, key, { enumerable: true, get: () => current, set(value) { if (insideInstance(node)) throw new Error(`This property cannot be overridden in an instance: ${key}.`); current = value; } });
+    }
     for (const method of ['setRangeFontName', 'setRangeFontSize', 'setRangeFills', 'setRangeLineHeight', 'setRangeLetterSpacing', 'setRangeTextCase', 'setRangeTextDecoration']) node[method] = () => {};
     return node;
   }
+  function insideInstance(node) { for (let parent = node.parent; parent; parent = parent.parent) if (parent.type === 'INSTANCE') return true; return false; }
   for (const type of ['Frame', 'Component', 'Text', 'Rectangle', 'Ellipse', 'Line', 'Vector', 'Polygon', 'Star']) figma[`create${type}`] = () => make(type.toUpperCase());
   figma.createPage = () => { const page = make('PAGE'); figma.root.children.push(page); return page; };
   figma.setCurrentPageAsync = async page => { figma.currentPage = page; };
@@ -136,7 +141,7 @@ test('missing fonts stop native import before creating any page or variables', a
 test('the complete approved scene replays with current gradients, editable variants, and accurate coverage', async () => {
   const scene = JSON.parse(readFileSync(new URL('../design-package/figma-scene.json', import.meta.url)));
   const manifest = createDesignManifest(scene);
-  const figma = mockFigma(scene);
+  const figma = mockFigma(scene, { restrictInstanceGeometry: true });
   const result = await importProjectionDesign(figma, scene, manifest.tokens, manifest.version);
   assert.equal(result.inventory.sets, 49);
   assert.equal(result.inventory.components, 98);
