@@ -46,7 +46,9 @@ try {
       for (const id of ['components-button--docs', 'components-card--docs', 'forms-select--docs', 'charts-areachart--docs', 'charts-donutchart--docs']) {
         await page.goto(`${origin}/iframe.html?id=${id}&viewMode=docs&globals=${encodeURIComponent(`theme:${theme}`)}`);
         const reference = page.getByRole('region', { name: 'Prop reference', exact: true });
-        await reference.getByRole('table').waitFor();
+        await reference.waitFor();
+        if (id === 'components-button--docs') await reference.getByRole('table').waitFor();
+        await page.getByRole('heading', { name: 'Component contract', exact: true }).waitFor();
         await reference.getByText('Open a story in Canvas and use the Controls panel to edit its props.', { exact: true }).waitFor();
         assert.equal(await reference.locator('input, select, textarea, [aria-readonly], .rejt-tree').count(), 0, `${id} keeps Docs props readable without editable control widgets`);
         await page.waitForFunction(expected => document.documentElement.dataset.previewTheme === expected, theme);

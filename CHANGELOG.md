@@ -46,6 +46,11 @@ Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 - Add a Fumadocs static reader with local search, plain Markdown, and a text index.
 - Share guide content and component contracts between the reader and component explorer.
 - Verify reader navigation, code copying, links, and accessibility at three screen widths.
+- Add a documentation version switcher and preserve the published 0.1.5 source and guides.
+- Match reader examples and Storybook previews to the selected light or dark theme.
+- Add Storybook Controls, Actions, Interactions, accessibility scans, viewport choices, and layout tools.
+- Add a versioned Figma kit with 49 editable component sets and Modern, Flat, Dark, and Light choices.
+- Preserve matching design downloads on GitHub Releases after approved npm publication.
 
 ### Interaction fixes
 
@@ -57,6 +62,7 @@ Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 - Order table rows during sorting and preserve keyboard row activation.
 - Add sortValue and compare column options and an accessible table label.
 - Respect reduced motion for skeletons, notifications, and control transitions.
+- Improve light danger text on actions and field errors while preserving the original danger palettes and borders.
 
 ### Compatibility
 

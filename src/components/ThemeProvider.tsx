@@ -32,6 +32,7 @@ export function ThemeProvider({
     '--ui-primary':    theme.primary,
     '--ui-primary-fg': theme.primaryFg,
     '--ui-danger':     theme.danger,
+    '--ui-danger-text': theme.mode === 'light' ? 'color-mix(in srgb, var(--ui-danger) 70%, var(--ui-text) 30%)' : 'var(--ui-danger)',
     '--ui-font':       theme.font,
     '--ui-font-body': fontOverride ? 'var(--ui-font)' : theme.fontBody ?? 'var(--ui-font)',
     '--ui-font-mono': fontOverride ? 'var(--ui-font)' : theme.fontMono ?? 'var(--ui-font)',

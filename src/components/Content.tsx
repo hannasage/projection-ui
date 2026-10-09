@@ -31,7 +31,7 @@ export function LinkButton({ variant = 'secondary', size = 'md', style, target, 
   const primary = variant === 'primary'
   const danger = variant === 'danger'
   const padding = { sm: '5px 10px', md: '8px 16px', lg: '10px 22px' }[size]
-  return <a {...props} target={target} rel={rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding, fontFamily: 'var(--ui-font-body, var(--ui-font))', fontSize: {sm:11,md:12,lg:13}[size], color: primary ? 'var(--ui-primary-fg)' : danger ? 'var(--ui-danger)' : 'var(--ui-text)', background: primary ? 'var(--ui-primary)' : 'transparent', border: variant === 'ghost' ? '1px solid transparent' : `1px solid var(${primary ? '--ui-primary' : danger ? '--ui-danger' : '--ui-border'})`, borderRadius: 'var(--ui-radius-md)', textDecoration: 'none', ...style }} />
+  return <a {...props} target={target} rel={rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding, fontFamily: 'var(--ui-font-body, var(--ui-font))', fontSize: {sm:11,md:12,lg:13}[size], color: primary ? 'var(--ui-primary-fg)' : danger ? 'var(--ui-danger-text, var(--ui-danger))' : 'var(--ui-text)', background: primary ? 'var(--ui-primary)' : 'transparent', border: variant === 'ghost' ? '1px solid transparent' : `1px solid var(${primary ? '--ui-primary' : danger ? '--ui-danger' : '--ui-border'})`, borderRadius: 'var(--ui-radius-md)', textDecoration: 'none', ...style }} />
 }
 export type SeparatorProps = React.HTMLAttributes<HTMLHRElement>
 export function Separator({ style, ...props }: SeparatorProps) {

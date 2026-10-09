@@ -51,7 +51,7 @@ const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
   },
   danger: {
     background: 'transparent',
-    color:      'var(--ui-danger)',
+    color:      'var(--ui-danger-text, var(--ui-danger))',
     border:     '1px solid var(--ui-danger)',
   },
   /** Rounded icon button — no text label, minimal chrome. */

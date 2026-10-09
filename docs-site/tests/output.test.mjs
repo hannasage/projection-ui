@@ -28,6 +28,8 @@ test('plain content and the explorer identify the same packed candidate', () => 
   assert.ok(Object.values(explorer.entries).some(entry => entry.title === 'Gallery/Components' && entry.type === 'story'));
   assert.ok(Object.values(explorer.entries).some(entry => entry.title === 'Foundations/Themes' && entry.type === 'story'));
   assert.equal(explorer.entries['charts-chartpalette--default'].type, 'story');
+  assert.equal(read('changelog.md'), readFileSync(new URL('../../CHANGELOG.md', import.meta.url), 'utf8'));
+  assert.match(read('docs/releases/index.html'), /href="\/changelog.md"/);
 });
 
 test('served documentation includes all font copyright notices and licenses', () => {

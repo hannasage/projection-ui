@@ -164,7 +164,7 @@ export function Modal({
                               : isDanger  ? 'transparent'
                               :             'transparent',
                 color:          isPrimary ? 'var(--ui-primary-fg)'
-                              : isDanger  ? 'var(--ui-danger)'
+                              : isDanger  ? 'var(--ui-danger-text, var(--ui-danger))'
                               :             'var(--ui-muted)',
                 opacity:        a.disabled ? 0.45 : 1,
                 textDecoration: 'none',

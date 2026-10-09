@@ -72,6 +72,7 @@ try {
   writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n');
   writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
   writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');
+  cpSync(join(repository, 'CHANGELOG.md'), join(site, 'public/changelog.md'));
   cpSync(join(repository,'storybook-static'),join(site,'public/examples'),{recursive:true});
   const {PROJECTION_THEME:theme, COASTAL_DAY_THEME:lightTheme} = await import(pathToFileURL(join(packed.installed,'dist/foundations.js')).href);
   mkdirSync(join(site,'.generated'),{recursive:true});

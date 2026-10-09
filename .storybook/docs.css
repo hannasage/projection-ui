@@ -4,6 +4,7 @@ body { background: var(--preview-bg, #07090C); }
 .sbdocs.sbdocs-content :where(p, li) { font-size: 16px; line-height: 1.55; }
 .sbdocs :where(h1, h2, h3) { overflow-wrap: anywhere; }
 .sbdocs :where(h1, h2, h3) { font-family: 'Syne', sans-serif; }
+.sbdocs.sbdocs-wrapper :where(h1, h2, h3) { color: var(--preview-text, #DDE3EE); }
 .sbdocs :where(a, table[tabindex], [data-radix-scroll-area-viewport], .docs-story > [tabindex]):focus-visible { outline: 2px solid var(--preview-primary, #C9F53A); outline-offset: 3px; }
 .sbdocs.sbdocs-content :where(table, pre) { max-width: 100%; overflow-x: auto; }
 .docs-token-table { width: 100%; border-collapse: collapse; color: var(--ui-text); font-size: 14px; }
