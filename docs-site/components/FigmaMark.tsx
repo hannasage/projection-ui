@@ -36,17 +36,14 @@ export function FigmaMark({ flat, primary, partner, ink, light }: { flat: boolea
           const hue = value + (end[i] - value) * blend;
           const base = hue * (light ? .62 : .9) + foreground[i] * (light ? .38 : .1);
           // Silver highlights on dark surfaces; stronger saturated ink on light ones.
-          const highlight = light ? hue * .45 + foreground[i] * .55 : hue * .45 + 255 * .55;
+          const highlight = light ? hue * .25 + foreground[i] * .75 : hue * .2 + 255 * .8;
           return Math.round(base + (highlight - base) * point.glow);
         });
-        context.fillStyle = `rgba(${color.join(',')},${point.z > 0 ? .9 : .22})`;
-        context.shadowColor = `rgb(${color.join(',')})`;
-        context.shadowBlur = point.glow * 5;
+        context.fillStyle = `rgba(${color.join(',')},${point.z > 0 ? .9 + point.glow * .1 : .22})`;
         context.beginPath();
-        context.arc(point.x, point.y, (point.z > 0 ? .85 : .65) + point.glow * .4, 0, Math.PI * 2);
+        context.arc(point.x, point.y, (point.z > 0 ? .85 : .65) + point.glow * .6, 0, Math.PI * 2);
         context.fill();
       }
-      context.shadowBlur = 0;
       host.dataset.ready = 'true';
       host.dataset.pointer = cursor && cursor.strength > .01 ? 'active' : 'idle';
     };

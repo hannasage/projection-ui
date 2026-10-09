@@ -44,8 +44,9 @@ export function projectFigmaPoints(points: FigmaPoint[], width: number, height: 
     const basePerspective = 420 / (420 - depth);
     const screenX = width / 2 + turnedX * scale * basePerspective;
     const screenY = height / 2 + tiltedY * scale * basePerspective;
-    const proximity = cursor && depth > 0 ? Math.max(0, 1 - Math.hypot(screenX - cursor.x, screenY - cursor.y) / 68) : 0;
-    const glow = proximity * proximity * (3 - 2 * proximity) * Math.max(0, Math.min(1, cursor?.strength ?? 0));
+    const proximity = cursor && depth > 0 ? Math.max(0, 1 - Math.hypot(screenX - cursor.x, screenY - cursor.y) / 20.4) : 0;
+    // Discrete dot levels keep the response crisp; cursor strength eases entry and exit.
+    const glow = Math.ceil(proximity * 4) / 4 * Math.max(0, Math.min(1, cursor?.strength ?? 0));
     depth += glow * 10;
     const perspective = 420 / (420 - depth);
     return { x: width / 2 + turnedX * scale * perspective, y: height / 2 + tiltedY * scale * perspective - glow * 4, z: depth, glow };
