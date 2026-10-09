@@ -289,5 +289,48 @@ try {
       await context.close();
     }
   }
+  const audioContext = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  await audioContext.addInitScript(() => {
+    window.__appearanceAudio = { sources: [], pending: [], contexts: [] };
+    const log = window.__appearanceAudio;
+    const parameter = () => ({ value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {}, cancelScheduledValues() {}, setTargetAtTime() {} });
+    window.AudioContext = class {
+      state = 'suspended'; currentTime = 0; destination = {};
+      constructor() { log.contexts.push(this); }
+      createGain() { return { gain: parameter(), connect() {}, disconnect() {} }; }
+      createOscillator() { const node = { type: '', frequency: parameter(), stops: [], connect() {}, disconnect() {}, start() {}, stop(time) { this.stops.push(time); } }; log.sources.push(node); return node; }
+      resume() { return new Promise((resolve, reject) => log.pending.push({ resolve: () => { this.state = 'running'; resolve(); }, reject })); }
+      close() { this.closed = true; return Promise.resolve(); }
+    };
+  });
+  const audioPage = await audioContext.newPage();
+  const audioErrors = [];
+  audioPage.on('pageerror', error => audioErrors.push(error.message));
+  await audioPage.goto(origin);
+  await audioPage.locator('.landing-sound-control[data-audio-status="blocked"]').waitFor();
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 0, 'Blocked load does not queue a delayed cue');
+  await audioPage.getByRole('radio', { name: 'Flat', exact: true }).click();
+  await audioPage.getByRole('radio', { name: 'Modern', exact: true }).click();
+  await audioPage.getByRole('radio', { name: 'Flat', exact: true }).click();
+  await audioPage.evaluate(() => window.__appearanceAudio.pending[2].resolve());
+  await audioPage.getByRole('button', { name: 'Mute style sounds', exact: true }).waitFor();
+  await audioPage.evaluate(() => { window.__appearanceAudio.pending[1].resolve(); window.__appearanceAudio.pending[0].reject(new Error('Blocked')); });
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 2, 'Only Flat sounds after rapid pending resumes');
+  await audioPage.getByRole('button', { name: 'Mute style sounds', exact: true }).click();
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.every(source => source.stops.length === 2)), true, 'Mute stops all active voices');
+  await audioPage.getByRole('radio', { name: 'Modern', exact: true }).click();
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 2, 'Muted style changes stay silent');
+  await audioPage.getByRole('button', { name: 'Enable style sounds', exact: true }).click();
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.length), 10, 'Enable plays the current Modern cue');
+  await audioPage.getByRole('radio', { name: 'Flat', exact: true }).click();
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.slice(2, 10).every(source => source.stops.length === 2)), true, 'Flat cuts the Modern hum off');
+  await audioPage.evaluate(() => { Object.defineProperty(document, 'hidden', { value: true, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
+  assert.equal(await audioPage.evaluate(() => window.__appearanceAudio.sources.slice(-2).every(source => source.stops.length === 2)), true, 'Hidden pages stop their cue');
+  await audioPage.getByRole('link', { name: 'Read the docs', exact: true }).click();
+  await audioPage.locator('#nd-page').waitFor();
+  assert.equal(new URL(audioPage.url()).pathname, '/docs/', 'Navigation remains usable after sound cancellation');
+  assert.deepEqual(audioErrors, [], 'Audio failures and cancellation do not break the page');
+  await audioContext.close();
+  console.log('Appearance audio: autoplay block, rapid-switch races, mute, enable, hidden-page stop, and navigation passed.');
   console.log('Reader examples follow light and dark at mobile and desktop widths.');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

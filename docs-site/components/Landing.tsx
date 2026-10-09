@@ -5,6 +5,7 @@ import { Avatar, Badge, Button, ButtonGroup, Card, GradientBackground, GradientT
 import '@hannasage/projection-ui/styles';
 import { NavLight } from './NavLight';
 import { useLandingMotion } from './useLandingMotion';
+import { useAppearanceAudio } from './useAppearanceAudio';
 
 // The theme bootstrap script runs before React. Keep its palette through hydration.
 const bootstrapPalette = {
@@ -37,6 +38,7 @@ const serverReady = () => false;
 export function Landing() {
   const { resolvedTheme, setTheme } = useTheme();
   const motionRef = useLandingMotion();
+  const sounds = useAppearanceAudio();
   const hydrated = useSyncExternalStore(subscribeToHydration, clientReady, serverReady);
   const [pair,setPair] = useState<keyof typeof pairs>('core');
   const [appearance,setAppearance] = useState('neon');
@@ -95,7 +97,7 @@ export function Landing() {
           <p className="landing-release">Alpha · 0.2.0-next.2 · Candidate</p>
         </div>
         <div className="landing-demo" data-scroll-scene="demo">
-          <div className="landing-demo-toolbar"><span>An appetizer while you wait.</span><ButtonGroup aria-label="Preview appearance" value={appearance} onChange={setAppearance} options={[{value:'neon',label:'Modern'},{value:'flat',label:'Flat'}]} /></div>
+          <div className="landing-demo-toolbar"><span>An appetizer while you wait.</span><div className="landing-appearance-controls"><ButtonGroup aria-label="Preview appearance" value={appearance} onChange={next => { setAppearance(next); sounds.play(next); }} options={[{value:'neon',label:'Modern'},{value:'flat',label:'Flat'}]} /><button type="button" className="landing-sound-control" aria-label={sounds.active ? 'Mute style sounds' : 'Enable style sounds'} title={sounds.status === 'unavailable' ? 'Style sounds unavailable' : sounds.active ? 'Mute style sounds' : 'Enable style sounds'} data-audio-status={sounds.status} disabled={sounds.status === 'unavailable'} onClick={() => sounds.toggle(appearance)}><SoundIcon active={sounds.active} /></button></div></div>
           <div className="landing-preview"><GradientBackground variant="atmosphere" className="landing-preview-backdrop">
             <Card material="glass" edgeLight underglow className="landing-project-card">
               <div className="landing-card-heading"><div><h2>Your next project</h2><p>Ambition sold separately.</p></div><Avatar alt="Example profile" fallback="UI" size={40} /></div>
@@ -131,3 +133,5 @@ function SparkleIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="cur
 function StarIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m10 2 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9L7.5 7Z" /></svg>; }
 
 function PaletteIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M10 2a8 8 0 1 0 0 16h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.6H15a3 3 0 0 0 3-3.2A8 8 0 0 0 10 2Z" /><path d="M6 6h.01M10 5h.01M14 7h.01M5 10h.01" strokeLinecap="round" strokeWidth="2.5" /></svg>; }
+
+function SoundIcon({ active }: { active: boolean }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m11 5-5 4H3v6h3l5 4Z" />{active ? <><path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14" /></> : <path d="m16 9 6 6m0-6-6 6" />}</svg>; }

@@ -14,7 +14,8 @@ This candidate includes the earlier unpublished alpha work and the final review 
 - Add an optional gradient appearance to LinkButton. Existing links keep their solid appearance.
 - Add navbar underglow and falling 2D sparkles to the landing preview, with theme colors, pause controls, and motion safeguards.
 - Put the AI prompt first on the landing, with button proximity light and a restrained scroll composition.
-- Add a landing theme picker for the core, Ember Tide / Dust & Flame, and Noir Bloom / Confetti Studio pairs.
+- Add six gradient theme swatches for the core, Ember Tide / Dust & Flame, and Noir Bloom / Confetti Studio pairs.
+- Add finite musical appearance cues to the landing, with mute controls and cancellation when the selected style changes.
 - Use Syne for titles, IBM Plex Sans for reading and controls, and IBM Plex Mono for labels and code.
 - Add the paired 49-category gallery, theme explorer, and packed stories to the documentation preview.
 - Export DEFAULT_CHART_COLORS from the chart and root entries. The first color follows the theme primary color.
