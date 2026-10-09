@@ -122,6 +122,23 @@ export function Landing() {
         <div><h2>Shiiinnnyyyy! <SparkleIcon /></h2><p>Ooey gooey glass and those neon glowing lights, oh my god it&apos;s perfect! Flat styles available, but not advised.</p><a href="/docs/theming/">Explore the themes</a></div>
         <div><h2>Keep up, human.</h2><p>Look, we&apos;re built by agents for agents, we move fast. Keep up with our new hotness if you don&apos;t want to look old and busted.</p><a href="https://github.com/hannasage/projection-ui">Star on GitHub <StarIcon /></a></div>
       </section>
+      <section className="landing-figma" aria-labelledby="landing-figma-title">
+        <div className="landing-figma-copy">
+          <GradientText as="h2" id="landing-figma-title">Pixels first. Agent second.</GradientText>
+          <p>Want to move the shiny bits around yourself? Our Figma design kit gives you editable components, text, variables, and styles. Make a mockup. Give your agent the frame.</p>
+          <p>Light and dark. Modern and Flat. The kit matches 0.2.0-next.2.</p>
+          <div className="landing-actions">
+            <LinkButton variant="primary" appearance="gradient" href="/downloads/projection-ui-design-0.2.0-next.2.zip" download>Download Figma kit <ArrowIcon /></LinkButton>
+            <a href="/docs/releases/#editable-figma-kit">Import instructions</a>
+          </div>
+          <a className="landing-figma-guide" href="https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/">Connect Figma to your agent <ArrowIcon /></a>
+          <p className="landing-figma-note">The ZIP is a local importer package, not a .fig file. Figma’s guide covers supported agents and sign-in.</p>
+        </div>
+        <GradientBackground variant="spotlight" className="landing-figma-tools">
+          <FigmaOutlineIcon />
+          <ul><li>Native components</li><li>Editable text</li><li>Theme variables</li></ul>
+        </GradientBackground>
+      </section>
       <section className="landing-last" aria-labelledby="landing-last-title">
         <div data-scroll-scene="closing">
           <GradientText as="h2" id="landing-last-title">Go forth, make incredible things.</GradientText>
@@ -137,6 +154,16 @@ export function Landing() {
 function ArrowIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10" /></svg>; }
 function SparkleIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" /><path d="M20 2v4M18 4h4" /></svg>; }
 function StarIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m10 2 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9L7.5 7Z" /></svg>; }
+
+function FigmaOutlineIcon() {
+  return <svg className="landing-figma-mark" viewBox="-3 -3 126 186" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+    <path d="M60 0H30a30 30 0 0 0 0 60h30Z" />
+    <path d="M60 0h30a30 30 0 0 1 0 60H60Z" />
+    <path d="M60 60H30a30 30 0 0 0 0 60h30Z" />
+    <circle cx="90" cy="90" r="30" />
+    <path d="M60 120H30a30 30 0 1 0 30 30Z" />
+  </svg>;
+}
 
 function PaletteIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M10 2a8 8 0 1 0 0 16h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.6H15a3 3 0 0 0 3-3.2A8 8 0 0 0 10 2Z" /><path d="M6 6h.01M10 5h.01M14 7h.01M5 10h.01" strokeLinecap="round" strokeWidth="2.5" /></svg>; }
 
