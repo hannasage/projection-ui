@@ -61,8 +61,8 @@ before(async () => {
   }
   mkdirSync(fixture);
   writeFileSync(join(fixture, 'package.json'), JSON.stringify({ name: 'projection-ui-contract-consumer', private: true, type: 'module', dependencies:{react:'19.2.5','react-dom':'19.2.5'},devDependencies:{'@types/react':'19.2.15','@types/react-dom':'19.2.3','@types/node':'24.12.4'} }));
-  npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund']);
-  npm(['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund', archive]);
+  npm(['install', '--prefix', fixture, '--prefer-offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund']);
+  npm(['install', '--prefix', fixture, '--prefer-offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund', archive]);
 
   consumerRequire = createRequire(join(fixture, 'package.json'));
   cjs = consumerRequire(packageName);
@@ -125,11 +125,40 @@ test('every JavaScript, CSS, and declaration entry exists; client boundaries sta
   assert.ok(readdirSync(installed).includes('LICENSE'), 'license accompanies the candidate');
 });
 
+test('packed helper installs with an empty npm cache and keeps one host React', () => {
+  const cache = join(temporary, 'helper-empty-cache');
+  mkdirSync(cache);
+  assert.deepEqual(readdirSync(cache), []);
+  const helper = pathToFileURL(join(repository, 'tests/helpers/packed.mjs')).href;
+  const source = `import {packFixture} from ${JSON.stringify(helper)}; process.stdout.write(JSON.stringify(packFixture('cold-cache')));`;
+  const installed = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', source], {
+    cwd:repository, encoding:'utf8', stdio:['ignore','pipe','pipe'], timeout:180_000,
+    env:{...process.env,PROJECTION_UI_TARBALL:archive,npm_config_cache:cache},
+  }));
+  try {
+    const require = createRequire(join(installed.fixture, 'package.json'));
+    const React = require('react');
+    assert.equal(typeof require(packageName).Button, 'function');
+    for (const entry of ['core','charts','sortable','toast','foundations']) assert.ok(require(`${packageName}/${entry}`));
+    for (const name of ['recharts','zustand','@dnd-kit/core','@dnd-kit/sortable','@dnd-kit/utilities','react-is']) {
+      assert.equal(lstatSync(join(installed.fixture,'node_modules',name)).isSymbolicLink(),false);
+      assert.equal(createRequire(require.resolve(name))('react'),React,`${name} shares the host React`);
+    }
+  } finally { rmSync(installed.temporary,{recursive:true,force:true}); }
+});
+
 for (const legacy of [false,true]) test(`archive-only npm install owns feature runtimes (legacy peers: ${legacy})`, () => {
   const clean = join(temporary, `install-${legacy}`);
   mkdirSync(clean);
   writeFileSync(join(clean, 'package.json'), JSON.stringify({name:'projection-install',private:true,dependencies:{react:'19.2.5','react-dom':'19.2.5'}}));
-  const install=['install','--prefix',clean,`--legacy-peer-deps=${legacy}`,'--ignore-scripts','--package-lock=false','--no-audit','--no-fund'];
+  const cacheArgs=[];
+  if (!legacy) {
+    const cache=join(temporary,'normal-empty-cache');
+    mkdirSync(cache);
+    assert.deepEqual(readdirSync(cache),[]);
+    cacheArgs.push('--cache',cache);
+  }
+  const install=['install','--prefix',clean,...cacheArgs,'--prefer-offline',`--legacy-peer-deps=${legacy}`,'--ignore-scripts','--package-lock=false','--no-audit','--no-fund'];
   npm(install);
   const require=createRequire(join(clean,'package.json'));
   const hostReact=require('react');

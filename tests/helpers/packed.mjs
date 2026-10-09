@@ -26,7 +26,7 @@ export function packFixture(label, tools = []) {
   if (tools.includes('@types')) Object.assign(host, {'@types/react':'19.2.15','@types/react-dom':'19.2.3','@types/node':'24.12.4'});
   if (tools.includes('next')) host.next = JSON.parse(readFileSync(join(repository, 'node_modules/next/package.json'), 'utf8')).version;
   writeFileSync(join(fixture, 'package.json'), JSON.stringify({ name: 'projection-ui-consumer', private: true, type: 'module', dependencies:host }));
-  const install = ['install', '--prefix', fixture, '--offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund'];
+  const install = ['install', '--prefix', fixture, '--prefer-offline', '--ignore-scripts', '--legacy-peer-deps', '--package-lock=false', '--no-audit', '--no-fund'];
   // The host owns React first; then installing the archive supplies every feature runtime.
   run('npm', install);
   run('npm', [...install, join(temporary, packed.filename)]);

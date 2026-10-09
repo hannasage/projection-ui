@@ -11,16 +11,18 @@ The package checks cover:
 - Existing theme values and radius presets.
 - Server rendering with an existing theme object.
 - README and Markdown/MDX TypeScript examples, plus a rejected invalid prop.
-- A normal npm installation that supplies package-managed feature dependencies and resolves the combined root entry.
-- Core execution without feature modules present, with those modules deliberately omitted from that fixture.
+- Normal and legacy npm installations that supply package-managed feature dependencies, preserve one React instance, and resolve every feature entry.
+- Installations with empty test-owned npm caches, including host React setup before archive installation.
+- Core execution and its build import graph without loading installed feature modules.
 - Strict type resolution with bundler and NodeNext settings.
 - A Vite production build and a Next.js App Router production build with server and client components.
 - Candidate and stable release tag, version, and changelog verification.
 
 Peer packages are packages supplied by the application.
-Most isolated fixtures link the repository's installed packages to avoid another download.
-The normal-install check lets npm install the library's runtime dependencies without a peer bypass or symlinks.
-It may need registry access.
+Fixtures install host React first, then let npm install the archive and its runtime dependencies.
+They prefer cached downloads and use the registry when the cache has no entry.
+Only the framework fixture links the TypeScript build tool; feature runtimes are real npm installs.
+The empty-cache checks use temporary cache folders and leave the user's cache intact.
 React 19 and React DOM 19 stay shared application peers.
 Core import isolation describes JavaScript imports; it does not remove runtime dependency downloads.
 
