@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_THEME, RADIUS_SCALE, UI_FOUNDATIONS } from '../src/foundations.ts';
 
-const variables = { ...Object.fromEntries(Object.entries(DEFAULT_THEME).filter(([key]) => !['radius', 'name', 'mode', 'appearance'].includes(key)).map(([key,value]) => [key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), value])), 'font-body': DEFAULT_THEME.fontBody, 'font-display': DEFAULT_THEME.fontDisplay, 'font-mono': DEFAULT_THEME.fontMono, 'accent-text': DEFAULT_THEME.primary, 'gradient-start': DEFAULT_THEME.primary, 'gradient-end': DEFAULT_THEME.partner, focus: 'var(--ui-primary)', ...UI_FOUNDATIONS.semantic };
+const variables = { ...Object.fromEntries(Object.entries(DEFAULT_THEME).filter(([key]) => !['radius', 'name', 'mode', 'appearance'].includes(key)).map(([key,value]) => [key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`), value])), 'font-body': DEFAULT_THEME.fontBody, 'font-display': DEFAULT_THEME.fontDisplay, 'font-mono': DEFAULT_THEME.fontMono, 'accent-end': DEFAULT_THEME.partner, 'accent-fill': 'linear-gradient(110deg, var(--ui-primary), var(--ui-accent-end))', 'accent-soft': 'linear-gradient(110deg, color-mix(in srgb, var(--ui-primary) 13%, transparent), color-mix(in srgb, var(--ui-accent-end) 13%, transparent))', 'surface-tint': 'linear-gradient(125deg, color-mix(in srgb, var(--ui-primary) 1.5%, transparent), color-mix(in srgb, var(--ui-accent-end) 1.5%, transparent))', 'field-fill': 'linear-gradient(125deg, color-mix(in srgb, var(--ui-primary) 2%, var(--ui-bg)), color-mix(in srgb, var(--ui-accent-end) 2%, var(--ui-bg)))', 'accent-text': DEFAULT_THEME.primary, 'gradient-start': DEFAULT_THEME.primary, 'gradient-end': DEFAULT_THEME.partner, focus: 'var(--ui-primary)', ...UI_FOUNDATIONS.semantic };
 for (const [role, value] of Object.entries(RADIUS_SCALE.soft)) variables[`radius-${role}`] = value;
 for (const [scale, values] of Object.entries(UI_FOUNDATIONS)) {
   if (scale === 'semantic') continue;
@@ -62,10 +62,12 @@ const glow = `:where([data-ui-theme]) .ui-projection-glow {
 const materials = `:where([data-ui-theme]) .ui-surface {
   position: relative; isolation: isolate; background: var(--ui-surface); color: var(--ui-text);
   border: 1px solid var(--ui-border); border-radius: var(--ui-radius-lg); padding: var(--ui-space-xl);
+  background-image: var(--ui-surface-tint, none);
 }
 :where([data-ui-theme]) :is(.ui-surface[data-material="glass"], .ui-material-glass) {
   background: var(--ui-surface); background: color-mix(in srgb, var(--ui-surface) 72%, transparent);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background-image: var(--ui-surface-tint, none);
 }
 :where([data-ui-theme]) :is(.ui-surface[data-edge-light], .ui-edge-light) {
   border-top-color: color-mix(in srgb, var(--ui-primary) 65%, var(--ui-border));
@@ -116,8 +118,8 @@ const progress = `:where([data-ui-theme]) .ui-progress:not(:indeterminate) {
   appearance: none; -webkit-appearance: none; background: var(--ui-border); border: 0; border-radius: var(--ui-radius-full); overflow: hidden;
 }
 :where([data-ui-theme]) .ui-progress:not(:indeterminate)::-webkit-progress-bar { background: var(--ui-border); border-radius: inherit; }
-:where([data-ui-theme]) .ui-progress:not(:indeterminate)::-webkit-progress-value { background: var(--ui-primary); border-radius: inherit; }
-:where([data-ui-theme]) .ui-progress:not(:indeterminate)::-moz-progress-bar { background: var(--ui-primary); border-radius: inherit; }
+:where([data-ui-theme]) .ui-progress:not(:indeterminate)::-webkit-progress-value { background: var(--ui-accent-fill, var(--ui-primary)); border-radius: inherit; }
+:where([data-ui-theme]) .ui-progress:not(:indeterminate)::-moz-progress-bar { background: var(--ui-accent-fill, var(--ui-primary)); border-radius: inherit; }
 @media (forced-colors: active) {
   :where([data-ui-theme]) .ui-progress:not(:indeterminate) { appearance: auto; -webkit-appearance: auto; forced-color-adjust: auto; }
   :where([data-ui-theme]) .ui-progress:not(:indeterminate)::-webkit-progress-bar { background: Canvas; }
@@ -126,7 +128,7 @@ const progress = `:where([data-ui-theme]) .ui-progress:not(:indeterminate) {
 }`;
 const flat = `:where([data-ui-theme]) :where(.ui-material-glass, .ui-underglow) { position: relative; isolation: isolate; }
 :where([data-ui-theme]) .ui-button[data-variant="primary"][data-appearance="gradient"] {
-  background: var(--ui-primary); background-image: linear-gradient(110deg, var(--ui-primary), var(--ui-partner));
+  background: var(--ui-accent-fill, var(--ui-primary));
   box-shadow: 0 5px 16px color-mix(in srgb, var(--ui-primary) 35%, transparent);
 }
 :where([data-ui-theme]) .ui-field:focus-within {
@@ -164,9 +166,14 @@ const flat = `:where([data-ui-theme]) :where(.ui-material-glass, .ui-underglow) 
 :scope .ui-projection-glow { display: none; }
 }
 `;
+const adaptivePaint = `@media (forced-colors: active) {
+  :where([data-ui-theme]) { --ui-accent-fill: Highlight !important; --ui-accent-soft: Canvas !important; --ui-surface-tint: none !important; --ui-field-fill: Canvas !important; --ui-accent-text: CanvasText !important; }
+}
+:where([data-ui-theme][data-ui-appearance="flat"]) { --ui-accent-end: var(--ui-primary); --ui-accent-fill: var(--ui-primary); --ui-accent-soft: color-mix(in srgb, var(--ui-primary) 13%, transparent); --ui-surface-tint: none; --ui-field-fill: var(--ui-bg); }
+`;
 const outputs = {
-  'theme.css': `/* Generated from src/foundations.ts. Legacy page rules remain for compatibility. */\n:root {\n${declaration}\n}\n${controls}\n${page}\n${glow}\n${materials}\n${progress}\n${flat}\n${reduced}\n`,
-  'scoped.css': `/* Generated from src/foundations.ts. Only themed wrappers and their children are styled. */\n:where([data-ui-theme]) {\n${declaration}\n}\n${scopedControls}\n${prose}\n${glow}\n${materials}\n${progress}\n${flat}\n${reduced}\n`,
+  'theme.css': `/* Generated from src/foundations.ts. Legacy page rules remain for compatibility. */\n:root {\n${declaration}\n}\n${controls}\n${page}\n${glow}\n${materials}\n${progress}\n${flat}\n${adaptivePaint}\n${reduced}\n`,
+  'scoped.css': `/* Generated from src/foundations.ts. Only themed wrappers and their children are styled. */\n:where([data-ui-theme]) {\n${declaration}\n}\n${scopedControls}\n${prose}\n${glow}\n${materials}\n${progress}\n${flat}\n${adaptivePaint}\n${reduced}\n`,
   'reset.css': `/* Explicit opt-in page rules; import scoped.css for component tokens. */\n${controls}\n${page}\n`,
 };
 for (const [name, content] of Object.entries(outputs)) {

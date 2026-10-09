@@ -71,16 +71,18 @@ Provide a readable text equivalent for chart values.
 Use `PROJECTION_THEME` or `COASTAL_DAY_THEME` for modern materials.
 `PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
 Use `FERNWOOD_THEME` for the green light palette.
-Use `PROJECTION_FLAT_THEME` or `FERNWOOD_FLAT_THEME` for the original core palettes.
+Use `PROJECTION_FLAT_THEME` or `COASTAL_DAY_FLAT_THEME` for the main pair with solid surfaces.
+`PROJECTION_LIGHT_FLAT_THEME` remains an alias for Coastal Day Flat.
+`FERNWOOD_FLAT_THEME` retains the original green light palette.
 Flat appearance keeps surfaces solid and removes gradient fills and decorative light.
 The modern presets remain available in `THEME_PRESETS`.
 
 ```tsx
-import { Card, FERNWOOD_FLAT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
+import { Card, COASTAL_DAY_FLAT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
 
 export function FlatExample() {
-  return <ThemeProvider theme={FERNWOOD_FLAT_THEME}>
-    <Card>Original Fernwood palette with a solid surface.</Card>
+  return <ThemeProvider theme={COASTAL_DAY_FLAT_THEME}>
+    <Card>Blue accents with a solid surface.</Card>
   </ThemeProvider>
 }
 ```

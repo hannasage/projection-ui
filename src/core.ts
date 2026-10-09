@@ -28,7 +28,7 @@ export { Toggle } from './components/forms/Toggle'
 export type { ToggleProps } from './components/forms/Toggle'
 export * from './components/Content'
 export type { UITheme, UIRadius } from './theme'
-export { DEFAULT_THEME, PROJECTION_THEME, COASTAL_DAY_THEME, PROJECTION_LIGHT_THEME, FERNWOOD_THEME, THEME_PRESETS, PROJECTION_FLAT_THEME, PROJECTION_LIGHT_FLAT_THEME, FERNWOOD_FLAT_THEME, RADIUS_SCALE, UI_FOUNDATIONS } from './foundations'
+export { DEFAULT_THEME, PROJECTION_THEME, COASTAL_DAY_THEME, COASTAL_DAY_FLAT_THEME, PROJECTION_LIGHT_THEME, FERNWOOD_THEME, THEME_PRESETS, PROJECTION_FLAT_THEME, PROJECTION_LIGHT_FLAT_THEME, FERNWOOD_FLAT_THEME, RADIUS_SCALE, UI_FOUNDATIONS } from './foundations'
 export * from './components/Materials'
 export * from './components/Widgets'
 

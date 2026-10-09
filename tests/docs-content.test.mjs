@@ -48,7 +48,8 @@ test('packed manifest roles produce automatic feature installation guidance', as
   const guide = transformGuide(readFileSync(new URL('../docs/pages/Installation.mdx',import.meta.url),'utf8'),'docs/pages/Installation.mdx',entries);
   assert.match(guide.markdown,/npm install \/path\/to\/packed-candidate\.tgz\n/);
   assert.doesNotMatch(guide.markdown,/Install `(?:recharts|zustand|@dnd-kit)|npm install [^\n]*(?:react@|recharts@|zustand@)/);
-  assert.match(guide.markdown,/unpublished/);
+  assert.match(guide.markdown,/checked `0\.2\.0-next\.2` candidate archive/);
+  assert.doesNotMatch(guide.markdown,/npm install @hannasage\/projection-ui@(?:next|0\.2\.0-next\.2)/);
 });
 
 test('every documented component has an authored packed-package story', async () => {
@@ -69,7 +70,7 @@ test('paired gallery exposes complete category coverage and both core appearance
   assert.equal(new Set(categories).size,categories.length);
   for (const category of categories) assert.ok(gallery.includes(`'${category}'`) || gallery.includes(`${category}:`), `${category} needs a rendered example`);
   assert.match(gallery,/categorySamples\[category\]/);
-  for (const theme of ['COASTAL_DAY_THEME','PROJECTION_THEME','FERNWOOD_FLAT_THEME','PROJECTION_FLAT_THEME']) assert.match(gallery,new RegExp(theme));
+  for (const theme of ['COASTAL_DAY_THEME','PROJECTION_THEME','COASTAL_DAY_FLAT_THEME','PROJECTION_FLAT_THEME']) assert.match(gallery,new RegExp(theme));
   assert.match(gallery,/Composition using library components/);
   assert.match(gallery,/includeStories: \['Paired'\]/,'Gallery metadata must not become a blank story');
 });
@@ -83,6 +84,7 @@ test('landing has its own layout and keeps an explicit reader home', async () =>
   assert.match(landing,/gallery-components--paired/);
   assert.match(landing,/useState\('neon'\)/);
   assert.match(landing,/COASTAL_DAY_THEME/);
+  assert.match(landing,/appearance === 'flat' \? COASTAL_DAY_FLAT_THEME : COASTAL_DAY_THEME/);
   assert.match(reader,/DocsLayout/);
   assert.doesNotMatch(readFileSync(new URL('../docs-site/app/(docs)/layout.tsx',import.meta.url),'utf8'),/DocsLayout/);
 });

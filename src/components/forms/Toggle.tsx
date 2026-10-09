@@ -64,7 +64,7 @@ export function Toggle({
             width:        trackW,
             height:       trackH,
             borderRadius: 'var(--ui-radius-full)',
-            background:   checked ? 'var(--ui-primary)' : 'var(--ui-border)',
+            background:   checked ? 'var(--ui-accent-fill, var(--ui-primary))' : 'var(--ui-border)',
             position:     'relative',
             transition:   'background 0.18s',
             flexShrink:   0,

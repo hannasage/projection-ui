@@ -52,7 +52,7 @@ export function Textarea({
           fontSize:     12,
           fontFamily:   'var(--ui-font-body, var(--ui-font))',
           color:        'var(--ui-text)',
-          background:   'var(--ui-bg)',
+          background:   'var(--ui-field-fill, var(--ui-bg))',
           border:       `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
           borderRadius: 'var(--ui-radius-md)',
           resize:       'vertical',

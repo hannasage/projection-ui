@@ -1,12 +1,13 @@
 # Changelog
 
-## 0.2.0-next.2 unpublished alpha
+## 0.2.0-next.2 alpha candidate
 
 This candidate includes the earlier unpublished alpha work and the final review changes.
 
 - Add theme presets, with Projection as the default dark theme and Coastal Day as its blue light pair.
 - Keep Fernwood as the green light preset and preserve the original flat palettes.
-- Add flat modes that retain the v0.1 palettes for the core pair.
+- Add Coastal Day Flat with the original coastal base colors and a solid neon blue accent.
+- Retain the original Projection Flat and Fernwood Flat palettes.
 - Add Surface, GradientBackground, and GradientText with scoped glass, edge light, and underglow styles.
 - Add Avatar, Checkbox, RadioGroup, Tabs, Accordion, Alert, Notification, Progress, Spinner, Tooltip, and Carousel.
 - Add material choices to Card and gradient or solid appearance to Button.
@@ -21,10 +22,12 @@ This candidate includes the earlier unpublished alpha work and the final review 
 - Test consumer installations with empty npm caches.
 - Add rendered component examples and themed visual elements to the README.
 - Keep underglow outside the surface so that it does not wash across glass or content.
+- Use subtler core gradients across surfaces, fields, and active controls.
+- Lighten Coastal Day's blue partner and shift Projection's partner toward yellow-green.
 
 ### Package foundations
 
-This entry describes the local alpha before npm publication.
+This entry describes the alpha candidate.
 Existing root imports, required theme fields, and CSS variable meanings remain available.
 The soft panel radius changes from 10px to 16px. Control radii remain unchanged.
 Read [Migration](docs/pages/Migration.mdx) before an upgrade.
@@ -65,7 +68,9 @@ The core and foundation entries exclude chart, drag, and toast implementations.
 Optional font roles fall back to the existing font field.
 The `/tokens` entry retains legacy page rules.
 The candidate adds no 3D runtime dependency.
-The default gains the approved neon design values. Flat presets retain the earlier core palettes.
+The default gains the neon design values.
+Projection Flat and Fernwood Flat retain the earlier core palettes.
+Coastal Day Flat uses the earlier coastal base colors with a neon blue accent.
 
 ### Release status
 

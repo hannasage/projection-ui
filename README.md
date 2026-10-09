@@ -6,9 +6,9 @@ You still have to build the app.
 
 [Documentation](https://docs.projectionui.dev) · [Component explorer](https://docs.projectionui.dev/examples/) · [Give feedback](https://github.com/hannasage/projection-ui/discussions)
 
-![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime and mint on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/materials-paired.png)
+![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/readme-assets/materials-paired.png)
 
-This branch prepares the unpublished `0.2.0-next.2` alpha.
+`0.2.0-next.2` is an alpha candidate.
 An alpha is a preview that receives consumer checks before publication.
 The screenshots show real components from the packed library.
 The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
@@ -74,8 +74,8 @@ Optional body and display font roles fall back to the existing `font` field.
 
 ## Give it your theme
 
-Projection is the default dark theme, with lime-to-mint accents.
-Coastal Day pairs bright blue with deeper blue on pale surfaces.
+Projection is the default dark theme, with a subtle lime gradient.
+Coastal Day uses a soft blue shift on pale surfaces.
 Fernwood keeps the green light palette.
 `PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
 Your application supplies colors, fonts, and radius through `ThemeProvider`.
@@ -95,7 +95,9 @@ export function LightExample() {
 }
 ```
 
-Use `PROJECTION_FLAT_THEME` or `FERNWOOD_FLAT_THEME` for solid surfaces and the original v0.1 palettes.
+Use `PROJECTION_FLAT_THEME` or `COASTAL_DAY_FLAT_THEME` for the main pair with solid surfaces.
+Coastal Day Flat keeps blue accents.
+`FERNWOOD_FLAT_THEME` retains the original green light palette.
 The [theme guide](https://docs.projectionui.dev/docs/theming/) covers custom values and all presets.
 
 ## Choose an entry

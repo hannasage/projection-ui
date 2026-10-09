@@ -104,8 +104,10 @@ export function PaletteExample() {
 `PROJECTION_THEME` and `COASTAL_DAY_THEME` supply the primary dark and light materials.
 `PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
 `FERNWOOD_THEME` retains the green light palette.
-`PROJECTION_FLAT_THEME` and `FERNWOOD_FLAT_THEME` retain the original core palettes.
-`PROJECTION_LIGHT_FLAT_THEME` remains an alias for Fernwood Flat.
+`PROJECTION_FLAT_THEME` and `COASTAL_DAY_FLAT_THEME` supply the main pair with solid surfaces.
+Coastal Day Flat combines its original pale surfaces with bright blue accents.
+`FERNWOOD_FLAT_THEME` retains the original green light palette.
+`PROJECTION_LIGHT_FLAT_THEME` remains an alias for Coastal Day Flat.
 `THEME_PRESETS` holds the modern palette set.
 Each entry contains a name, its mode, and shared theme roles.
 
@@ -116,7 +118,8 @@ Optional `fontBody`, `fontDisplay`, and `fontMono` fields set distinct font role
 They fall back to `font` when omitted.
 Optional `partner` and `glow` fields control the paired gradient color and light strength.
 
-Projection's modern accent blends lime into mint.
+Projection's modern accent uses a subtle lime gradient.
+Coastal Day uses a soft blue shift.
 The docs reader offers light and dark modes and saves the reader's choice in local storage.
 Local storage is browser data that remains after a page reload.
 The gallery's core appearance switch changes only its previews.

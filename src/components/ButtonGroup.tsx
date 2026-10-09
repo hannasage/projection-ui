@@ -108,7 +108,7 @@ export function ButtonGroup<T extends string = string>({
                 fontFamily:     'var(--ui-font-body, var(--ui-font))',
                 fontWeight:     isActive ? 600 : 400,
                 background:     isActive
-                  ? 'color-mix(in srgb, var(--ui-primary) 13%, transparent)'
+                  ? 'var(--ui-accent-soft, color-mix(in srgb, var(--ui-primary) 13%, transparent))'
                   : 'transparent',
                 color:          isActive ? 'var(--ui-accent-text, var(--ui-primary))' : 'var(--ui-muted)',
                 border:         'none',
@@ -171,7 +171,7 @@ export function ButtonGroup<T extends string = string>({
               fontFamily:     'var(--ui-font-body, var(--ui-font))',
               fontWeight:     isActive ? 600 : 400,
               background:     isActive
-                ? 'color-mix(in srgb, var(--ui-primary) 13%, transparent)'
+                ? 'var(--ui-accent-soft, color-mix(in srgb, var(--ui-primary) 13%, transparent))'
                 : 'transparent',
               color:          isActive ? 'var(--ui-accent-text, var(--ui-primary))' : 'var(--ui-muted)',
               border:         isActive

@@ -108,7 +108,9 @@ test('modern foundations preserve legacy palette access and separate panel radii
   assert.equal(esm.DEFAULT_THEME.radius, 'soft');
   assert.deepEqual(esm.RADIUS_SCALE.soft, { sm: '4px', md: '6px', lg: '16px', full: '9999px' });
   assert.equal(esm.PROJECTION_FLAT_THEME.primaryFg, '#07090C');
-  assert.equal(esm.PROJECTION_LIGHT_FLAT_THEME.bg, '#fdf6e3');
+  assert.equal(esm.PROJECTION_LIGHT_FLAT_THEME.bg, '#f6f8fa');
+  assert.equal(esm.PROJECTION_LIGHT_FLAT_THEME.primary, '#00C8FF');
+  assert.equal(esm.FERNWOOD_FLAT_THEME.bg, '#fdf6e3');
   assert.ok(esm.UI_FOUNDATIONS.space.md);
   assert.ok(esm.UI_FOUNDATIONS.motion.fast);
 });

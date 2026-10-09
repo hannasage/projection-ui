@@ -48,7 +48,7 @@ export function Slider({
           background: linear-gradient(
             to right,
             var(--ui-primary) 0%,
-            var(--ui-primary) var(--ui-slider-pct, 0%),
+            var(--ui-accent-end, var(--ui-primary)) var(--ui-slider-pct, 0%),
             var(--ui-border)  var(--ui-slider-pct, 0%),
             var(--ui-border)  100%
           );
@@ -63,7 +63,7 @@ export function Slider({
           width: 16px;
           height: 16px;
           border-radius: var(--ui-radius-full);
-          background: var(--ui-primary);
+          background: var(--ui-accent-fill, var(--ui-primary));
           border: 2px solid var(--ui-primary-fg);
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
           cursor: pointer;
@@ -76,7 +76,7 @@ export function Slider({
           width: 16px;
           height: 16px;
           border-radius: var(--ui-radius-full);
-          background: var(--ui-primary);
+          background: var(--ui-accent-fill, var(--ui-primary));
           border: 2px solid var(--ui-primary-fg);
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
           cursor: pointer;

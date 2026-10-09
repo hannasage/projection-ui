@@ -4,7 +4,7 @@ const fonts = { font: "'IBM Plex Sans', sans-serif", fontBody: "'IBM Plex Sans',
 
 /** Native Figma palettes with the approved core theme refinements. */
 export const THEME_PRESETS = {
-  "projection": { ...fonts, bg: "#07090C", surface: "#0D1117", text: "#DDE3EE", muted: "#8396AB", border: "#1B2535", primary: "#C9F53A", primaryFg: "#17202A", partner: "#35F5AA", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Projection" },
+  "projection": { ...fonts, bg: "#07090C", surface: "#0D1117", text: "#DDE3EE", muted: "#8396AB", border: "#1B2535", primary: "#C9F53A", primaryFg: "#17202A", partner: "#A1F55B", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Projection" },
   "midnight-reef": { ...fonts, bg: "#021721", surface: "#062535", text: "#e2f2fa", muted: "#7abcd4", border: "#0e3c52", primary: "#FFD219", primaryFg: "#17202A", partner: "#00C8FF", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Midnight Reef" },
   "neon-arcade": { ...fonts, bg: "#0f0f23", surface: "#16162f", text: "#f4f4ff", muted: "#9aa1d8", border: "#2c2c58", primary: "#00F5D4", primaryFg: "#17202A", partner: "#B56AFF", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Neon Arcade" },
   "deep-forest": { ...fonts, bg: "#0d1612", surface: "#13211a", text: "#e8f6ee", muted: "#8ab89c", border: "#264133", primary: "#39FF88", primaryFg: "#17202A", partner: "#A4F53A", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Deep Forest" },
@@ -12,7 +12,7 @@ export const THEME_PRESETS = {
   "noir-bloom": { ...fonts, bg: "#0e0620", surface: "#180d38", text: "#f5eaff", muted: "#a080cc", border: "#2e1060", primary: "#FF39AB", primaryFg: "#17202A", partner: "#B56AFF", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Noir Bloom" },
   "dusk-protocol": { ...fonts, bg: "#1b1f2a", surface: "#242b3a", text: "#e5e9f0", muted: "#a7b0c0", border: "#3a435a", primary: "#35D9FF", primaryFg: "#17202A", partner: "#397BFF", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Dusk Protocol" },
   "pillow-fort": { ...fonts, bg: "#241529", surface: "#2e1d34", text: "#fdebf6", muted: "#c7a9c4", border: "#4b3155", primary: "#FF65D6", primaryFg: "#17202A", partner: "#FF39AB", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "dark", name: "Pillow Fort" },
-  "coastal-day": { ...fonts, bg: "#F6FBFF", surface: "#FFFFFF", text: "#17202A", muted: "#485463", border: "#BFCBD8", primary: "#00C8FF", primaryFg: "#101820", partner: "#397BFF", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "light", name: "Coastal Day" },
+  "coastal-day": { ...fonts, bg: "#F6FBFF", surface: "#FFFFFF", text: "#17202A", muted: "#485463", border: "#BFCBD8", primary: "#00C8FF", primaryFg: "#101820", partner: "#369FFF", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "light", name: "Coastal Day" },
   "projection-light": { ...fonts, bg: "#F3F6F5", surface: "#FAFBFB", text: "#17202A", muted: "#485463", border: "#BFCBD8", primary: "#A4F53A", primaryFg: "#17202A", partner: "#35EB88", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "light", name: "Fernwood" },
   "dust-and-flame": { ...fonts, bg: "#FFF9F3", surface: "#FFFFFF", text: "#17202A", muted: "#485463", border: "#BFCBD8", primary: "#FF842B", primaryFg: "#17202A", partner: "#FF479E", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "light", name: "Dust & Flame" },
   "confetti-studio": { ...fonts, bg: "#FCF8FF", surface: "#FFFFFF", text: "#17202A", muted: "#485463", border: "#BFCBD8", primary: "#B56AFF", primaryFg: "#17202A", partner: "#FF47B7", cyan: "#38D9FF", violet: "#B56AFF", pink: "#FF39AB", amber: "#FFD219", mint: "#35F5AA", success: "#35F5AA", warning: "#FFD219", danger: "#FF3D6A", mode: "light", name: "Confetti Studio" },
@@ -38,8 +38,14 @@ export const FERNWOOD_FLAT_THEME = {
   primary: '#859900', primaryFg: '#ffffff', danger: '#dc322f',
   font: "'IBM Plex Mono', monospace",
 } as const satisfies UITheme & { name: string }
-/** Compatibility alias; the released light flat palette remains unchanged. */
-export const PROJECTION_LIGHT_FLAT_THEME = FERNWOOD_FLAT_THEME
+/** Original Coastal Day neutral palette with a solid neon-blue accent. */
+export const COASTAL_DAY_FLAT_THEME = {
+  ...COASTAL_DAY_THEME, name: 'Coastal Day Flat', appearance: 'flat',
+  bg: '#f6f8fa', surface: '#ffffff', border: '#d0d7de', text: '#24292f', muted: '#57606a',
+  primary: '#00C8FF', primaryFg: '#101820', danger: '#cf222e', font: "'IBM Plex Mono', monospace",
+} as const satisfies UITheme & { name: string }
+/** Compatibility export for the canonical blue light flat theme. */
+export const PROJECTION_LIGHT_FLAT_THEME = COASTAL_DAY_FLAT_THEME
 /** Fonts remain consumer supplied; this preset loads no font files. */
 export const DEFAULT_THEME = { ...PROJECTION_THEME, font: "'IBM Plex Mono', monospace" } as const
 
