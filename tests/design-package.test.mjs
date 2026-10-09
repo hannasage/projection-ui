@@ -149,6 +149,24 @@ test('the complete approved scene replays with current gradients, editable varia
   const sets = figma.currentPage.children.filter(node => node.type === 'COMPONENT_SET');
   assert.equal(sets.length, 49);
   assert.ok(sets.every(set => set.children.length === 4));
+  for (const [index, left] of sets.entries()) for (const right of sets.slice(index + 1)) {
+    const overlap = left.x < right.x + right.width && right.x < left.x + left.width && left.y < right.y + right.height && right.y < left.y + left.height;
+    assert.equal(overlap, false, `${left.name} and ${right.name} must not overlap after Flat variants expand the set`);
+  }
+  const columns = [...new Set(sets.map(set => set.x))].sort((left, right) => left - right);
+  for (const [index, x] of columns.slice(0, -1).entries()) assert.ok(columns[index + 1] - x - Math.max(...sets.filter(set => set.x === x).map(set => set.width)) >= 64, 'expanded component-set columns need at least 64px of space');
+  for (const source of scene.nodes.filter(node => node.type === 'FRAME')) {
+    const showcase = figma.currentPage.children.find(node => node.name === source.name && node.type === 'FRAME');
+    assert.equal(showcase.x, source.properties.x, 'reflow must preserve showcase positions');
+    assert.equal(showcase.y, source.properties.y, 'reflow must preserve showcase positions');
+  }
+  const flatNodes = sets.flatMap(set => set.children.filter(component => component.name.includes('Appearance=Flat')).flatMap(component => component.findAll()));
+  assert.ok(flatNodes.filter(node => ['Light source behind glass', 'Projected lower edge', 'Active projected edge'].includes(node.name)).every(node => !node.visible), 'Flat components must hide explicit light decoration');
+  for (const set of sets) for (const flat of set.children.filter(component => component.name.includes('Appearance=Flat'))) {
+    const modern = set.children.find(component => component.name === flat.name.replace('Appearance=Flat', 'Appearance=Modern'));
+    const indicators = component => component.findAll().filter(node => ['Active rail', 'Limelight rail'].includes(node.name)).map(node => ({ name: node.name, visible: node.visible }));
+    assert.deepEqual(indicators(flat), indicators(modern), 'Flat components must preserve functional selection indicator visibility');
+  }
   const lightAvatarBoard = figma.currentPage.findAll().find(node => node.name === 'Avatars · Light');
   const avatarLabel = lightAvatarBoard.findAll().find(node => node.type === 'TEXT' && node.name === 'HS');
   assert.equal(avatarLabel.layoutSizingHorizontal, 'HUG', 'nested instance text must retain its source horizontal sizing');

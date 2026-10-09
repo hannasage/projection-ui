@@ -1,5 +1,28 @@
 const supported = new Set(['FRAME', 'GROUP', 'COMPONENT', 'COMPONENT_SET', 'INSTANCE', 'TEXT', 'RECTANGLE', 'ELLIPSE', 'LINE', 'VECTOR', 'POLYGON', 'STAR']);
 
+export function refineImportedPresentation(page) {
+  const sets = page.children.filter(node => node.type === 'COMPONENT_SET');
+  const columns = new Map();
+  for (const set of sets) {
+    if (!columns.has(set.x)) columns.set(set.x, []);
+    columns.get(set.x).push(set);
+    for (const flat of set.children.filter(component => component.name.includes('Appearance=Flat'))) {
+      for (const node of flat.findAll()) if (['Light source behind glass', 'Projected lower edge', 'Active projected edge'].includes(node.name)) node.visible = false;
+    }
+  }
+  let x = Math.min(...columns.keys());
+  for (const [, column] of [...columns].sort(([left], [right]) => left - right)) {
+    const width = Math.max(...column.map(set => set.width));
+    let bottom = -Infinity;
+    for (const set of column.sort((left, right) => left.y - right.y)) {
+      set.x = x;
+      if (set.y < bottom) set.y = bottom + 64;
+      bottom = set.y + set.height;
+    }
+    x += width + 64;
+  }
+}
+
 export function validateScene(scene) {
   if (scene.schemaVersion !== 1) throw new Error('Unsupported design scene version.');
   const nodes = new Map();
@@ -372,6 +395,7 @@ export async function importProjectionDesign(figma, scene, tokens, version) {
     const bottom = Math.max(...set.children.map(child => child.y + child.height));
     set.resize(right + 24, bottom + 24);
   }
+  refineImportedPresentation(page);
   page.selection = [];
   return { pageId: page.id, pageName, createdNodeIds: [...new Set(createdNodeIds)], createdVariableIds, createdCollectionIds, createdStyleIds, inventory: { ...inventory, flatVariants }, coreCollections: Object.fromEntries(Object.entries(themeCollections).map(([name, item]) => [name, { id: item.collection.id, darkModeId: item.darkModeId, lightModeId: item.lightModeId }])) };
 }
