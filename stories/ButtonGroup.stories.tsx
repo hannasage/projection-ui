@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { ButtonGroup } from '../src/components/ButtonGroup'
-import { withTheme, darkTheme } from './decorators'
-import { ThemeProvider } from '../src/components/ThemeProvider'
+import { ButtonGroup } from '@hannasage/projection-ui/core'
+import { withTheme } from './decorators'
+import { usePreviewTheme } from '../.storybook/PreviewTheme'
+import { ThemeProvider } from '@hannasage/projection-ui/core'
 
-const meta: Meta = {
+const meta: Meta<typeof ButtonGroup> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
+  component: ButtonGroup,
   title:      'Components/ButtonGroup',
   decorators: [withTheme],
   tags:       ['autodocs'],
@@ -24,7 +26,7 @@ function MetricDemo(): React.ReactElement {
   const [val, setVal] = useState<Metric>('liquidity')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <ButtonGroup options={metricOptions} value={val} onChange={setVal} />
+      <ButtonGroup aria-label="Example selection" options={metricOptions} value={val} onChange={setVal} />
       <div style={{ fontSize: 12, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
         Selected: <strong style={{ color: 'var(--ui-text)' }}>{val}</strong>
       </div>
@@ -44,7 +46,7 @@ function YearClipDemo(): React.ReactElement {
   const [val, setVal] = useState<Year | null>('10')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <ButtonGroup options={yearOptions} value={val} onChange={setVal} deselectable size="sm" />
+      <ButtonGroup aria-label="Example selection" options={yearOptions} value={val} onChange={setVal} deselectable size="sm" />
       <div style={{ fontSize: 12, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
         Clip years: <strong style={{ color: 'var(--ui-text)' }}>{val ?? 'none (full horizon)'}</strong>
       </div>
@@ -61,11 +63,11 @@ const returnModeOptions = [
 
 function ReturnModeDemo(): React.ReactElement {
   const [val, setVal] = useState<Mode>('hysa')
-  return <ButtonGroup options={returnModeOptions} value={val} onChange={setVal} />
+  return <ButtonGroup aria-label="Example selection" options={returnModeOptions} value={val} onChange={setVal} />
 }
 
-export const MetricTabs: StoryObj = {
-  name: 'Metric tabs (md)',
+export const MetricSelection: StoryObj = {
+  name: 'Metric selection (md)',
   render: () => <MetricDemo />,
 }
 
@@ -81,10 +83,10 @@ export const ReturnMode: StoryObj = {
 
 export const BlockLayout: StoryObj = {
   name: 'Block (full width)',
-  render: () => {
+  render: function BlockLayoutExample() {
     const [val, setVal] = useState('b')
     return (
-      <ButtonGroup
+      <ButtonGroup aria-label="Example selection"
         block
         options={[
           { value: 'a', label: 'Option A' },
@@ -100,10 +102,10 @@ export const BlockLayout: StoryObj = {
 
 export const LargeSize: StoryObj = {
   name: 'Large size',
-  render: () => {
+  render: function LargeSizeExample() {
     const [val, setVal] = useState('monthly')
     return (
-      <ButtonGroup
+      <ButtonGroup aria-label="Example selection"
         size="lg"
         options={[
           { value: 'monthly',   label: 'Monthly'   },
@@ -119,10 +121,10 @@ export const LargeSize: StoryObj = {
 
 export const WithDisabledOption: StoryObj = {
   name: 'Disabled option',
-  render: () => {
+  render: function WithDisabledOptionExample() {
     const [val, setVal] = useState('a')
     return (
-      <ButtonGroup
+      <ButtonGroup aria-label="Example selection"
         options={[
           { value: 'a', label: 'Available' },
           { value: 'b', label: 'Disabled', disabled: true },
@@ -137,11 +139,12 @@ export const WithDisabledOption: StoryObj = {
 
 export const RadiusSharp: StoryObj = {
   name: 'Radius — Sharp',
-  render: () => {
+  render: function RadiusSharpExample() {
+    const theme = usePreviewTheme()
     const [val, setVal] = useState('a')
     return (
-      <ThemeProvider theme={{ ...darkTheme, radius: 'sharp' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
-        <ButtonGroup
+      <ThemeProvider theme={{ ...theme, radius: 'sharp' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
+        <ButtonGroup aria-label="Example selection"
           options={[
             { value: 'a', label: 'Square' },
             { value: 'b', label: 'Edged'  },
@@ -157,11 +160,12 @@ export const RadiusSharp: StoryObj = {
 
 export const RadiusRounded: StoryObj = {
   name: 'Radius — Rounded',
-  render: () => {
+  render: function RadiusRoundedExample() {
+    const theme = usePreviewTheme()
     const [val, setVal] = useState('a')
     return (
-      <ThemeProvider theme={{ ...darkTheme, radius: 'rounded' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
-        <ButtonGroup
+      <ThemeProvider theme={{ ...theme, radius: 'rounded' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
+        <ButtonGroup aria-label="Example selection"
           options={[
             { value: 'a', label: 'Soft'    },
             { value: 'b', label: 'Bubbly'  },

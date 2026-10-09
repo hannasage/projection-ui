@@ -3,6 +3,7 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -12,6 +13,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
   arrayMove,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
@@ -34,6 +36,7 @@ export function SortableList<T extends { id: string }>({
 }: SortableListProps<T>): React.ReactElement {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -45,7 +48,16 @@ export function SortableList<T extends { id: string }>({
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}
+      accessibility={{
+        screenReaderInstructions: { draggable: 'To reorder, press Space or Enter to pick up an item, use the arrow keys to move it, then press Space or Enter to drop it. Press Escape to cancel.' },
+        announcements: {
+          onDragStart: ({ active }) => `Picked up item ${active.id}, position ${items.findIndex(item => item.id === active.id) + 1} of ${items.length}.`,
+          onDragOver: ({ active, over }) => over ? `Item ${active.id} moved to position ${items.findIndex(item => item.id === over.id) + 1} of ${items.length}.` : `Item ${active.id} is outside the list.`,
+          onDragEnd: ({ active, over }) => over ? `Dropped item ${active.id} at position ${items.findIndex(item => item.id === over.id) + 1} of ${items.length}.` : `Item ${active.id} was not reordered.`,
+          onDragCancel: ({ active }) => `Reordering item ${active.id} was cancelled.`,
+        },
+      }}>
       <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         <div className={className} style={style}>
           {items.map((item, idx) => children(item, idx))}

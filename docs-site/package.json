@@ -1,0 +1,31 @@
+{
+  "name": "projection-ui-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "../node_modules/.bin/eslint app components lib mdx-components.tsx",
+    "test": "node --test tests/*.test.mjs",
+    "build": "next build --webpack"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@tsparticles/engine": "4.4.0",
+    "@tsparticles/react": "4.4.0",
+    "@tsparticles/slim": "4.4.0",
+    "fumadocs-core": "16.16.2",
+    "fumadocs-mdx": "15.4.6",
+    "fumadocs-ui": "16.16.2",
+    "next": "16.4.0",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "tailwindcss": "4.3.3"
+  },
+  "devDependencies": {
+    "@types/mdx": "2.0.14",
+    "@types/node": "24.12.4",
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.2"
+  }
+}

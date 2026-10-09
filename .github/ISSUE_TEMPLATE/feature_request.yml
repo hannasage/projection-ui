@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a reusable component or API change.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Describe the task and the current limitation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Include a small API or visual example with public sample data.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround and alternatives
+  - type: textarea
+    id: scope
+    attributes:
+      label: Reuse and compatibility
+      description: Explain which consumers need this and which existing APIs it affects.

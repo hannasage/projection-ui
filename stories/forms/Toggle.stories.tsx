@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { Toggle } from '../../src/components/forms/Toggle'
+import { Toggle } from '@hannasage/projection-ui/core'
 import { withTheme } from '../decorators'
 
-const meta: Meta = {
+const meta: Meta<typeof Toggle> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
+  component: Toggle,
   title:      'Forms/Toggle',
   decorators: [withTheme],
   tags:       ['autodocs'],
@@ -17,7 +18,7 @@ function Demo(): React.ReactElement {
       checked={checked}
       onChange={setChecked}
       label="Enable notifications"
-      hint="You'll receive email updates when new activity occurs"
+      hint="Changes this example state only."
     />
   )
 }

@@ -21,30 +21,19 @@ export interface UITheme {
   font:      string
   /** Border-radius preset */
   radius:    UIRadius
+  /** Optional roles fall back to font; no font files are loaded. */
+  appearance?: 'neon' | 'flat'
+  mode?: 'dark' | 'light'
+  partner?: string
+  fontMono?: string
+  /** CSS opacity value for decorative glow. */
+  glow?: string
+  fontBody?: string
+  fontDisplay?: string
+  success?: string
+  warning?: string
+  /** Falls back to primary. */
+  focus?: string
+  backdrop?: string
 }
-
-export const RADIUS_SCALE: Record<UIRadius, {
-  sm:   string
-  md:   string
-  lg:   string
-  full: string
-}> = {
-  sharp: {
-    sm:   '0px',
-    md:   '2px',
-    lg:   '4px',
-    full: '4px',    // no pill in sharp mode — stays angular
-  },
-  soft: {
-    sm:   '4px',
-    md:   '6px',
-    lg:   '10px',
-    full: '9999px',
-  },
-  rounded: {
-    sm:   '10px',
-    md:   '16px',
-    lg:   '24px',
-    full: '9999px',
-  },
-}
+export { RADIUS_SCALE } from './foundations'

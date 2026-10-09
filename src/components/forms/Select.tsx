@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 export interface SelectOption {
   value:    string
@@ -18,7 +18,7 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 const labelStyle: React.CSSProperties = {
   fontSize:      10,
   color:         'var(--ui-muted)',
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-mono, var(--ui-font))',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
 }
@@ -31,10 +31,14 @@ export function Select({
   placeholder,
   containerStyle,
   style,
+  className,
   id,
   ...rest
 }: SelectProps): React.ReactElement {
-  const selectId = id ?? (label ? `ui-select-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+  const generatedId = useId()
+  const selectId = id ?? `ui-select-${generatedId}`
+  const descriptionId = error ? `${selectId}-error` : hint ? `${selectId}-hint` : undefined
+  const describedBy = [rest['aria-describedby'], descriptionId].filter(Boolean).join(' ') || undefined
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
@@ -45,8 +49,11 @@ export function Select({
       )}
       <div style={{ position: 'relative' }}>
         <select
+          className={['ui-field', className].filter(Boolean).join(' ')}
           id={selectId}
           {...rest}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : rest['aria-invalid']}
           style={{
             width:            '100%',
             paddingTop:       7,
@@ -54,12 +61,11 @@ export function Select({
             paddingLeft:      10,
             paddingRight:     28,
             fontSize:         12,
-            fontFamily:       'var(--ui-font)',
+            fontFamily:       'var(--ui-font-body, var(--ui-font))',
             color:            'var(--ui-text)',
-            background:       'var(--ui-bg)',
+            background:       'var(--ui-field-fill, var(--ui-bg))',
             border:           `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
             borderRadius:     'var(--ui-radius-md)',
-            outline:          'none',
             appearance:       'none',
             WebkitAppearance: 'none',
             cursor:           'pointer',
@@ -93,12 +99,12 @@ export function Select({
         </span>
       </div>
       {error && (
-        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger-text, var(--ui-danger))', fontFamily: 'var(--ui-font-body, var(--ui-font))', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
           {hint}
         </span>
       )}

@@ -1,0 +1,35 @@
+import { Meta, Canvas } from '@storybook/blocks'
+import * as ButtonStories from '../../stories/Button.stories'
+
+<Meta title="Guides/Introduction" />
+
+# Projection UI
+
+Projection UI provides React components and shared design values for consumer-themed interfaces.
+The default theme keeps the existing dark palette.
+Modern themes add glass, quiet edge light, and gradient accents.
+Your application supplies its own theme and font assets.
+
+Start with <a href="./?path=/docs/guides-installation--docs" target="_top">Installation</a>, then read <a href="./?path=/docs/guides-theming--docs" target="_top">Theming</a>.
+Use the component pages to try controls and inspect their prop contracts.
+A prop is a value that a React component receives.
+
+## Package scope
+
+The library includes reusable controls, forms, surfaces, charts, tables, sorting, and notifications.
+The core entry includes content primitives for ordinary page layouts.
+Application routes, business data, and 3D scenes belong in your application.
+
+This is the evolving `0.2.0` documentation edition, marked Alpha.
+Prerelease and patch updates share this edition.
+The exact source candidate is `0.2.0-next.2`, which is unpublished.
+Use the preserved [0.1.5 documentation](/docs/0.1.5/) for the stable package.
+The alpha does not promise 1.0 API stability.
+
+<Canvas of={ButtonStories.Primary} />
+
+## Component gallery
+
+Compare Coastal Day and Projection side by side in the [component gallery](/examples/?path=/story/gallery-components--paired).
+Switch between modern materials and flat core palettes.
+Examples labelled as compositions combine library controls; they are not new component APIs.

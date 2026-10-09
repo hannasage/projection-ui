@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label?:          string
@@ -18,12 +18,11 @@ const fieldBase: React.CSSProperties = {
   paddingLeft:   10,
   paddingRight:  10,
   fontSize:      12,
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-body, var(--ui-font))',
   color:         'var(--ui-text)',
-  background:    'var(--ui-bg)',
+  background:    'var(--ui-field-fill, var(--ui-bg))',
   border:        '1px solid var(--ui-border)',
   borderRadius:  'var(--ui-radius-md)',
-  outline:       'none',
   boxSizing:     'border-box',
   transition:    'border-color 0.12s',
 }
@@ -31,7 +30,7 @@ const fieldBase: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize:      10,
   color:         'var(--ui-muted)',
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-mono, var(--ui-font))',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
 }
@@ -44,10 +43,14 @@ export function Input({
   suffix,
   containerStyle,
   style,
+  className,
   id,
   ...rest
 }: InputProps): React.ReactElement {
-  const inputId = id ?? (label ? `ui-input-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+  const generatedId = useId()
+  const inputId = id ?? `ui-input-${generatedId}`
+  const descriptionId = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
+  const describedBy = [rest['aria-describedby'], descriptionId].filter(Boolean).join(' ') || undefined
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
@@ -72,8 +75,11 @@ export function Input({
           </span>
         )}
         <input
+          className={['ui-field', className].filter(Boolean).join(' ')}
           id={inputId}
           {...rest}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : rest['aria-invalid']}
           style={{
             ...fieldBase,
             paddingLeft:  prefix ? 26 : 10,
@@ -98,12 +104,12 @@ export function Input({
         )}
       </div>
       {error && (
-        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger-text, var(--ui-danger))', fontFamily: 'var(--ui-font-body, var(--ui-font))', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
           {hint}
         </span>
       )}

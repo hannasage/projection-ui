@@ -17,4 +17,8 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
     },
   },
+  {
+    files: ['.storybook/**/*.ts', 'vite.config.ts'],
+    languageOptions: { globals: globals.node },
+  },
 )

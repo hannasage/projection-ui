@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 
 export interface ButtonGroupOption<T extends string = string> {
   value:     T
@@ -25,6 +25,7 @@ export interface ButtonGroupProps<T extends string = string> {
   block?:       boolean
   className?:   string
   style?:       React.CSSProperties
+  'aria-label'?: string
 }
 
 const SIZE: Record<'sm' | 'md' | 'lg', React.CSSProperties> = {
@@ -43,7 +44,24 @@ export function ButtonGroup<T extends string = string>({
   block        = false,
   className,
   style,
+  'aria-label': ariaLabel,
 }: ButtonGroupProps<T>): React.ReactElement {
+  const buttons = useRef<(HTMLButtonElement | null)[]>([])
+  const enabled = options.map((option, index) => option.disabled ? -1 : index).filter(index => index >= 0)
+  const active = options.findIndex(option => option.value === value && !option.disabled)
+  const tabStop = active >= 0 ? active : enabled[0]
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const current = enabled.indexOf(index)
+    let next: number | undefined
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = enabled[(current + 1) % enabled.length]
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = enabled[(current - 1 + enabled.length) % enabled.length]
+    if (event.key === 'Home') next = enabled[0]
+    if (event.key === 'End') next = enabled[enabled.length - 1]
+    if (next === undefined) return
+    event.preventDefault()
+    buttons.current[next]?.focus()
+    onChange(options[next].value)
+  }
   const handleClick = (opt: ButtonGroupOption<T>) => {
     if (opt.disabled) return
     if (deselectable && opt.value === value) {
@@ -56,7 +74,8 @@ export function ButtonGroup<T extends string = string>({
   if (variant === 'segmented') {
     return (
       <div
-        role="group"
+        role="radiogroup"
+        aria-label={ariaLabel}
         className={className}
         style={{
           display:      'inline-flex',
@@ -74,6 +93,10 @@ export function ButtonGroup<T extends string = string>({
           return (
             <button
               key={opt.value}
+              type="button"
+              ref={node => { buttons.current[idx] = node }}
+              tabIndex={idx === tabStop ? 0 : -1}
+              onKeyDown={event => handleKeyDown(event, idx)}
               role="radio"
               aria-checked={isActive}
               title={opt.title}
@@ -82,12 +105,12 @@ export function ButtonGroup<T extends string = string>({
               style={{
                 ...SIZE[size],
                 flex:           block ? 1 : undefined,
-                fontFamily:     'var(--ui-font)',
+                fontFamily:     'var(--ui-font-body, var(--ui-font))',
                 fontWeight:     isActive ? 600 : 400,
                 background:     isActive
-                  ? 'color-mix(in srgb, var(--ui-primary) 13%, transparent)'
+                  ? 'var(--ui-accent-soft, color-mix(in srgb, var(--ui-primary) 13%, transparent))'
                   : 'transparent',
-                color:          isActive ? 'var(--ui-primary)' : 'var(--ui-muted)',
+                color:          isActive ? 'var(--ui-accent-text, var(--ui-primary))' : 'var(--ui-muted)',
                 border:         'none',
                 borderLeft:     isFirst ? 'none' : '1px solid var(--ui-border)',
                 borderRadius:   isFirst
@@ -117,7 +140,8 @@ export function ButtonGroup<T extends string = string>({
   // chip variant — individual floating pills with gaps (the brand default)
   return (
     <div
-      role="group"
+      role="radiogroup"
+        aria-label={ariaLabel}
       className={className}
       style={{
         display:   'flex',
@@ -127,11 +151,15 @@ export function ButtonGroup<T extends string = string>({
         ...style,
       }}
     >
-      {options.map(opt => {
+      {options.map((opt, idx) => {
         const isActive = opt.value === value
         return (
           <button
             key={opt.value}
+            type="button"
+            ref={node => { buttons.current[idx] = node }}
+            tabIndex={idx === tabStop ? 0 : -1}
+            onKeyDown={event => handleKeyDown(event, idx)}
             role="radio"
             aria-checked={isActive}
             title={opt.title}
@@ -140,12 +168,12 @@ export function ButtonGroup<T extends string = string>({
             style={{
               ...SIZE[size],
               flex:           block ? 1 : undefined,
-              fontFamily:     'var(--ui-font)',
+              fontFamily:     'var(--ui-font-body, var(--ui-font))',
               fontWeight:     isActive ? 600 : 400,
               background:     isActive
-                ? 'color-mix(in srgb, var(--ui-primary) 13%, transparent)'
+                ? 'var(--ui-accent-soft, color-mix(in srgb, var(--ui-primary) 13%, transparent))'
                 : 'transparent',
-              color:          isActive ? 'var(--ui-primary)' : 'var(--ui-muted)',
+              color:          isActive ? 'var(--ui-accent-text, var(--ui-primary))' : 'var(--ui-muted)',
               border:         isActive
                 ? '1px solid var(--ui-primary)'
                 : '1px solid var(--ui-border)',

@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { Slider } from '../src/components/Slider'
-import { withTheme, darkTheme } from './decorators'
-import { ThemeProvider } from '../src/components/ThemeProvider'
+import { Slider } from '@hannasage/projection-ui/core'
+import { withTheme } from './decorators'
+import { previewTheme } from '../.storybook/PreviewTheme'
+import { ThemeProvider } from '@hannasage/projection-ui/core'
 
-const meta: Meta<typeof Slider> = {
+const meta: Meta<typeof Slider> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
   title:      'Components/Slider',
   component:  Slider,
   decorators: [withTheme],
@@ -32,7 +33,7 @@ export const WithValueFormat: Story = {
       step={0.1}
       value={4.5}
       valueFormat={(v) => `${v.toFixed(1)}%`}
-      hint="Current high-yield savings rate"
+      hint="Synthetic rate for this example"
     />
   ),
 }
@@ -57,13 +58,13 @@ export const Disabled: Story = {
 }
 
 export const NoLabel: Story = {
-  render: () => <Controlled min={0} max={100} />,
+  render: () => <Controlled aria-label="Preview level" min={0} max={100} />,
 }
 
 export const RadiusSharp: Story = {
   name: 'Radius — Sharp',
-  render: () => (
-    <ThemeProvider theme={{ ...darkTheme, radius: 'sharp' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
+  render: (_, context) => (
+    <ThemeProvider theme={{ ...previewTheme(context.globals.theme), radius: 'sharp' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
       <Controlled label="Sharp radius" min={0} max={100} value={60} valueFormat={(v) => `${v}%`} />
     </ThemeProvider>
   ),
@@ -71,8 +72,8 @@ export const RadiusSharp: Story = {
 
 export const RadiusRounded: Story = {
   name: 'Radius — Rounded',
-  render: () => (
-    <ThemeProvider theme={{ ...darkTheme, radius: 'rounded' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
+  render: (_, context) => (
+    <ThemeProvider theme={{ ...previewTheme(context.globals.theme), radius: 'rounded' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
       <Controlled label="Rounded radius" min={0} max={100} value={60} valueFormat={(v) => `${v}%`} />
     </ThemeProvider>
   ),

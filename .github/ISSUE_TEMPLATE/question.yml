@@ -1,0 +1,18 @@
+name: Setup question
+description: Ask about installation, themes, or component usage.
+title: "[Question]: "
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: State the result that you want and the step that stops you.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Versions and example
+      description: Include relevant package versions and a minimal sample without private data.
+    validations:
+      required: true

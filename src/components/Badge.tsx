@@ -31,9 +31,9 @@ export function Badge({
         borderRadius:  'var(--ui-radius-sm)',
         border:        '1px solid var(--ui-border)',
         background:    filled
-          ? 'color-mix(in srgb, var(--ui-primary) 10%, transparent)'
+          ? 'var(--ui-accent-soft, color-mix(in srgb, var(--ui-primary) 10%, transparent))'
           : 'var(--ui-bg)',
-        color:         'var(--ui-muted)',
+        color:         filled ? 'var(--ui-accent-text, var(--ui-text))' : 'var(--ui-muted)',
         fontFamily:    'var(--ui-font)',
         fontSize:      10,
         fontWeight:    500,

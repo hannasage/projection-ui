@@ -1,0 +1,90 @@
+import { Meta, Canvas } from '@storybook/blocks'
+import * as ThemePresets from '../../stories/Themes.stories'
+import * as ChartPaletteStories from '../../stories/charts/ChartPalette.stories'
+import * as ThemeStories from '../../stories/ThemeProvider.stories'
+
+<Meta title="Guides/Theming" />
+
+# Theming
+
+`ThemeProvider` sets CSS variables on its wrapper.
+A CSS variable is a named value that styles share.
+Components read those values inside the provider.
+
+The existing required fields remain compatible.
+New body and display font roles fall back to `font`.
+The package selects font families but does not load font files.
+
+```tsx
+import { DEFAULT_THEME, ThemeProvider, Button } from '@hannasage/projection-ui/core'
+
+export function NestedExample() {
+  return (
+    <ThemeProvider theme={DEFAULT_THEME}>
+      <Button type="button">Outer theme</Button>
+      <ThemeProvider theme={{ ...DEFAULT_THEME, radius: 'sharp' }}>
+        <Button type="button">Nested sharp radius</Button>
+      </ThemeProvider>
+    </ThemeProvider>
+  )
+}
+```
+
+<Canvas of={ThemeStories.Nested} />
+
+## Styles and resets
+
+`/styles` scopes component rules to `data-ui-theme` wrappers.
+`/reset` supplies explicit page-wide rules.
+`/tokens` preserves the legacy page rules for existing consumers.
+Do not replace `/tokens` automatically in an existing application.
+Read <a href="./?path=/docs/guides-migration--docs" target="_top">Migration</a> before that change.
+
+A custom palette needs its own contrast tests.
+The provider does not enforce contrast.
+
+## Chart colors
+
+`DEFAULT_CHART_COLORS` supplies six colors from the package.
+The first follows `--ui-primary`; the others are cyan, violet, pink, amber, and mint.
+Required series and slice colors remain strings. Nonempty custom colors stay unchanged.
+An empty string uses the palette color at that index.
+
+```tsx
+import { LineChart, DEFAULT_CHART_COLORS } from '@hannasage/projection-ui/charts'
+
+export function PaletteExample() {
+  return <LineChart data={[{label: 'First', value: 2}]} xKey="label"
+    series={[{key: 'value', color: DEFAULT_CHART_COLORS[0], label: 'Value'}]} />
+}
+```
+
+Labels use the theme's text color. Swatches show the series color.
+Mouse proximity adds glow only to nearby marks.
+Touch, pen, reduced motion, and forced colors do not use this decorative effect.
+Provide a readable text equivalent for chart values.
+
+<Canvas of={ChartPaletteStories.Default} />
+
+## Modern and flat core themes
+
+Use `PROJECTION_THEME` or `COASTAL_DAY_THEME` for modern materials.
+`PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
+Use `FERNWOOD_THEME` for the green light palette.
+Use `PROJECTION_FLAT_THEME` or `COASTAL_DAY_FLAT_THEME` for the main pair with solid surfaces.
+`PROJECTION_LIGHT_FLAT_THEME` remains an alias for Coastal Day Flat.
+`FERNWOOD_FLAT_THEME` retains the original green light palette.
+Flat appearance keeps surfaces solid and removes gradient fills and decorative light.
+The modern presets remain available in `THEME_PRESETS`.
+
+```tsx
+import { Card, COASTAL_DAY_FLAT_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
+
+export function FlatExample() {
+  return <ThemeProvider theme={COASTAL_DAY_FLAT_THEME}>
+    <Card>Blue accents with a solid surface.</Card>
+  </ThemeProvider>
+}
+```
+
+<Canvas of={ThemePresets.Flat} />

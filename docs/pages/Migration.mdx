@@ -1,0 +1,54 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Guides/Migration" />
+
+# Migration from 0.1.5
+
+The 0.2 candidate retains root imports, existing required theme fields, and `/tokens`.
+The soft panel radius changes from 10px to 16px. Control radii stay unchanged.
+Existing theme objects do not need new fields.
+Keep your current imports first, then make optional changes separately.
+Use [Installation](/docs/installation/) to opt into the published alpha or review the unpublished candidate locally.
+The stable 0.1.x package uses its [preserved documentation](/docs/0.1.5/).
+
+## Isolate optional features
+
+Use `/core` for basic controls and content primitives.
+Use `/charts`, `/sortable`, or `/toast` when you need those features.
+The package now manages chart, drag, and toast runtime dependencies.
+npm installs them automatically; remove separate feature installation steps.
+React 19 and React DOM 19 remain shared application peers.
+Subpaths isolate JavaScript imports without removing dependency downloads.
+
+```tsx
+import { Button } from '@hannasage/projection-ui/core'
+import { LineChart } from '@hannasage/projection-ui/charts'
+import { SortableList } from '@hannasage/projection-ui/sortable'
+import { ToastContainer } from '@hannasage/projection-ui/toast'
+```
+
+## Select styles deliberately
+
+Keep `/tokens` if your page depends on its global rules.
+For a new scoped integration, use `/styles`.
+Add `/reset` only when you want page-wide rules.
+
+## Review changed interactions
+
+Table sorting now orders rows.
+Supply `sortValue(row)` for a derived sortable value, or `compare(a, b)` for a custom comparison.
+Review dialog focus, radio arrow keys, switch activation, and sortable keyboard movement after your upgrade.
+Make sure that your application does not duplicate the library behavior.
+
+## Choose a core appearance
+
+Projection stays the default dark theme.
+Coastal Day is the primary light theme, with bright blue accents.
+Fernwood retains the green light palette.
+Use `PROJECTION_FLAT_THEME` or `COASTAL_DAY_FLAT_THEME` for the main pair with flat surfaces.
+Coastal Day Flat keeps bright blue accents.
+Use `FERNWOOD_FLAT_THEME` to retain the original green light palette.
+Existing custom themes still work without new fields.
+Card now uses glass, edge light, and underglow by default.
+Set `material="solid"`, `edgeLight={false}`, and `underglow={false}` to choose a quiet card.
+Set Button `appearance="solid"` to choose a solid primary action.

@@ -5,7 +5,7 @@ import {
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import type { BaseChartProps } from './shared'
-import { ChartTooltip, AXIS_STYLE } from './shared'
+import { ChartTooltip, AXIS_STYLE, chartColor, chartLegendLabel, useChartGlow } from './shared'
 
 export type { BaseChartProps as LineChartProps }
 
@@ -20,8 +20,10 @@ export function LineChart({
   xFormatter,
   yFormatter,
 }: BaseChartProps): React.ReactElement {
+  const { ref, motionAllowed } = useChartGlow()
+  const colors = series.map((item, index) => ({ ...item, color: chartColor(item.color, index) }))
   return (
-    <div className={className} style={style}>
+    <div ref={ref} className={className} style={style}>
       {title && (
         <div style={{ fontSize: 12, color: 'var(--ui-muted)', marginBottom: 10, fontFamily: 'var(--ui-font)' }}>
           {title}
@@ -46,10 +48,11 @@ export function LineChart({
           />
           <Tooltip content={<ChartTooltip xFormatter={xFormatter} yFormatter={yFormatter} />} />
           {series.length > 1 && (
-            <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--ui-font)' }} iconType="circle" />
+            <Legend formatter={chartLegendLabel} wrapperStyle={{ fontSize: 11, fontFamily: 'var(--ui-font)' }} iconType="circle" />
           )}
-          {series.map((s) => (
+          {colors.map((s) => (
             <Line
+              isAnimationActive={motionAllowed}
               key={s.key}
               type="monotone"
               dataKey={s.key}

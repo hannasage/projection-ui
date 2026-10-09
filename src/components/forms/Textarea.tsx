@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?:          string
@@ -10,7 +10,7 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 const labelStyle: React.CSSProperties = {
   fontSize:      10,
   color:         'var(--ui-muted)',
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-mono, var(--ui-font))',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
 }
@@ -21,10 +21,14 @@ export function Textarea({
   hint,
   containerStyle,
   style,
+  className,
   id,
   ...rest
 }: TextareaProps): React.ReactElement {
-  const textareaId = id ?? (label ? `ui-textarea-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
+  const generatedId = useId()
+  const textareaId = id ?? `ui-textarea-${generatedId}`
+  const descriptionId = error ? `${textareaId}-error` : hint ? `${textareaId}-hint` : undefined
+  const describedBy = [rest['aria-describedby'], descriptionId].filter(Boolean).join(' ') || undefined
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...containerStyle }}>
@@ -34,8 +38,11 @@ export function Textarea({
         </label>
       )}
       <textarea
+          className={['ui-field', className].filter(Boolean).join(' ')}
         id={textareaId}
         {...rest}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : rest['aria-invalid']}
         style={{
           width:        '100%',
           paddingTop:    7,
@@ -43,12 +50,11 @@ export function Textarea({
           paddingLeft:   10,
           paddingRight:  10,
           fontSize:     12,
-          fontFamily:   'var(--ui-font)',
+          fontFamily:   'var(--ui-font-body, var(--ui-font))',
           color:        'var(--ui-text)',
-          background:   'var(--ui-bg)',
+          background:   'var(--ui-field-fill, var(--ui-bg))',
           border:       `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
           borderRadius: 'var(--ui-radius-md)',
-          outline:      'none',
           resize:       'vertical',
           minHeight:    80,
           boxSizing:    'border-box',
@@ -58,12 +64,12 @@ export function Textarea({
         }}
       />
       {error && (
-        <span style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger-text, var(--ui-danger))', fontFamily: 'var(--ui-font-body, var(--ui-font))', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
           {hint}
         </span>
       )}

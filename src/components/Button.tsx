@@ -8,6 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   size?:     ButtonSize
   /** Renders full-width */
   block?:    boolean
+  appearance?: 'solid' | 'gradient'
 }
 
 const SIZE: Record<ButtonSize, React.CSSProperties> = {
@@ -23,11 +24,11 @@ const BASE: React.CSSProperties = {
   gap:            6,
   border:         'none',
   borderRadius:   'var(--ui-radius-md)',
-  fontFamily:     'var(--ui-font)',
+  fontFamily:     'var(--ui-font-body, var(--ui-font))',
   fontWeight:     500,
   cursor:         'pointer',
   lineHeight:     1,
-  transition:     'all 0.12s',
+  transition:     'background-color 0.12s, color 0.12s, opacity 0.12s',
   textDecoration: 'none',
   whiteSpace:     'nowrap',
 }
@@ -50,7 +51,7 @@ const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
   },
   danger: {
     background: 'transparent',
-    color:      'var(--ui-danger)',
+    color:      'var(--ui-danger-text, var(--ui-danger))',
     border:     '1px solid var(--ui-danger)',
   },
   /** Rounded icon button — no text label, minimal chrome. */
@@ -67,6 +68,8 @@ export function Button({
   variant = 'secondary',
   size    = 'md',
   block   = false,
+  appearance = 'gradient',
+  className,
   style,
   disabled,
   children,
@@ -75,11 +78,15 @@ export function Button({
   return (
     <button
       {...rest}
+      className={['ui-button', className].filter(Boolean).join(' ')}
+      data-variant={variant}
+      data-appearance={appearance}
       disabled={disabled}
       style={{
         ...BASE,
         ...(variant === 'icon' ? VARIANT_STYLE.icon : SIZE[size]),
         ...(variant !== 'icon' ? VARIANT_STYLE[variant] : {}),
+        background: variant === 'primary' && appearance === 'gradient' ? undefined : VARIANT_STYLE[variant].background,
         width:   block ? '100%' : undefined,
         opacity: disabled ? 0.45 : 1,
         cursor:  disabled ? 'not-allowed' : 'pointer',

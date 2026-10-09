@@ -32,6 +32,7 @@ export function Skeleton({
           background-size: 800px 100%;
           animation: ui-shimmer 1.4s ease-in-out infinite;
         }
+        @media (prefers-reduced-motion: reduce) { .ui-skeleton { animation: none; } }
       `}</style>
       <div
         className={`ui-skeleton${className ? ` ${className}` : ''}`}

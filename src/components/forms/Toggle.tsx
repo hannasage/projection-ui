@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 export interface ToggleProps {
   checked:    boolean
@@ -8,6 +8,7 @@ export interface ToggleProps {
   disabled?:  boolean
   size?:      'sm' | 'md'
   className?: string
+  'aria-label'?: string
   style?:     React.CSSProperties
 }
 
@@ -20,7 +21,9 @@ export function Toggle({
   size     = 'md',
   className,
   style,
+  'aria-label': ariaLabel,
 }: ToggleProps): React.ReactElement {
+  const hintId = useId()
   const trackW  = size === 'sm' ? 30 : 38
   const trackH  = size === 'sm' ? 17 : 22
   const thumbSz = size === 'sm' ? 11 : 16
@@ -35,42 +38,48 @@ export function Toggle({
         gap:        10,
         cursor:     disabled ? 'not-allowed' : 'pointer',
         opacity:    disabled ? 0.45 : 1,
-        fontFamily: 'var(--ui-font)',
+        fontFamily: 'var(--ui-font-body, var(--ui-font))',
         ...style,
       }}
     >
-      <div style={{ flexShrink: 0, marginTop: 1 }}>
+      <div className="ui-toggle" style={{ flexShrink: 0, marginTop: 1, position: 'relative' }}>
+        <style>{`
+          .ui-toggle:has(input:focus-visible) .ui-toggle-track { outline: 2px solid var(--ui-focus, var(--ui-primary)); outline-offset: 2px; }
+          @media (prefers-reduced-motion: reduce) { .ui-toggle-track, .ui-toggle-thumb { transition: none !important; } }
+        `}</style>
         <input
           type="checkbox"
+          role="switch"
+          aria-label={ariaLabel ?? label}
+          aria-describedby={hint ? hintId : undefined}
           checked={checked}
           onChange={(e) => !disabled && onChange(e.target.checked)}
           disabled={disabled}
-          style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+          style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', margin: 0, zIndex: 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
         />
         <div
-          role="switch"
-          aria-checked={checked}
-          aria-label={label}
-          onClick={() => !disabled && onChange(!checked)}
+          className="ui-toggle-track"
+          aria-hidden="true"
           style={{
             width:        trackW,
             height:       trackH,
             borderRadius: 'var(--ui-radius-full)',
-            background:   checked ? 'var(--ui-primary)' : 'var(--ui-border)',
+            background:   checked ? 'var(--ui-accent-fill, var(--ui-primary))' : 'var(--ui-border)',
             position:     'relative',
             transition:   'background 0.18s',
             flexShrink:   0,
           }}
         >
-          <div style={{
+          <div className="ui-toggle-thumb" style={{
             position:     'absolute',
             top:          thumbOff,
-            left:         checked ? trackW - thumbSz - thumbOff : thumbOff,
+            left:         thumbOff,
+            transform:    `translateX(${checked ? trackW - thumbSz - 2 * thumbOff : 0}px)`,
             width:        thumbSz,
             height:       thumbSz,
             borderRadius: 'var(--ui-radius-full)',
             background:   checked ? 'var(--ui-primary-fg)' : 'var(--ui-muted)',
-            transition:   'left 0.18s, background 0.18s',
+            transition:   'transform 0.18s, background 0.18s',
           }} />
         </div>
       </div>
@@ -82,7 +91,7 @@ export function Toggle({
             </span>
           )}
           {hint && (
-            <span style={{ fontSize: 11, color: 'var(--ui-muted)', lineHeight: 1.4 }}>
+            <span id={hintId} style={{ fontSize: 11, color: 'var(--ui-muted)', lineHeight: 1.4 }}>
               {hint}
             </span>
           )}

@@ -48,7 +48,7 @@ export function Slider({
           background: linear-gradient(
             to right,
             var(--ui-primary) 0%,
-            var(--ui-primary) var(--ui-slider-pct, 0%),
+            var(--ui-accent-end, var(--ui-primary)) var(--ui-slider-pct, 0%),
             var(--ui-border)  var(--ui-slider-pct, 0%),
             var(--ui-border)  100%
           );
@@ -63,7 +63,7 @@ export function Slider({
           width: 16px;
           height: 16px;
           border-radius: var(--ui-radius-full);
-          background: var(--ui-primary);
+          background: var(--ui-accent-fill, var(--ui-primary));
           border: 2px solid var(--ui-primary-fg);
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
           cursor: pointer;
@@ -76,7 +76,7 @@ export function Slider({
           width: 16px;
           height: 16px;
           border-radius: var(--ui-radius-full);
-          background: var(--ui-primary);
+          background: var(--ui-accent-fill, var(--ui-primary));
           border: 2px solid var(--ui-primary-fg);
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
           cursor: pointer;
@@ -97,7 +97,7 @@ export function Slider({
             display:         'flex',
             justifyContent:  'space-between',
             alignItems:      'baseline',
-            fontFamily:      'var(--ui-font)',
+            fontFamily:      'var(--ui-font-body, var(--ui-font))',
           }}>
             {label && (
               <label
@@ -134,7 +134,7 @@ export function Slider({
         <div style={{
           display:        'flex',
           justifyContent: 'space-between',
-          fontFamily:     'var(--ui-font)',
+          fontFamily:     'var(--ui-font-body, var(--ui-font))',
           fontSize:       10,
           color:          'var(--ui-muted)',
         }}>
@@ -143,7 +143,7 @@ export function Slider({
         </div>
 
         {hint && (
-          <span style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+          <span style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
             {hint}
           </span>
         )}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { create } from 'zustand'
 
 export type ToastVariant = 'info' | 'success' | 'warning' | 'danger'
@@ -14,23 +14,29 @@ interface ToastState {
   push:   (message: string, variant?: ToastVariant) => void
   dismiss:(id: string) => void
 }
+const expiry = new Map<string, ReturnType<typeof setTimeout>>()
 
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   push: (message, variant = 'info') => {
     const id = crypto.randomUUID()
     set((s) => ({ toasts: [...s.toasts, { id, message, variant }] }))
-    setTimeout(() => {
+    expiry.set(id, setTimeout(() => {
+      expiry.delete(id)
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }))
-    }, 4000)
+    }, 4000))
   },
-  dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  dismiss: (id) => {
+    clearTimeout(expiry.get(id))
+    expiry.delete(id)
+    set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }))
+  },
 }))
 
 const VARIANT_COLOR: Record<ToastVariant, string> = {
   info:    'var(--ui-primary)',
-  success: '#51CF66',
-  warning: '#FFB347',
+  success: 'var(--ui-success, #51CF66)',
+  warning: 'var(--ui-warning, #FFB347)',
   danger:  'var(--ui-danger)',
 }
 
@@ -40,17 +46,11 @@ interface ToastItemProps {
 }
 
 function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
-  useEffect(() => {
-    const t = setTimeout(() => onDismiss(toast.id), 4100)
-    return () => clearTimeout(t)
-  }, [toast.id, onDismiss])
-
   const bar = VARIANT_COLOR[toast.variant]
 
   return (
     <div
-      role="status"
-      aria-live="polite"
+      className="ui-toast"
       style={{
         display:     'flex',
         alignItems:  'stretch',
@@ -59,7 +59,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
         borderRadius:'var(--ui-radius-md)',
         overflow:    'hidden',
         boxShadow:   '0 8px 32px rgba(0,0,0,0.35)',
-        fontFamily:  'var(--ui-font)',
+        fontFamily:  'var(--ui-font-body, var(--ui-font))',
         minWidth:    260,
         maxWidth:    380,
         animation:   'ui-toast-in 0.18s ease',
@@ -79,6 +79,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
       </div>
 
       <button
+        type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss"
         style={{
@@ -88,7 +89,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
           cursor:       'pointer',
           color:        'var(--ui-muted)',
           fontSize:     16,
-          fontFamily:   'var(--ui-font)',
+          fontFamily:   'var(--ui-font-body, var(--ui-font))',
           flexShrink:   0,
         }}
       >
@@ -108,6 +109,7 @@ export function ToastContainer(): React.ReactElement {
           from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @media (prefers-reduced-motion: reduce) { .ui-toast { animation: none !important; } }
       `}</style>
       <div
         role="log"

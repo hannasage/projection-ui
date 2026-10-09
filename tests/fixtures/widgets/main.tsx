@@ -1,0 +1,5 @@
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import { ThemeProvider, DEFAULT_THEME, Checkbox, RadioGroup, Tabs, Accordion, Notification, Progress, Carousel } from '@hannasage/projection-ui/core'
+import '@hannasage/projection-ui/styles'
+createRoot(document.getElementById('root')!).render(<ThemeProvider theme={DEFAULT_THEME}><h1>Widgets</h1><Checkbox label="Accept"/><Checkbox label="Unavailable" disabled/><RadioGroup label="Plan" options={[{value:'a',label:'Basic'},{value:'b',label:'Plus'}]}/><Tabs items={[{value:'a',label:'Overview',content:'Overview content'},{value:'x',label:'Disabled tab',disabled:true,content:'Disabled content'},{value:'b',label:'Details',content:'Details content'}]}/><Accordion items={[{value:'a',title:'Question',content:'Answer'}]}/><Notification title="Saved">Changes saved</Notification><Progress label="Upload" value={200} max={100}/><Carousel label="Examples" autoAdvance interval={1000} items={[{id:'a',content:'Slide A'},{id:'b',content:'Slide B'}]}/></ThemeProvider>)

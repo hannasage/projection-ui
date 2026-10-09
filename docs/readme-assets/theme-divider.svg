@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="12" viewBox="0 0 1200 12" role="presentation">
+  <defs><linearGradient id="projection"><stop stop-color="#C9F53A"/><stop offset="1" stop-color="#A1F55B"/></linearGradient><linearGradient id="coastal"><stop stop-color="#00C8FF"/><stop offset="1" stop-color="#369FFF"/></linearGradient></defs>
+  <path d="M0 6h1200" stroke="#8396AB" stroke-opacity=".3"/>
+  <path d="M0 6h240" stroke="url(#projection)" stroke-width="3"/>
+  <path d="M960 6h240" stroke="url(#coastal)" stroke-width="3"/>
+</svg>
