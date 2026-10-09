@@ -60,12 +60,18 @@ export function Landing() {
       <nav aria-label="Main navigation">
         <a href="/docs/">Docs</a><a href="/examples/?path=/story/gallery-components--paired">Gallery</a>
         <details className="landing-theme-picker" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
-          <summary>Themes <PaletteIcon /></summary>
+          <summary aria-label="Choose theme" title="Themes" style={{ backgroundImage: `linear-gradient(135deg, ${palette.primary}, ${palette.partner})`, color: palette.primaryFg }}><PaletteIcon /></summary>
           <div className="landing-theme-menu">
             <p>Flexing on you with our themes lol</p>
-            <label htmlFor="landing-theme-pair">Theme pair</label>
-            <select id="landing-theme-pair" value={pair} onChange={event => setPair(event.currentTarget.value as keyof typeof pairs)}>{Object.entries(pairs).map(([key,value]) => <option key={key} value={key}>{value.label}</option>)}</select>
-            <button type="button" aria-label={light ? 'Switch to dark theme' : 'Switch to light theme'} onClick={() => setTheme(light ? 'dark' : 'light')}>{light ? 'Switch to dark' : 'Switch to light'}</button>
+            <div className="landing-theme-grid" role="group" aria-label="Themes: dark above, light below">
+              {(['dark', 'light'] as const).flatMap(mode => (Object.keys(pairs) as (keyof typeof pairs)[]).map(key => {
+                const swatch = pairs[key][mode];
+                const active = pair === key && light === (mode === 'light');
+                return <button key={`${key}-${mode}`} type="button" className="landing-theme-swatch" aria-label={`${swatch.name} (${mode})`} title={`${swatch.name} (${mode})`} aria-pressed={active} style={{ backgroundImage: `linear-gradient(135deg, ${swatch.primary}, ${swatch.partner})`, color: swatch.primaryFg }} onClick={() => { setPair(key); setTheme(mode); }}>
+                  {active && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>}
+                </button>;
+              }))}
+            </div>
             <span className="landing-theme-current">{theme.name}</span>
           </div>
         </details>
@@ -81,8 +87,8 @@ export function Landing() {
           <p>React components, glass morphism; all the good stuff. Just give your AI this prompt, we know you&apos;re not gonna read the docs.</p>
           <pre className="landing-ai-prompt" aria-label="AI setup prompt"><code>{AI_PROMPT}</code></pre>
           <div className="landing-actions">
-            <Button className="landing-primary landing-glow-button" data-proximity-glow variant="primary" appearance="gradient" style={{padding: '12px 18px', fontSize: 14}} onClick={copyPrompt}>Copy AI Prompt</Button>
-            <LinkButton className="landing-outline landing-glow-button" data-proximity-glow href="/docs/" style={{background: '#07090c', color: 'var(--ui-primary)', borderColor: 'var(--ui-primary)', padding: '12px 18px', fontSize: 14}}>Read the docs <ArrowIcon /></LinkButton>
+            <Button className="landing-primary landing-glow-button" data-proximity-glow variant="primary" appearance="gradient" style={{padding: '0 18px', fontSize: 14}} onClick={copyPrompt}>Copy AI Prompt</Button>
+            <LinkButton className="landing-outline landing-glow-button" data-proximity-glow href="/docs/" style={{background: 'transparent', color: 'var(--ui-accent-text)', borderColor: 'var(--ui-primary)', padding: '0 18px', fontSize: 14}}>Read the docs <ArrowIcon /></LinkButton>
             <a href="/examples/?path=/story/gallery-components--paired">Poke the components</a>
           </div>
           <p className="landing-prompt-status" role="status">{promptStatus}</p>
@@ -112,7 +118,7 @@ export function Landing() {
         <div data-scroll-scene="closing">
           <GradientText as="h2" id="landing-last-title">Go forth, make incredible things.</GradientText>
           <p>We made a Storybook, go poke around in there if you want to try before you buy.</p>
-          <LinkButton className="landing-outline landing-glow-button" data-proximity-glow href="/examples/?path=/story/gallery-components--paired" style={{background: '#07090c', color: 'var(--ui-primary)', borderColor: 'var(--ui-primary)', padding: '12px 18px', fontSize: 14}}>Open Storybook <ArrowIcon /></LinkButton>
+          <LinkButton className="landing-outline landing-glow-button" data-proximity-glow href="/examples/?path=/story/gallery-components--paired" style={{background: 'transparent', color: 'var(--ui-accent-text)', borderColor: 'var(--ui-primary)', padding: '12px 18px', fontSize: 14}}>Open Storybook <ArrowIcon /></LinkButton>
         </div>
       </section>
     </main>

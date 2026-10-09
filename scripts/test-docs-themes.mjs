@@ -77,7 +77,7 @@ try {
       const toggleLandingTheme = async next => {
         const picker = page.locator('.landing-theme-picker');
         if (!await picker.evaluate(node => node.open)) await picker.locator('summary').click();
-        await picker.getByRole('button', { name: `Switch to ${next} theme`, exact: true }).click();
+        await picker.getByRole('button', { name: next === 'light' ? 'Coastal Day (light)' : 'Projection (dark)', exact: true }).click();
         await picker.locator('summary').click();
       };
       let releaseChunks;
@@ -106,10 +106,19 @@ try {
       assert.equal(await page.locator('#landing-title.ui-gradient-text').count(), 1, 'The hero uses the library gradient heading');
       const docsLink = page.getByRole('link', { name: 'Read the docs', exact: true });
       assert.equal(await docsLink.getAttribute('href'), '/docs/');
+      assert.equal((await docsLink.boundingBox()).height, 40, 'The docs button retains the original main button height');
+      assert.equal((await page.getByRole('button', { name: 'Copy AI Prompt', exact: true }).boundingBox()).height, 40, 'The main button retains its original height');
       assert.equal(await docsLink.evaluate(node => node.classList.contains('ui-link-button')), true, 'The CTA uses the library navigation component');
       const copyButton = page.getByRole('button', { name: 'Copy AI Prompt', exact: true });
       assert.equal(await copyButton.evaluate(node => getComputedStyle(node).backgroundImage), await page.getByRole('button', { name: 'Save project', exact: true }).evaluate(node => getComputedStyle(node).backgroundImage), 'The copy action shares the primary button gradient');
-      assert.equal(await docsLink.evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(7, 9, 12)', 'The docs action keeps its black surface');
+      for (const button of [copyButton, docsLink, page.getByRole('button', { name: 'Save project', exact: true }), page.getByRole('link', { name: 'Open Storybook', exact: true })]) {
+        const layers = await button.evaluate(node => { const face = getComputedStyle(node, '::before'); const glow = getComputedStyle(node, '::after'); return {faceZ:face.zIndex,glowZ:glow.zIndex,spread:glow.top,blur:glow.filter,faceBackground:face.backgroundImage,faceColor:face.backgroundColor,backdrop:face.backdropFilter || face.webkitBackdropFilter}; });
+        assert.ok(Number(layers.faceZ) > Number(layers.glowZ), 'The button face covers the glow');
+        assert.equal(layers.spread, '-7px', 'The glow spread is halved');
+        assert.equal(layers.blur, 'blur(6px)', 'The glow blur is halved');
+        if (await button.evaluate(node => node.classList.contains('landing-outline'))) { const channels = layers.faceColor.match(/[\d.]+/g).map(Number); assert.equal(channels[3], .9, 'Outlined buttons have a 90% opaque glass face'); assert.ok(channels.slice(0,3).every(channel => mode === 'light' ? channel > .9 : channel < .1), 'Glass surfaces follow the active light or dark theme'); assert.equal(layers.backdrop, 'blur(12px)'); }
+        else assert.ok(layers.faceBackground.includes('linear-gradient'), 'Filled faces cover the glow with the theme gradient');
+      }
       assert.equal(await docsLink.evaluate(node => getComputedStyle(node).borderTopColor), mode === 'light' ? 'rgb(0, 200, 255)' : 'rgb(201, 245, 58)', 'The outlined action follows the theme');
       assert.match(await page.locator('.landing-ai-prompt code').innerText(), /Oh great AI/);
       assert.match(await page.locator('.landing-ai-prompt code').evaluate(node => getComputedStyle(node).fontFamily), /monospace/i);
@@ -126,8 +135,10 @@ try {
       await copyButton.scrollIntoViewIfNeeded();
       const copyBox = await copyButton.boundingBox();
       await page.mouse.move(copyBox.x + copyBox.width / 2, copyBox.y + copyBox.height / 2);
-      await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.landing-primary'), '::after').opacity) > .9);
+      await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.landing-primary'), '::after').opacity) > .45);
       const nearGlow = await copyButton.evaluate(node => Number(getComputedStyle(node, '::after').opacity));
+      assert.ok(nearGlow <= .5, 'Proximity light has half its former peak intensity');
+      assert.match(await copyButton.evaluate(node => getComputedStyle(node).boxShadow), /2.5px 8px 0px/, 'The filled button ambient glow also has half its former blur');
       await page.mouse.move(width - 1, 1);
       await page.waitForFunction(near => Number(getComputedStyle(document.querySelector('.landing-primary'), '::after').opacity) < near * .25, nearGlow);
       for (const target of [docsLink, page.getByRole('button', { name: 'Save project', exact: true })]) {
@@ -159,6 +170,7 @@ try {
       if (mode === 'light') assert.ok(!navGlow.includes('rgb(201, 245, 58)'), 'Light nav has no green');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Landing does not overflow');
       await page.getByRole('radio', { name: 'Flat', exact: true }).click();
+      for (const button of [copyButton, page.getByRole('button', { name: 'Save project', exact: true })]) assert.equal(await button.evaluate(node => getComputedStyle(node).boxShadow), 'none', 'Flat filled buttons have no ambient light');
       assert.equal(await glowBand.evaluate(node => getComputedStyle(node).display), 'none', 'Flat removes nav light');
       assert.equal(await docsLink.evaluate(node => getComputedStyle(node).backgroundImage), 'none', 'Flat keeps the docs link solid');
       assert.equal(await card.evaluate(node => getComputedStyle(node, '::after').display), 'none', 'Flat removes the material underglow');
@@ -240,23 +252,37 @@ try {
       await page.waitForFunction(() => document.querySelector('.nav-sparkles')?.dataset.sparklesState === 'active');
       await page.locator('.landing-theme-picker summary').click();
       await page.getByText('Flexing on you with our themes lol', { exact: true }).waitFor();
+      const themeTrigger = page.locator('.landing-theme-picker summary');
+      assert.equal(await themeTrigger.getAttribute('aria-label'), 'Choose theme');
+      assert.equal((await themeTrigger.innerText()).trim(), '', 'The theme control uses its icon and color without visible text');
+      assert.ok((await themeTrigger.evaluate(node => getComputedStyle(node).backgroundImage)).includes('linear-gradient'));
+      const swatches = page.locator('.landing-theme-swatch');
+      assert.deepEqual(await swatches.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))), ['Projection (dark)', 'Ember Tide (dark)', 'Noir Bloom (dark)', 'Coastal Day (light)', 'Dust & Flame (light)', 'Confetti Studio (light)']);
+      const boxes = await swatches.evaluateAll(nodes => nodes.map(node => { const box = node.getBoundingClientRect(); return {x:box.x,y:box.y,w:box.width,h:box.height,gradient:getComputedStyle(node).backgroundImage}; }));
+      for (const box of boxes) { assert.ok(Math.abs(box.w - box.h) < 1, 'Theme swatches are square'); assert.ok(box.w >= 44, 'Theme swatches remain touch targets'); assert.ok(box.gradient.includes('linear-gradient'), 'Each swatch shows its primary gradient'); }
+      assert.equal(boxes[0].y, boxes[2].y, 'Dark themes share the top row');
+      assert.equal(boxes[3].y, boxes[5].y, 'Light themes share the bottom row');
+      for (let i = 0; i < 3; i++) { assert.equal(boxes[i].x, boxes[i+3].x, 'Theme pairs align in columns'); assert.ok(boxes[i].y < boxes[i+3].y); }
+      assert.equal(await page.locator('.landing-theme-swatch[aria-pressed="true"]').count(), 1, 'Only the selected theme is marked');
       const menu = await page.locator('.landing-theme-menu').boundingBox();
       assert.equal(await page.evaluate(({x, y}) => Boolean(document.elementFromPoint(x, y)?.closest('.landing-theme-menu')), {x: menu.x + menu.width - 15, y: menu.y + 40}), true, 'The theme menu stays above the sparkle controls');
       for (const [family, name, accent] of mode === 'light'
         ? [['ember', 'Dust & Flame', '#ff842b'], ['bloom', 'Confetti Studio', '#b56aff']]
         : [['ember', 'Ember Tide', '#ff8c2b'], ['bloom', 'Noir Bloom', '#ff39ab']]) {
-        await page.getByLabel('Theme pair', { exact: true }).selectOption(family);
+        await page.getByRole('button', { name: `${name} (${mode})`, exact: true }).click();
         await page.waitForFunction(expected => getComputedStyle(document.querySelector('.landing-shell')).getPropertyValue('--ui-primary').trim().toLowerCase() === expected, accent);
         await page.getByText(name, { exact: true }).waitFor();
+        assert.equal(await page.getByRole('button', { name: `${name} (${mode})`, exact: true }).getAttribute('aria-pressed'), 'true');
         await page.waitForFunction(() => document.querySelector('.nav-sparkles')?.dataset.sparklesState === 'active');
         assert.equal(await glowBand.locator('canvas').count(), 1, 'New pairs retain one canvas');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'Theme picker fits the viewport');
         if (width === 1440) await page.screenshot({ path: `/tmp/projection-landing-${family}-${mode}.png`, fullPage: true });
       }
-      await page.getByLabel('Theme pair', { exact: true }).selectOption('core');
+      await page.getByRole('button', { name: mode === 'light' ? 'Coastal Day (light)' : 'Projection (dark)', exact: true }).click();
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('.landing-theme-picker').evaluate(node => node.open), false, 'Escape closes the theme picker');
       await page.getByRole('radio', { name: 'Flat', exact: true }).click();
+      for (const button of [copyButton, page.getByRole('button', { name: 'Save project', exact: true })]) assert.equal(await button.evaluate(node => getComputedStyle(node).boxShadow), 'none', 'Flat filled buttons have no ambient light');
       await page.waitForFunction(() => !document.querySelector('.nav-light canvas'));
       assert.deepEqual(errors, [], 'The local sparkle effect leaves all controls usable without runtime errors');
       console.log(`Landing ${mode} at ${width}px: retained theme, copy CTA, outlined links, controls, 2D sparkles, proximity light, scroll motion, Flat, and motion safeguards passed.`);

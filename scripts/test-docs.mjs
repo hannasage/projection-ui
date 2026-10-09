@@ -95,7 +95,7 @@ try {
         assert.equal(await page.locator('.landing-shell').getAttribute('data-ui-appearance'),'flat','The landing applies its selected appearance');
         await page.getByRole('radio',{name:'Modern',exact:true}).click();
         await page.locator('.landing-theme-picker summary').click();
-        await page.getByRole('button',{name:'Switch to light theme',exact:true}).click();
+        await page.getByRole('button',{name:'Coastal Day (light)',exact:true}).click();
         await page.locator('.landing-theme-picker summary').click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('light'));
         await page.waitForFunction(()=>document.getAnimations().every(animation=>animation.playState!=='running'||animation.effect?.getTiming().iterations===Infinity));
@@ -104,7 +104,7 @@ try {
         assert.deepEqual(lightLandingAudit.violations.map(item=>({id:item.id,nodes:item.nodes.map(node=>node.target)})),[],'Light landing has no tested WCAG violations');
         await page.screenshot({path:`/tmp/projection-landing-light-${width}.png`,fullPage:true});
         await page.locator('.landing-theme-picker summary').click();
-        await page.getByRole('button',{name:'Switch to dark theme',exact:true}).click();
+        await page.getByRole('button',{name:'Projection (dark)',exact:true}).click();
         await page.locator('.landing-theme-picker summary').click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
 
