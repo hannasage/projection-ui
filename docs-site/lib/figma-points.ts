@@ -1,4 +1,5 @@
 export type FigmaPoint = { x: number; y: number; z: number };
+export type FigmaCursor = { x: number; y: number; strength: number };
 
 function inside(x: number, y: number): boolean {
   const disk = (cx: number, cy: number) => Math.hypot(x - cx, y - cy) <= 30;
@@ -27,7 +28,7 @@ export function createFigmaPoints(): FigmaPoint[] {
   return points;
 }
 
-export function projectFigmaPoints(points: FigmaPoint[], width: number, height: number, phase: number): FigmaPoint[] {
+export function projectFigmaPoints(points: FigmaPoint[], width: number, height: number, phase: number, cursor?: FigmaCursor): (FigmaPoint & { glow: number })[] {
   if (width <= 0 || height <= 0) return [];
   const turn = -.24 + Math.sin(phase * .35) * .10;
   const tilt = -.10 + Math.cos(phase * .28) * .05;
@@ -39,8 +40,14 @@ export function projectFigmaPoints(points: FigmaPoint[], width: number, height: 
     const turnedX = x * Math.cos(turn) + z * Math.sin(turn);
     const turnedZ = z * Math.cos(turn) - x * Math.sin(turn);
     const tiltedY = y * Math.cos(tilt) - turnedZ * Math.sin(tilt);
-    const depth = y * Math.sin(tilt) + turnedZ * Math.cos(tilt);
+    let depth = y * Math.sin(tilt) + turnedZ * Math.cos(tilt);
+    const basePerspective = 420 / (420 - depth);
+    const screenX = width / 2 + turnedX * scale * basePerspective;
+    const screenY = height / 2 + tiltedY * scale * basePerspective;
+    const proximity = cursor && depth > 0 ? Math.max(0, 1 - Math.hypot(screenX - cursor.x, screenY - cursor.y) / 68) : 0;
+    const glow = proximity * proximity * (3 - 2 * proximity) * Math.max(0, Math.min(1, cursor?.strength ?? 0));
+    depth += glow * 10;
     const perspective = 420 / (420 - depth);
-    return { x: width / 2 + turnedX * scale * perspective, y: height / 2 + tiltedY * scale * perspective, z: depth };
+    return { x: width / 2 + turnedX * scale * perspective, y: height / 2 + tiltedY * scale * perspective - glow * 4, z: depth, glow };
   }).sort((a, b) => a.z - b.z);
 }

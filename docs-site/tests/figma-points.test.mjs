@@ -13,6 +13,18 @@ test('the point cloud has depth and preserves the five-lobed Figma silhouette', 
   }
 });
 
+test('cursor proximity lifts nearby front dots and leaves distant dots unchanged', () => {
+  const points = [{x: 60, y: 50, z: 20}, {x: 10, y: 170, z: 20}];
+  const original = projectFigmaPoints(points, 400, 240, 0);
+  const nearest = original.find(point => point.y < 120);
+  const hover = projectFigmaPoints(points, 400, 240, 0, {...nearest, strength: 1});
+  const lifted = hover.find(point => point.glow > 0);
+  assert.ok(lifted.z > nearest.z && lifted.y < nearest.y);
+  assert.ok(lifted.glow > .9 && lifted.glow <= 1);
+  assert.deepEqual(hover.find(point => point.glow === 0), original.find(point => point.y > 120));
+  assert.deepEqual(projectFigmaPoints(points, 400, 240, 0, {...nearest, strength: 0}), original);
+});
+
 test('projection stays bounded, sorts depth, and changes gently over time', () => {
   const points = createFigmaPoints();
   const still = projectFigmaPoints(points, 400, 240, 0);
