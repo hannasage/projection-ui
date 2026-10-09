@@ -1,6 +1,8 @@
 name: publish
 on:
   push:
+    # Legacy tags need a separately reviewed maintenance backport and artifact gates.
+    # Keep the registered workflow filename and npm-publish environment unchanged.
     tags: ['v0.2.0', 'v0.2.0-next.*']
 permissions:
   contents: read

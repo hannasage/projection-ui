@@ -5,7 +5,7 @@
   <a href="https://www.npmjs.com/package/@hannasage/projection-ui"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/npm-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/npm-dark.svg" alt="Published npm releases" height="28"></picture></a>
   <a href="https://github.com/hannasage/projection-ui/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/build-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/build-dark.svg" alt="Open the current build status on GitHub Actions" height="28"></picture></a>
   <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/license-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/license-dark.svg" alt="License: MIT" height="28"></picture></a>
-  <a href="#install-the-candidate-locally"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-dark.svg" alt="Requirements: React and React DOM 19 or newer" height="28"></picture></a>
+  <a href="#install-from-npm"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-dark.svg" alt="Requirements: React and React DOM 19 or newer" height="28"></picture></a>
   <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/compatibility.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/types-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/types-dark.svg" alt="TypeScript declarations included" height="28"></picture></a>
   <a href="#choose-an-entry"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/runtime-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/runtime-dark.svg" alt="The package manages chart, sorting, and toast dependencies" height="28"></picture></a>
   <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/FEEDBACK.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/support-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/support-dark.svg" alt="Community support through GitHub Issues and Discussions" height="28"></picture></a>
@@ -19,22 +19,55 @@ You still have to build the app.
 
 ![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/materials-paired.png)
 
-`0.2.0-next.2` is an alpha candidate.
-An alpha is a preview that receives consumer checks before publication.
+`0.2.0-next.2` is an unpublished candidate.
+The current documentation is one evolving `0.2.0` edition, marked Alpha.
+An alpha is a preview that can change before stable release.
 The screenshots show real components from the packed library.
 The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
-The instructions below describe this candidate, not the published `0.1.5` package.
+The component examples below describe 0.2, while the preserved documentation covers the published `0.1.5` package.
 
 <img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
-## Install the candidate locally
+## Install from npm
 
-In an existing React 19 application, install one Projection UI package.
+For the published 0.1.x line, install the stable package:
+
+```bash
+npm install @hannasage/projection-ui@0.1
+```
+
+The current stable release is `0.1.5`.
+Use its root imports and [preserved documentation](https://projectionui.dev/docs/0.1.5/installation/) for feature dependency requirements.
+The 0.2 examples below require a 0.2 alpha package.
+
+npm currently has only 0.1.x releases and no `next` tag.
+The alpha commands below are post-publication steps and do not work today.
+After an alpha is published under `next`, opt in with:
+
+```bash
+npm install --save-exact @hannasage/projection-ui@next
+```
+
+`--save-exact` keeps later alpha and stable updates manual.
+It saves the resolved version instead of a version range.
+
+After `0.2.0-next.2` appears on npm, pin that exact version with:
+
+```bash
+npm install --save-exact @hannasage/projection-ui@0.2.0-next.2
+```
+
+In an existing React 19 application, install one 0.2 Projection UI package.
 The library manages its chart, drag, and toast dependencies.
 npm downloads them automatically with the package.
 React 19 and React DOM 19 stay shared with your application.
 They are peer dependencies: packages that your application supplies.
-Build and pack the candidate from this repository:
+The alpha does not promise 1.0 API stability.
+Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
+
+### Review the candidate locally
+
+Before publication, build and pack the candidate from this repository:
 
 ```bash
 npm ci
@@ -47,10 +80,6 @@ In your application, install the generated tarball with its actual file path:
 ```bash
 npm install /path/to/packed-candidate.tgz
 ```
-
-For the existing registry release, use its root imports and [0.1.5 documentation on npm](https://www.npmjs.com/package/@hannasage/projection-ui/v/0.1.5).
-Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
-The candidate does not promise 1.0 API stability.
 
 ## Quick start
 

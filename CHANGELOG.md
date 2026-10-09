@@ -51,6 +51,11 @@ Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 - Add Storybook Controls, Actions, Interactions, accessibility scans, viewport choices, and layout tools.
 - Add a versioned Figma kit with 49 editable component sets and Modern, Flat, Dark, and Light choices.
 - Preserve matching design downloads on GitHub Releases after approved npm publication.
+- Group alpha documentation under one evolving 0.2.0 edition with an Alpha badge.
+- Document npm installation, exact alpha pins, and a separate 0.1 patch range.
+- Keep alpha publication on next and reserve a separate legacy channel for reviewed 0.1 patches.
+- Add themed gradient headings and light trails to the landing page, with quiet gradient headings in the docs.
+- Keep the selected palette during theme startup and remove decorative trails in Flat mode.
 
 ### Interaction fixes
 

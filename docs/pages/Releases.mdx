@@ -4,7 +4,7 @@ import { Meta } from '@storybook/blocks'
 
 # Releases
 
-The current work prepares `0.2.0-next.2` before a stable `0.2.0` release.
+The current work prepares the unpublished `0.2.0-next.2` candidate before a stable `0.2.0` release.
 This page describes the candidate and its consumer checks.
 The npm `next` tag selects a prerelease version.
 The `latest` tag remains a separate release choice.
@@ -56,14 +56,14 @@ Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/d03
 
 ## Preserve documentation
 
-Before you replace the current documentation, archive the previous published version from its exact release source.
-Add that archive to the version registry, routes, navigation, and search.
-Retain its matching design kit as an immutable download.
-An immutable download keeps the same file bytes after release.
-Run the archive integrity and browser tests before you publish the next version.
+The version switcher offers one evolving `0.2.0` edition with an Alpha badge and the preserved `0.1.5` documentation.
+Prerelease and patch updates revise the current edition instead of creating new documentation editions.
+Keep exact package versions, release notes, and design downloads separate from the edition label.
 
-The version switcher currently offers the alpha candidate and the preserved `0.1.5` documentation.
-Future releases need their own archives before the current documentation changes.
+Before you replace a supported documentation edition, preserve its published source, routes, navigation, and search.
+Retain its matching design kits as immutable downloads.
+An immutable download keeps the same file bytes after release.
+Run the archive integrity and browser tests before publication.
 Unpublished candidates do not imply published releases or archived release documentation.
 
 ## Release checks

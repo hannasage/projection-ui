@@ -38,6 +38,7 @@ process.exit(result.status ?? 91);
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     assert.match(result.stdout, new RegExp(`\\+ @hannasage/projection-ui@${version.replaceAll('.', '\\.')}\\b`));
     assert.match(result.stderr, /Publishing to .*\(dry-run\)/);
+    assert.match(result.stderr, /with tag next/);
     assert.doesNotMatch(result.stderr, /git --no-replace-objects ls-remote/);
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 });

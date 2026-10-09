@@ -4,12 +4,48 @@ import { Meta } from '@storybook/blocks'
 
 # Installation
 
-In an existing React 19 application, install one Projection UI package.
+## Stable release
+
+For the published 0.1.x line, install from npm:
+
+```bash
+npm install @hannasage/projection-ui@0.1
+```
+
+The current stable release is `0.1.5`.
+Use its [preserved documentation](/docs/0.1.5/installation/) for root imports and feature dependency requirements.
+The 0.2 examples below require a 0.2 alpha package.
+
+## Opt into the alpha
+
+npm currently has only 0.1.x releases and no `next` tag.
+The alpha commands below are post-publication steps and do not work today.
+After an alpha is published under `next`, opt in with:
+
+```bash
+npm install --save-exact @hannasage/projection-ui@next
+```
+
+`--save-exact` keeps later alpha and stable updates manual.
+It saves the resolved version instead of a version range.
+
+This documentation is one evolving `0.2.0` edition, marked Alpha.
+An alpha is a preview that can change before stable release.
+`0.2.0-next.2` is an unpublished candidate.
+After that exact version appears on npm, pin it with:
+
+```bash
+npm install --save-exact @hannasage/projection-ui@0.2.0-next.2
+```
+
+In an existing React 19 application, install one 0.2 Projection UI package.
 The library manages its chart, drag, and toast dependencies.
 npm downloads them automatically.
 React 19 and React DOM 19 remain shared application peers.
 A peer dependency is a package that your application supplies.
-This guide uses the checked `0.2.0-next.2` candidate archive.
+
+## Review the candidate locally
+
 For local review, install the tarball produced by `npm pack`.
 Replace the example path below with the path to that tarball.
 A tarball is the archive that npm installs.

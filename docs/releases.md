@@ -14,6 +14,52 @@ Use a prerelease version such as `0.2.0-next.2` under the `next` distribution ta
 A distribution tag is a name that selects a version on npm.
 Keep `latest` on the existing release until the final package passes its gates.
 
+## Choose a registry version
+
+To stay on the 0.1 patch line, save a bounded version range:
+
+```bash
+npm install --save '@hannasage/projection-ui@~0.1.5'
+```
+
+`~0.1.5` accepts stable patches from `0.1.5` up to, but not including, `0.2.0`.
+It does not select the 0.2 alpha.
+The lockfile records the installed version; an existing installation does not update itself.
+After a reviewed 0.1 patch appears in the registry, update within that range:
+
+```bash
+npm update @hannasage/projection-ui
+```
+
+To hold one exact version instead, use `npm install --save-exact @hannasage/projection-ui@0.1.5`.
+An exact pin does not accept newer patches until the application changes it.
+
+After the preview is published, inspect the registry channels and install `next` explicitly:
+
+```bash
+npm view @hannasage/projection-ui dist-tags
+npm install --save-exact @hannasage/projection-ui@next
+```
+
+When the registry lists `next`, that label selects the published preview.
+Until then, the preview install command is not available.
+It does not select an unpublished source version.
+This source prepares `0.2.0-next.2`; its release still needs maintainer approval and publication.
+Saving the preview exactly keeps later preview changes under the application's control.
+
+The channel policy is separate from permission to publish:
+
+| Package version | npm channel | Publishing path |
+| --- | --- | --- |
+| Stable `0.1.x` | `legacy` | Reviewed maintenance backport required |
+| `0.2.0-next.N` | `next` | Current approved release workflow |
+| Stable `0.2.x` | `latest` | Current workflow covers `0.2.0`; later patches need their release gates reviewed |
+
+A channel is a movable registry label, not a version range.
+Future 0.1 patches use `legacy` and must never move `latest` back from 0.2.
+The bounded 0.1 range finds those patches by version even when `latest` points elsewhere.
+Existing `latest` stays on `0.1.5` until an approved stable 0.2 release changes it.
+
 A complete 0.2 release does not establish a 1.0 stability promise.
 Before a breaking change, agree on its version boundary and publish exact migration steps.
 Preserve existing exports, required theme fields, and CSS variable meanings for compatible changes.
@@ -22,7 +68,7 @@ Preserve existing exports, required theme fields, and CSS variable meanings for 
 
 Keep the 0.2 candidate on its feature branch through review.
 After the reviewed release merges, `main` holds the current development line.
-A separate 0.1 maintenance branch holds fixes for the earlier line.
+Create a separate 0.1 maintenance branch when a patch is needed.
 A backport applies a current fix to an earlier version.
 Use separate pull requests for backports and test each packed version.
 Keep new themes and components on the current line.
@@ -30,10 +76,22 @@ Keep new themes and components on the current line.
 The published `0.1.5` package identifies [this exact source commit](https://github.com/hannasage/projection-ui/commit/8362d8b36b8d4928525aac16ebf5cc382e862f2c).
 Start the maintenance branch from that commit, not the current candidate.
 Release a correction as a new `0.1.x` patch version.
-The current publishing workflow accepts only the 0.2 release line.
-Before a 0.1 patch, review its maintenance tests and a separate publishing path.
-Use a separate npm distribution tag for legacy patches after 0.2 becomes `latest`.
-Do not move `latest` back to 0.1 when publishing a legacy patch.
+The current publishing workflow accepts only the reviewed `0.2.0` release line.
+Its verifier rejects 0.1 packages before calling npm, even when the requested action is publication.
+The channel classifier recognizes legacy versions but does not authorize their release.
+
+Before publishing the first 0.1 patch:
+
+1. Create the maintenance branch from the exact published commit above.
+2. Apply only the compatible fix, its regression tests, and the new patch version and changelog entry.
+3. Backport the release-channel helper. Review a maintenance verification path against the historical API, exports, peer requirements, and packed artifact.
+4. Review the workflow change that accepts the maintenance tags and publishes only its checked tarball under `legacy`.
+5. Keep the existing `publish.yml` workflow identity, protected `npm-publish` environment, provenance, and owner approval. Check the npm trusted-publisher settings before enabling the path.
+
+The historical source has no test command or current docs/design-kit pipeline.
+Do not route a legacy tag through the modern docs or design-kit gates.
+Do not bypass the current verifier to publish a renamed modern package as a legacy patch.
+These steps prepare a future backport; this change does not create a maintenance checkout or publish a 0.1 patch.
 
 Existing source tags stay unchanged.
 The older `v0.2.0-next.1` tag does not identify this candidate.
@@ -92,7 +150,8 @@ The owner must also set the required environment reviewers on GitHub before any 
 
 The workflow publishes directly after environment approval.
 It records provenance, which links the package to its build.
-Prerelease versions use `next`; stable `0.2.0` uses `latest`.
+The shared channel classifier selects `next` for the accepted prerelease versions and `latest` for stable `0.2.0`.
+Legacy publication remains blocked until its separate maintenance gates receive review.
 The workflow checks that exactly one tarball matches the approved package version.
 
 [npm staged publishing](https://docs.npmjs.com/staged-publishing/) remains an owner option for a separate release process.

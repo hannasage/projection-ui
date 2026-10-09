@@ -92,7 +92,7 @@ try {
         await page.getByRole('textbox',{name:'Project name',exact:true}).fill('Example project');
         await page.getByRole('button',{name:'Save project',exact:true}).click();
         await page.getByRole('radio',{name:'Flat',exact:true}).click();
-        assert.equal(await page.locator('.landing-preview').getAttribute('data-ui-appearance'),'flat','The landing preview applies its selected appearance');
+        assert.equal(await page.locator('.landing-shell').getAttribute('data-ui-appearance'),'flat','The landing applies its selected appearance');
         await page.getByRole('radio',{name:'Modern',exact:true}).click();
         await page.getByRole('button',{name:'Switch to light theme',exact:true}).click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('light'));
@@ -208,7 +208,7 @@ try {
       const toggle = page.locator('#nd-subnav').getByRole('button',{name:'Open Sidebar',exact:true});
       await toggle.focus();
       await page.keyboard.press('Enter');
-      const install = page.getByRole('link',{name:'Installation',exact:true});
+      const install = page.locator('#nd-sidebar-mobile').getByRole('link',{name:'Installation',exact:true});
       await install.waitFor();
       await install.focus();
       await page.keyboard.press('Enter');

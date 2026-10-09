@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { packFixture, repository } from '../tests/helpers/packed.mjs';
 import { componentDocuments, transformGuide } from './docs-content.mjs';
 import { legacyDocuments } from './docs-versions.mjs';
-import { docsVersions } from '../docs-site/lib/versions.mjs';
+import { docsVersions, editionForPackage } from '../docs-site/lib/versions.mjs';
 import { buildDesignPackage } from './build-design-package.mjs';
 
 const site = join(repository, 'docs-site');
@@ -21,7 +21,7 @@ try {
   const expected = JSON.parse(readFileSync(join(repository, 'package.json'), 'utf8'));
   assert.equal(manifest.name, expected.name);
   assert.equal(manifest.version, expected.version);
-  assert.ok(docsVersions[0].label.startsWith(manifest.version), 'The version selector must identify the packed candidate');
+  const edition = editionForPackage(manifest.version);
   run(process.execPath, ['scripts/build-storybook.mjs'], repository, {...process.env,PROJECTION_UI_PACKAGE_DIR:packed.installed,PROJECTION_UI_TYPING_DIR:packed.temporary});
   run('npm', ['ci','--ignore-scripts','--legacy-peer-deps=false','--no-audit','--no-fund'], site);
   run('npm', ['install','--no-save','--package-lock=false','--ignore-scripts','--legacy-peer-deps=false','--no-audit','--no-fund',join(packed.temporary,packed.packed.filename)], site);
@@ -48,7 +48,7 @@ try {
   for (const record of records) {
     const path = join(site,'content/docs',record.slug+'.mdx');
     mkdirSync(join(path,'..'),{recursive:true});
-    writeFileSync(path, `---\ntitle: ${JSON.stringify(record.title)}\ndescription: ${JSON.stringify(`Projection UI ${manifest.version}`)}\n---\n\n${record.mdx}`);
+    writeFileSync(path, `---\ntitle: ${JSON.stringify(record.title)}\ndescription: ${JSON.stringify(`Projection UI ${edition.label} ${edition.status}`)}\n---\n\n${record.mdx}`);
     const markdown = join(site,'public/markdown',record.slug+'.md');
     mkdirSync(join(markdown,'..'),{recursive:true});
     writeFileSync(markdown,record.markdown);
@@ -68,7 +68,7 @@ try {
   cpSync(join(repository, 'docs/archive/0.1.5'), join(site, 'public/archives/0.1.5'), { recursive: true });
   writeFileSync(join(site, 'public/archives/0.1.5/llms.txt'), '# Projection UI 0.1.5\n\n' + legacy.map(record => `- [${record.title}](https://projectionui.dev/archives/0.1.5/markdown/${record.slug}.md)`).join('\n') + '\n');
   writeFileSync(join(site, 'public/archives/0.1.5/llms-full.txt'), legacy.map(record => record.markdown).join('\n\n'));
-  writeFileSync(join(site, 'public/docs-versions.json'), JSON.stringify({ current: manifest.version, versions: docsVersions }, null, 2) + '\n');
+  writeFileSync(join(site, 'public/docs-versions.json'), JSON.stringify({ current: edition.label, packageVersion: manifest.version, versions: docsVersions }, null, 2) + '\n');
   writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n');
   writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
   writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');

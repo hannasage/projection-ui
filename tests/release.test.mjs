@@ -18,12 +18,15 @@ test('release verification accepts matching candidate/stable tags and rejects mi
       {version:'0.2.0-next.0',tag:'v0.2.0-next.0',notes:'Missing release notes',valid:false},
       {version:'1.0.0',tag:'v1.0.0',notes:'1.0.0',valid:false},
       {version:'0.1.6',tag:'v0.1.6',notes:'## 0.1.6',valid:false},
+      {version:'0.2.1',tag:'v0.2.1',notes:'## 0.2.1',valid:false},
+      {version:'0.2.0-next.01',tag:'v0.2.0-next.01',notes:'## 0.2.0-next.01',valid:false},
     ]) {
       writeFileSync(join(temporary, 'package.json'), JSON.stringify({name:'@hannasage/projection-ui',version}));
       writeFileSync(join(temporary, 'CHANGELOG.md'), notes);
       const result = spawnSync(process.execPath, [join(repository, 'scripts/verify-release.mjs')], {cwd:temporary,env:{...process.env,GITHUB_REF:`refs/tags/${tag}`},encoding:'utf8'});
       assert.ifError(result.error);
       assert.equal(result.status === 0, valid, `${version}/${tag}: ${result.stderr}`);
+      if (version.startsWith('0.1.')) assert.match(result.stderr, /Legacy publishing requires a reviewed maintenance checkout/);
     }
   } finally { rmSync(temporary, {recursive:true,force:true}); }
 });
