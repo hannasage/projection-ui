@@ -1,31 +1,20 @@
 # Projection UI
 
-React components and shared design values for consumer-themed interfaces.
-Projection is the default dark theme, with a lime to blue-green gradient.
-Coastal Day uses pale blue surfaces and bright blue accents.
-`PROJECTION_LIGHT_THEME` remains its compatibility alias.
-Fernwood retains the green light palette.
-Your application supplies its colors, fonts, and radius through `ThemeProvider`.
+Yes. Another UI library.
+React components, shared themes, and a thing for light.
+You still have to build the app.
 
-```tsx
-import { Badge, Button, Card } from '@hannasage/projection-ui/core'
+[Documentation](https://docs.projectionui.dev) · [Component explorer](https://docs.projectionui.dev/examples/) · [Give feedback](https://github.com/hannasage/projection-ui/discussions)
 
-export function ProjectExample() {
-  return (
-    <Card border="accent">
-      <Badge dot={false}>Example project</Badge>
-      <h2>Shared components</h2>
-      <Button type="button" variant="primary">Explore example</Button>
-    </Card>
-  )
-}
-```
+![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime and mint on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/materials-paired.png)
 
-This branch prepares the unpublished `0.2.0-next.1` alpha.
+This branch prepares the unpublished `0.2.0-next.2` alpha.
 An alpha is a preview that receives consumer checks before publication.
-The preview includes glass surfaces, edge light, soft underglow, gradients, and the shared neon chart palette.
-Both core themes offer flat modes that retain their v0.1 palettes.
-The new subpaths below describe that candidate, not the published `0.1.5` package.
+The screenshots show real components from the packed library.
+The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
+The instructions below describe this candidate, not the published `0.1.5` package.
+
+![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
 
 ## Install the candidate locally
 
@@ -49,6 +38,7 @@ npm install /path/to/packed-candidate.tgz
 ```
 
 For the existing registry release, use its root imports and [0.1.5 documentation on npm](https://www.npmjs.com/package/@hannasage/projection-ui/v/0.1.5).
+Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
 The candidate does not promise 1.0 API stability.
 
 ## Quick start
@@ -78,6 +68,36 @@ The package selects a font family but does not bundle or download font files.
 Existing `UITheme` objects remain compatible.
 Optional body and display font roles fall back to the existing `font` field.
 
+![Buttons in Coastal Day and Projection, with add item, disabled reset, and quiet actions.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/controls-paired.png)
+
+![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
+
+## Give it your theme
+
+Projection is the default dark theme, with lime-to-mint accents.
+Coastal Day pairs bright blue with deeper blue on pale surfaces.
+Fernwood keeps the green light palette.
+`PROJECTION_LIGHT_THEME` remains an alias for Coastal Day.
+Your application supplies colors, fonts, and radius through `ThemeProvider`.
+
+```tsx
+import { Card, COASTAL_DAY_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
+
+export function LightExample() {
+  return (
+    <ThemeProvider theme={COASTAL_DAY_THEME}>
+      <Card material="glass" edgeLight underglow>
+        <h2>Keep the light.</h2>
+        <p>Content stays clear. The background gets the blur.</p>
+      </Card>
+    </ThemeProvider>
+  )
+}
+```
+
+Use `PROJECTION_FLAT_THEME` or `FERNWOOD_FLAT_THEME` for solid surfaces and the original v0.1 palettes.
+The [theme guide](https://docs.projectionui.dev/docs/theming/) covers custom values and all presets.
+
 ## Choose an entry
 
 | Import | Contents | Package-managed runtime |
@@ -92,6 +112,44 @@ All entries share the application's React 19 and React DOM 19.
 Feature imports keep their JavaScript isolated; installing the package still downloads its runtime dependencies.
 You do not install feature packages separately.
 Read [the compatibility guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/compatibility.md) for tested consumers.
+
+## Add a chart
+
+Import the feature you need.
+The package manages Recharts and its other feature dependencies.
+
+![Real bar charts in Coastal Day and Projection, with a text table that gives the same example values.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/charts-paired.png)
+
+```tsx
+import { BarChart } from '@hannasage/projection-ui/charts'
+import { PROJECTION_THEME, ThemeProvider } from '@hannasage/projection-ui/core'
+
+const data = [
+  { day: 'Mon', reviews: 4 },
+  { day: 'Tue', reviews: 6 },
+  { day: 'Wed', reviews: 3 },
+]
+
+export function ReviewChart() {
+  return (
+    <ThemeProvider theme={PROJECTION_THEME}>
+      <BarChart
+        data={data}
+        xKey="day"
+        series={[{ key: 'reviews', label: 'Reviews', color: 'var(--ui-primary)' }]}
+        title="Example review activity"
+        height={220}
+      />
+    </ThemeProvider>
+  )
+}
+```
+
+These values are example data.
+Pair charts with a text summary or table for readers who cannot use the visual.
+Read the [accessibility guide](https://docs.projectionui.dev/docs/accessibility/).
+
+![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
 
 ## Select styles
 
@@ -121,6 +179,10 @@ Application routes, business data, and 3D scenes belong in consuming application
 `ProjectionGlow` adds decorative light behind sibling content.
 It inherits the theme accent and stays still by default.
 Read [the token guide](https://docs.projectionui.dev/docs/tokens/) for its optional reveal and reduced-motion behavior.
+
+![A real Projection form with a project input, progress bar, slider, toggle, and gradient save button.](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/projection-dark.png)
+
+![](https://raw.githubusercontent.com/hannasage/projection-ui/codex/community-and-release-docs/docs/readme-assets/theme-divider.svg)
 
 ## Read and try the guides
 

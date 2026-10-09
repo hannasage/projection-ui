@@ -1,6 +1,6 @@
 {
   "name": "@hannasage/projection-ui",
-  "version": "0.2.0-next.1",
+  "version": "0.2.0-next.2",
   "description": "Dark-first React component library and design token system. Consumer-configurable theming via ThemeProvider \u2014 no hardcoded themes.",
   "author": "Hanna Sage",
   "license": "MIT",

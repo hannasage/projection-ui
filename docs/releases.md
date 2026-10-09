@@ -2,7 +2,7 @@
 
 A release must give consumers a package whose exports, examples, and compatibility claims agree.
 The published baseline is `0.1.5`.
-This work prepares `0.2.0-next.1` before stable `0.2.0`.
+This work prepares `0.2.0-next.2` before stable `0.2.0`.
 The [changelog](../CHANGELOG.md) describes the candidate.
 The repository includes packed-package contract tests.
 
@@ -10,13 +10,35 @@ The repository includes packed-package contract tests.
 
 For new compatible foundations and components, prepare a `0.2.0` release candidate.
 A release candidate is a package version that receives final consumer checks.
-Use a prerelease version such as `0.2.0-next.1` under the `next` distribution tag.
+Use a prerelease version such as `0.2.0-next.2` under the `next` distribution tag.
 A distribution tag is a name that selects a version on npm.
 Keep `latest` on the existing release until the final package passes its gates.
 
 A complete 0.2 release does not establish a 1.0 stability promise.
 Before a breaking change, agree on its version boundary and publish exact migration steps.
 Preserve existing exports, required theme fields, and CSS variable meanings for compatible changes.
+
+## Maintenance branches
+
+Keep the 0.2 candidate on its feature branch through review.
+After the reviewed release merges, `main` holds the current development line.
+A separate 0.1 maintenance branch holds fixes for the earlier line.
+A backport applies a current fix to an earlier version.
+Use separate pull requests for backports and test each packed version.
+Keep new themes and components on the current line.
+
+The published `0.1.5` package identifies [this exact source commit](https://github.com/hannasage/projection-ui/commit/8362d8b36b8d4928525aac16ebf5cc382e862f2c).
+Start the maintenance branch from that commit, not the current candidate.
+Release a correction as a new `0.1.x` patch version.
+The current publishing workflow accepts only the 0.2 release line.
+Before a 0.1 patch, review its maintenance tests and a separate publishing path.
+Use a separate npm distribution tag for legacy patches after 0.2 becomes `latest`.
+Do not move `latest` back to 0.1 when publishing a legacy patch.
+
+Existing source tags stay unchanged.
+The older `v0.2.0-next.1` tag does not identify this candidate.
+The reviewed candidate needs a fresh `v0.2.0-next.2` tag after maintainer approval.
+This project does not promise a support deadline or release schedule.
 
 ## Release artifacts
 
@@ -58,7 +80,7 @@ The [publish workflow](../.github/workflows/publish.yml) accepts `v0.2.0` and `v
 The tag must match the package version and its changelog entry.
 Its verification job runs the package, consumer, browser, and docs gates before packing the candidate.
 The final artifact check compares its integrity with the documentation package, then repeats consumer tests without rebuilding the library.
-It checks all 69 reviewed package files and rejects declarations that import local `node_modules` paths.
+It checks the reviewed package files and rejects declarations that import local `node_modules` paths.
 The checked versioned archive appears in `release-artifacts`.
 Its separate publish job downloads that exact tarball; it does not rebuild it.
 

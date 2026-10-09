@@ -4,10 +4,12 @@ import { Meta } from '@storybook/blocks'
 
 # Releases
 
-The current work prepares `0.2.0-next.1` before a stable `0.2.0` release.
+The current work prepares `0.2.0-next.2` before a stable `0.2.0` release.
 This page describes the candidate and does not claim that npm publication occurred.
 The npm `next` tag selects a prerelease version.
 The `latest` tag remains a separate release choice.
+Existing source tags stay unchanged.
+The candidate needs a fresh `v0.2.0-next.2` source tag after maintainer approval.
 
 ## Candidate changes
 
@@ -17,6 +19,16 @@ Existing root imports and theme fields remain available.
 
 The candidate also updates dialog focus, field associations, keyboard selection, sorting, and reduced-motion behavior.
 The [changelog](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/CHANGELOG.md) records the final additions and fixes.
+
+## Earlier versions
+
+The published `0.1.5` package remains available on npm.
+Keep the 0.2 candidate on its feature branch through review.
+After release, use a separate 0.1 maintenance branch for focused fixes.
+Start that branch from the exact source commit recorded by npm.
+Each backport needs separate tests and a reviewed publishing path.
+The current workflow accepts only the 0.2 release line.
+Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/releases.md#maintenance-branches) for the branch and distribution tag rules.
 
 ## Release checks
 

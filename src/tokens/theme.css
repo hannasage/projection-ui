@@ -110,6 +110,8 @@ input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-i
   inset: auto 18% -12px; height: 18px; border-radius: 50%;
   background: linear-gradient(90deg, var(--ui-primary), var(--ui-partner));
   filter: blur(14px); opacity: var(--ui-glow, 0.65);
+  /* Clip after blur: the panel silhouette occludes rear light, including its 1px border. */
+  clip-path: inset(7px -42px -42px -42px);
 }
 :where([data-ui-theme]) .ui-gradient-background {
   position: relative; isolation: isolate; color: var(--ui-text); background-color: var(--ui-bg);

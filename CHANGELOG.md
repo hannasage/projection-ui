@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.2.0-next.1 unpublished alpha
+## 0.2.0-next.2 unpublished alpha
+
+This candidate includes the earlier unpublished alpha work and the final review changes.
 
 - Add theme presets, with Projection as the default dark theme and Coastal Day as its blue light pair.
 - Keep Fernwood as the green light preset and preserve the original flat palettes.
@@ -15,6 +17,10 @@
 - Keep chart labels in the theme text color and show series colors in swatches.
 - Keep nonempty custom chart colors unchanged; empty strings use the shared palette.
 - Give each area chart its own gradient IDs.
+- Install chart, sorting, and toast dependencies automatically while sharing React with the application.
+- Test consumer installations with empty npm caches.
+- Add rendered component examples and themed visual elements to the README.
+- Keep underglow outside the surface so that it does not wash across glass or content.
 
 ### Package foundations
 
@@ -66,6 +72,11 @@ The default gains the approved neon design values. Flat presets retain the earli
 The candidate does not establish a 1.0 stability promise.
 Publication and stable promotion require maintainer authorization.
 No stable 0.2 release is declared here.
+
+## 0.2.0-next.1 source checkpoint
+
+Unpublished checkpoint for the Fumadocs reader, ProjectionGlow, and the initial alpha package.
+The existing source tag remains unchanged.
 
 ## 0.2.0-next.0 candidate
 
