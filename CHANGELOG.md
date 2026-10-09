@@ -2,6 +2,13 @@
 
 ## 0.2.0-next.1 unpublished alpha
 
+- Add 14 theme presets, with Projection as the default dark theme and Projection Light as its silver white pair.
+- Add flat modes that retain the v0.1 palettes for the core pair.
+- Add Surface, GradientBackground, and GradientText with scoped glass, edge light, and underglow styles.
+- Add Avatar, Checkbox, RadioGroup, Tabs, Accordion, Alert, Notification, Progress, Spinner, Tooltip, and Carousel.
+- Add material choices to Card and gradient or solid appearance to Button.
+- Use Syne for titles, IBM Plex Sans for reading and controls, and IBM Plex Mono for labels and code.
+- Add the paired 49-category gallery, theme explorer, and packed stories to the documentation preview.
 - Export DEFAULT_CHART_COLORS from the chart and root entries. The first color follows the theme primary color.
 - Add mouse proximity glow to area, bar, donut, and line marks. Reduced motion, forced colors, touch, and pen skip the decorative effect.
 - Keep chart labels in the theme text color and show series colors in swatches.
@@ -11,7 +18,8 @@
 ### Package foundations
 
 This entry describes the local alpha before npm publication.
-Existing root imports, required theme fields, CSS variable meanings, and radius presets remain available.
+Existing root imports, required theme fields, and CSS variable meanings remain available.
+The soft panel radius changes from 10px to 16px. Control radii remain unchanged.
 Read [Migration](docs/pages/Migration.mdx) before an upgrade.
 
 ### Additions
@@ -47,7 +55,8 @@ Subpaths isolate bundle imports without changing that install contract.
 The core and foundation entries exclude chart, drag, and toast implementations.
 Optional font roles fall back to the existing font field.
 The `/tokens` entry retains legacy page rules.
-The candidate adds no 3D runtime dependency or new default palette.
+The candidate adds no 3D runtime dependency.
+The default gains the approved neon design values. Flat presets retain the earlier core palettes.
 
 ### Release status
 

@@ -15,3 +15,24 @@ body { background: #07090C; }
 
 .sbdocs.sbdocs-content :where(p, li) a { text-decoration: underline; text-underline-offset: 3px; }
 .sbdocs.sbdocs-content table { display: block; max-width: 100%; overflow-x: auto; }
+.component-gallery { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; color: #e7eaf0; font-family: 'IBM Plex Sans', sans-serif; }
+.component-gallery h1, .component-gallery h2, .component-gallery h3 { font-family: 'Syne', sans-serif; letter-spacing: -.025em; }
+.component-gallery h1 { font-size: 32px; line-height: 1.2; }
+.component-gallery h2 { font-size: 20px; margin: 36px 0 12px; }
+.component-gallery h3 { font-size: 18px; margin: 0 0 8px; }
+.component-gallery p { line-height: 1.55; margin: 8px 0 16px; }
+.component-gallery a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.gallery-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.gallery-theme { min-width: 0; background: var(--ui-bg); color: var(--ui-text); border: 1px solid var(--ui-border); border-radius: 16px; padding: 20px; font-family: var(--ui-font-body,var(--ui-font)); }
+.gallery-theme .gallery-theme-label, .gallery-kind { font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+.gallery-theme .gallery-theme-label { color: var(--ui-muted); margin: 0 0 20px; }
+.gallery-kind { margin-top: -6px !important; color: #a6b3c5; }
+.gallery-sample { min-height: 100px; min-width: 0; }
+.gallery-sample form { display: grid; gap: 12px; }
+.gallery-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.gallery-sample :focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 3px; }
+.gallery-sample table { width: 100%; }
+.theme-presets { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 16px; }
+.theme-presets [data-ui-theme] { min-width: 0; border: 1px solid var(--ui-border); border-radius: 16px; padding: 24px; background: var(--ui-bg); color: var(--ui-text); }
+@media (max-width: 620px) { .component-gallery { padding: 24px 16px; } .gallery-pair { grid-template-columns: 1fr; } }
+.gallery-mode { margin-top: 20px; color: #e7eaf0; --ui-primary: #c9f53a; --ui-border: #344052; --ui-muted: #a6b3c5; --ui-font: 'IBM Plex Sans',sans-serif; --ui-radius-md: 8px; }

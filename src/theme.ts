@@ -22,6 +22,12 @@ export interface UITheme {
   /** Border-radius preset */
   radius:    UIRadius
   /** Optional roles fall back to font; no font files are loaded. */
+  appearance?: 'neon' | 'flat'
+  mode?: 'dark' | 'light'
+  partner?: string
+  fontMono?: string
+  /** CSS opacity value for decorative glow. */
+  glow?: string
   fontBody?: string
   fontDisplay?: string
   success?: string

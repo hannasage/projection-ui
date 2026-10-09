@@ -107,11 +107,13 @@ test('the installed package supplies its stylesheet and declaration targets', ()
   }
 });
 
-test('additive foundations preserve the legacy default theme and radius values', () => {
+test('modern foundations preserve legacy palette access and separate panel radii', () => {
   assert.equal(esm.DEFAULT_THEME.primary, '#C9F53A');
   assert.equal(esm.DEFAULT_THEME.font, "'IBM Plex Mono', monospace");
   assert.equal(esm.DEFAULT_THEME.radius, 'soft');
-  assert.deepEqual(esm.RADIUS_SCALE.soft, { sm: '4px', md: '6px', lg: '10px', full: '9999px' });
+  assert.deepEqual(esm.RADIUS_SCALE.soft, { sm: '4px', md: '6px', lg: '16px', full: '9999px' });
+  assert.equal(esm.PROJECTION_FLAT_THEME.primaryFg, '#07090C');
+  assert.equal(esm.PROJECTION_LIGHT_FLAT_THEME.bg, '#fdf6e3');
   assert.ok(esm.UI_FOUNDATIONS.space.md);
   assert.ok(esm.UI_FOUNDATIONS.motion.fast);
 });

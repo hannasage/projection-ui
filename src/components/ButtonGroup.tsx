@@ -105,12 +105,12 @@ export function ButtonGroup<T extends string = string>({
               style={{
                 ...SIZE[size],
                 flex:           block ? 1 : undefined,
-                fontFamily:     'var(--ui-font)',
+                fontFamily:     'var(--ui-font-body, var(--ui-font))',
                 fontWeight:     isActive ? 600 : 400,
                 background:     isActive
                   ? 'color-mix(in srgb, var(--ui-primary) 13%, transparent)'
                   : 'transparent',
-                color:          isActive ? 'var(--ui-primary)' : 'var(--ui-muted)',
+                color:          isActive ? 'var(--ui-accent-text, var(--ui-primary))' : 'var(--ui-muted)',
                 border:         'none',
                 borderLeft:     isFirst ? 'none' : '1px solid var(--ui-border)',
                 borderRadius:   isFirst
@@ -168,12 +168,12 @@ export function ButtonGroup<T extends string = string>({
             style={{
               ...SIZE[size],
               flex:           block ? 1 : undefined,
-              fontFamily:     'var(--ui-font)',
+              fontFamily:     'var(--ui-font-body, var(--ui-font))',
               fontWeight:     isActive ? 600 : 400,
               background:     isActive
                 ? 'color-mix(in srgb, var(--ui-primary) 13%, transparent)'
                 : 'transparent',
-              color:          isActive ? 'var(--ui-primary)' : 'var(--ui-muted)',
+              color:          isActive ? 'var(--ui-accent-text, var(--ui-primary))' : 'var(--ui-muted)',
               border:         isActive
                 ? '1px solid var(--ui-primary)'
                 : '1px solid var(--ui-border)',

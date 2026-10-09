@@ -18,7 +18,7 @@ const fieldBase: React.CSSProperties = {
   paddingLeft:   10,
   paddingRight:  10,
   fontSize:      12,
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-body, var(--ui-font))',
   color:         'var(--ui-text)',
   background:    'var(--ui-bg)',
   border:        '1px solid var(--ui-border)',
@@ -30,7 +30,7 @@ const fieldBase: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize:      10,
   color:         'var(--ui-muted)',
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-mono, var(--ui-font))',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
 }
@@ -43,6 +43,7 @@ export function Input({
   suffix,
   containerStyle,
   style,
+  className,
   id,
   ...rest
 }: InputProps): React.ReactElement {
@@ -74,6 +75,7 @@ export function Input({
           </span>
         )}
         <input
+          className={['ui-field', className].filter(Boolean).join(' ')}
           id={inputId}
           {...rest}
           aria-describedby={describedBy}
@@ -102,12 +104,12 @@ export function Input({
         )}
       </div>
       {error && (
-        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font-body, var(--ui-font))', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
           {hint}
         </span>
       )}

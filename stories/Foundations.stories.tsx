@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { UIRadius } from '@hannasage/projection-ui/core'
 import type { Meta, StoryObj } from '@storybook/react'
-import { Button, ButtonGroup, Card, DEFAULT_THEME, ThemeProvider, UI_FOUNDATIONS } from '@hannasage/projection-ui/core'
+import { ButtonGroup, LinkButton, Card, DEFAULT_THEME, ThemeProvider, UI_FOUNDATIONS } from '@hannasage/projection-ui/core'
 import { withTheme } from './decorators'
 const meta: Meta = { title: 'Foundations/Tokens', decorators: [withTheme] }
 export default meta
@@ -11,6 +11,6 @@ export const Scales: StoryObj = { render: () => <div>{Object.entries(UI_FOUNDATI
 
 function RadiusExplorer() {
   const [radius, setRadius] = useState<UIRadius>('soft')
-  return <><ButtonGroup aria-label="Radius preset" value={radius} onChange={setRadius} options={[{value:'sharp',label:'Sharp'},{value:'soft',label:'Soft'},{value:'rounded',label:'Rounded'}]} /><ThemeProvider theme={{...DEFAULT_THEME, radius}} style={{padding:24}}><Card><p>The selected radius stays inside this preview.</p><Button type="button" variant="primary">Example action</Button></Card></ThemeProvider></>
+  return <><ButtonGroup aria-label="Radius preset" value={radius} onChange={setRadius} options={[{value:'sharp',label:'Sharp'},{value:'soft',label:'Soft'},{value:'rounded',label:'Rounded'}]} /><ThemeProvider theme={{...DEFAULT_THEME, radius}} style={{padding:24}}><Card><p>The selected radius stays inside this preview.</p><LinkButton href="/docs/theming/">Read the theme guide</LinkButton></Card></ThemeProvider></>
 }
 export const Radius: StoryObj = { render: () => <RadiusExplorer /> }

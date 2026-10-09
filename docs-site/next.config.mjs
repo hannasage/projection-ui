@@ -7,4 +7,9 @@ export default createMDX()({
   images: { unoptimized: true },
   outputFileTracingRoot: fileURLToPath(new URL('.', import.meta.url)),
   experimental: { cpus: 1 },
+  webpack(config) {
+    // Same-version alpha tarballs must not reuse an older package build.
+    config.cache = false;
+    return config;
+  },
 });

@@ -38,7 +38,7 @@ export function Toggle({
         gap:        10,
         cursor:     disabled ? 'not-allowed' : 'pointer',
         opacity:    disabled ? 0.45 : 1,
-        fontFamily: 'var(--ui-font)',
+        fontFamily: 'var(--ui-font-body, var(--ui-font))',
         ...style,
       }}
     >

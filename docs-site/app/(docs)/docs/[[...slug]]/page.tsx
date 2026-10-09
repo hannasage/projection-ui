@@ -9,5 +9,5 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
 export function generateStaticParams() { return source.generateParams(); }
 export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
   const page = source.getPage((await params).slug);
-  return { title: page?.data.title, description: page?.data.description };
+  return { title: page?.data.title, description: page?.data.description, alternates: { canonical: `https://docs.projectionui.dev/docs/${page?.slugs.length ? page.slugs.join('/')+'/' : ''}` } };
 }

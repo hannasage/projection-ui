@@ -32,6 +32,16 @@ test('shared palette is reusable; empty colors fall back and nonempty colors rem
  for(const kind of ['bar','donut'])assert.equal(await mark(kind).getAttribute('fill'),palette[0]);
  assert.equal(await page.getByTestId('line').locator('.recharts-legend-item-text > span').first().evaluate(node=>getComputedStyle(node).color),await page.locator('main').evaluate(node=>getComputedStyle(node).color));
 });
+test('flat appearance removes active chart glow and keeps the chart usable', async () => {
+ await page.emulateMedia({reducedMotion:'no-preference'}); await page.waitForTimeout(1700);
+ const path=mark('bar'), p=await point(path); await page.mouse.move(p.x,p.y);
+ await expect.poll(()=>strength(path)).toBeGreaterThan(.9);
+ await page.locator('[data-ui-theme]').evaluate(node=>node.dataset.uiAppearance='flat');
+ await expect.poll(()=>strength(path)).toBe(0);
+ await page.mouse.move(p.x+1,p.y); assert.equal(await strength(path),0);
+ assert.equal(await path.evaluate(node=>node.style.filter),'');
+ assert.ok(await page.getByTestId('bar').locator('svg').count());
+});
 test('mouse proximity strengthens only mark glow in all four charts and clears on leaving',async()=>{
  await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForTimeout(1700);
  for(const kind of ['line','bar','area','donut']){const path=mark(kind),p=await point(path,0);await page.mouse.move(p.x,p.y);await expect.poll(()=>strength(path),{message:kind}).toBeGreaterThan(.9);assert.match(await path.evaluate(node=>getComputedStyle(node).filter),/drop-shadow/);if(kind==='donut'||kind==='bar')assert.equal(await path.evaluate(node=>node.style.filter.includes(getComputedStyle(node).fill)),true);await page.mouse.move(p.x+(kind==='donut'?40:-40),p.y);await expect.poll(()=>strength(path),{message:kind+' distance'}).toBeLessThan(.75);await expect.poll(()=>strength(path)).toBeGreaterThan(.1);assert.equal(await page.getByTestId(kind).locator('svg[role="application"]').first().evaluate(n=>n.style.filter),'');assert.ok(await page.getByTestId(kind).locator('text, .recharts-tooltip-cursor').evaluateAll(ns=>ns.every(n=>!n.style.filter)));await page.mouse.move(0,0);await expect.poll(()=>strength(path)).toBe(0);}

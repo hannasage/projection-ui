@@ -262,3 +262,50 @@ export function LightField() {
   </section>
 }
 ```
+
+## Materials
+
+Import these components from `@hannasage/projection-ui/core`.
+
+| Component | Props | Behavior |
+| --- | --- | --- |
+| `Surface` | Native div attributes; `material="solid"`, `edgeLight=false`, `underglow=false` | Glass blurs the background. Content keeps full opacity. Flat themes keep a solid fill and remove light. |
+| `GradientBackground` | Native div attributes; `variant="wash"` | Variants: wash, spotlight, horizon, atmosphere. Flat themes use a solid background. |
+| `GradientText` | Native heading attributes; `as="h2"` | Headings h1–h6. Display text has a minimum size of 24px. Flat themes use the text color. |
+
+`Card` also accepts `material`, `edgeLight`, and `underglow`.
+`Button` accepts `appearance="solid"` or `appearance="gradient"`.
+The `variant` prop still sets the action's semantic style.
+
+## Controls and feedback
+
+| Component | Required props | Other props |
+| --- | --- | --- |
+| `Avatar` | `alt` | `src`, `fallback`, `size=40`; native span attributes |
+| `Checkbox` | `label` | Native checkbox input attributes; controlled `checked` or `defaultChecked` |
+| `RadioGroup` | `label`, `options` | `value`, `defaultValue`, `onValueChange`, `name`; native fieldset attributes |
+| `Tabs` | `items` | `value`, `defaultValue`, `onValueChange`, `label`; native div attributes |
+| `Accordion` | `items` | `value`, `defaultValue`, `onValueChange`; native div attributes |
+| `Alert` | `children` | `title`, `tone="info"`; native div attributes |
+| `Notification` | `children` | Alert props plus `onDismiss`, `dismissLabel` |
+| `Progress` | `label` | `value`, `max=100`; native progress attributes. Omit value for an indeterminate state. |
+| `Spinner` | None | `label="Loading"`, `size=24`; native span attributes |
+| `Tooltip` | `content`, `children` | One focusable child element; native span attributes |
+| `Carousel` | `items`, `label` | `index`, `defaultIndex=0`, `onIndexChange`, `autoAdvance=false`, `interval`; native div attributes |
+
+Radio options contain `value`, `label`, and optional `disabled`.
+Tab items contain `value`, `label`, `content`, and optional `disabled`.
+Accordion items contain `value`, `title`, `content`, and optional `disabled`.
+Carousel items contain `id`, `content`, and optional `label`.
+
+Tabs support arrow keys, Home, and End.
+Accordion headings toggle their own panels.
+Tooltips open on hover or focus and close on Escape.
+Carousel auto-advance is opt-in. It pauses for focus, hover, hidden pages, and reduced motion.
+
+## Gallery compositions
+
+The paired gallery uses Projection Light on the left and Projection on the right.
+Its appearance switch selects modern materials or the flat core palettes.
+Profile, team, sign-in, dashboard, calendar, and other application examples are compositions.
+They combine exported components and native HTML. They are not separate component exports.

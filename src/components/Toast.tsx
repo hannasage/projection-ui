@@ -59,7 +59,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
         borderRadius:'var(--ui-radius-md)',
         overflow:    'hidden',
         boxShadow:   '0 8px 32px rgba(0,0,0,0.35)',
-        fontFamily:  'var(--ui-font)',
+        fontFamily:  'var(--ui-font-body, var(--ui-font))',
         minWidth:    260,
         maxWidth:    380,
         animation:   'ui-toast-in 0.18s ease',
@@ -89,7 +89,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
           cursor:       'pointer',
           color:        'var(--ui-muted)',
           fontSize:     16,
-          fontFamily:   'var(--ui-font)',
+          fontFamily:   'var(--ui-font-body, var(--ui-font))',
           flexShrink:   0,
         }}
       >

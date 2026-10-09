@@ -81,7 +81,7 @@ export function DataTable<T>({
     borderBottom:  '1px solid var(--ui-border)',
     cursor:        col.sortable ? 'pointer' : 'default',
     userSelect:    'none',
-    fontFamily:    'var(--ui-font)',
+    fontFamily:    'var(--ui-font-body, var(--ui-font))',
   })
 
   const tdStyle = (col: Column<T>): React.CSSProperties => ({
@@ -89,7 +89,7 @@ export function DataTable<T>({
     textAlign:  col.align ?? 'left',
     fontSize:   13,
     color:      'var(--ui-text)',
-    fontFamily: 'var(--ui-font)',
+    fontFamily: 'var(--ui-font-body, var(--ui-font))',
     borderBottom: '1px solid color-mix(in srgb, var(--ui-border) 50%, transparent)',
     verticalAlign: 'middle',
   })
@@ -145,7 +145,7 @@ export function DataTable<T>({
                   textAlign: 'center',
                   color:     'var(--ui-muted)',
                   fontSize:  13,
-                  fontFamily:'var(--ui-font)',
+                  fontFamily:'var(--ui-font-body, var(--ui-font))',
                 }}
               >
                 {emptyState ?? 'No data'}

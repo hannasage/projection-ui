@@ -10,7 +10,7 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 const labelStyle: React.CSSProperties = {
   fontSize:      10,
   color:         'var(--ui-muted)',
-  fontFamily:    'var(--ui-font)',
+  fontFamily:    'var(--ui-font-mono, var(--ui-font))',
   letterSpacing: '1.5px',
   textTransform: 'uppercase',
 }
@@ -21,6 +21,7 @@ export function Textarea({
   hint,
   containerStyle,
   style,
+  className,
   id,
   ...rest
 }: TextareaProps): React.ReactElement {
@@ -37,6 +38,7 @@ export function Textarea({
         </label>
       )}
       <textarea
+          className={['ui-field', className].filter(Boolean).join(' ')}
         id={textareaId}
         {...rest}
         aria-describedby={describedBy}
@@ -48,7 +50,7 @@ export function Textarea({
           paddingLeft:   10,
           paddingRight:  10,
           fontSize:     12,
-          fontFamily:   'var(--ui-font)',
+          fontFamily:   'var(--ui-font-body, var(--ui-font))',
           color:        'var(--ui-text)',
           background:   'var(--ui-bg)',
           border:       `1px solid ${error ? 'var(--ui-danger)' : 'var(--ui-border)'}`,
@@ -62,12 +64,12 @@ export function Textarea({
         }}
       />
       {error && (
-        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font)', letterSpacing: '0.5px' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-danger)', fontFamily: 'var(--ui-font-body, var(--ui-font))', letterSpacing: '0.5px' }}>
           {error}
         </span>
       )}
       {!error && hint && (
-        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+        <span id={descriptionId} style={{ fontSize: 10, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
           {hint}
         </span>
       )}

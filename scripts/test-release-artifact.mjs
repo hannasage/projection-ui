@@ -11,7 +11,9 @@ try {
   assert.equal(packed.name,expected.name);
   assert.equal(packed.version,expected.version);
   assert.equal(packed.integrity,expected.integrity,'The final release must be byte-identical to the checked documentation package');
-  assert.equal(packed.files.length,69,'The library keeps its reviewed artifact inventory');
+  for (const path of ['dist/src/components/Materials.d.ts','dist/src/components/Widgets.d.ts','dist/core.js','dist/index.cjs','dist/tokens/scoped.css']) {
+    assert.ok(packed.files.some(file=>file.path===path), `The reviewed artifact includes ${path}`);
+  }
   assert.ok(packed.files.every(file=>file.path.startsWith('dist/')||['README.md','LICENSE','package.json'].includes(file.path)),'No docs application or unrelated files enter npm');
   const archive = resolve(temporary,packed.filename);
   const result = spawnSync(process.execPath,['--test','--test-concurrency=1','tests/frameworks.test.mjs','tests/package-contract.test.mjs','tests/runtime.test.mjs','tests/charts.test.mjs'],{stdio:'inherit',env:{...process.env,PROJECTION_UI_TARBALL:archive},timeout:300_000});

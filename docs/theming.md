@@ -98,3 +98,22 @@ export function PaletteExample() {
     series={[{key: 'value', color: DEFAULT_CHART_COLORS[0], label: 'Value'}]} />
 }
 ```
+
+## Modern presets and flat core palettes
+
+`PROJECTION_THEME` and `PROJECTION_LIGHT_THEME` supply modern materials.
+`PROJECTION_FLAT_THEME` and `PROJECTION_LIGHT_FLAT_THEME` retain the original core palettes.
+`THEME_PRESETS` holds the modern palette set.
+Each entry contains a name, its mode, and shared theme roles.
+
+The optional `appearance` field accepts `neon` or `flat`.
+Flat appearance turns glass into solid surfaces and removes gradient fills, edge light, and underlight.
+The optional `mode` field selects light or dark browser controls.
+Optional `fontBody`, `fontDisplay`, and `fontMono` fields set distinct font roles.
+They fall back to `font` when omitted.
+Optional `partner` and `glow` fields control the paired gradient color and light strength.
+
+Projection's modern accent blends lime into mint.
+The docs reader offers light and dark modes and saves the reader's choice in local storage.
+Local storage is browser data that remains after a page reload.
+The gallery's core appearance switch changes only its previews.

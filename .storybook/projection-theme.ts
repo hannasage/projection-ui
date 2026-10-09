@@ -5,7 +5,7 @@ export const projectionDocsTheme = create({
   brandTitle: 'Projection UI',
   brandUrl: '?path=/docs/guides-introduction--docs',
   brandTarget: '_self',
-  fontBase: "'IBM Plex Mono', monospace",
+  fontBase: "'IBM Plex Sans', sans-serif",
   fontCode: "'IBM Plex Mono', monospace",
   colorPrimary: '#C9F53A',
   colorSecondary: '#C9F53A',

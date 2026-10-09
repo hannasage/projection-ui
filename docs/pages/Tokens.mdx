@@ -1,5 +1,6 @@
 import { Meta, Canvas } from '@storybook/blocks'
 import * as GlowStories from '../../stories/ProjectionGlow.stories'
+import * as ThemePresets from '../../stories/Themes.stories'
 import * as TokenStories from '../../stories/Foundations.stories'
 
 <Meta title="Guides/Tokens" />
@@ -46,3 +47,35 @@ The optional reveal runs once and stops when the viewer reduces motion.
 Place headings and controls beside the effect, so they stay readable without it.
 
 <Canvas of={GlowStories.Default} />
+
+## Theme presets
+
+`THEME_PRESETS` supplies the modern palettes.
+Each preset uses the same roles for text, surfaces, borders, and accent colors.
+
+<Canvas of={ThemePresets.Explorer} />
+
+<Canvas of={ThemePresets.Presets} />
+
+## Materials
+
+`Surface` supports solid and glass materials.
+Glass uses background blur while text keeps its full opacity.
+`edgeLight` adds a top edge; `underglow` adds light beneath the panel.
+
+<Canvas of={ThemePresets.Materials} />
+
+## Gradient backgrounds
+
+`GradientBackground` supports wash, spotlight, horizon, and atmosphere.
+`GradientText` is for display headings.
+Projection blends lime into mint.
+
+<Canvas of={ThemePresets.Gradients} />
+
+## Font roles
+
+Syne carries headings, IBM Plex Sans carries reading text, and IBM Plex Mono carries labels and code.
+The package sets font families. Your application loads the font files.
+
+<Canvas of={ThemePresets.Typography} />

@@ -19,6 +19,7 @@ export function ThemeProvider({
   as: Tag = 'div',
 }: ThemeProviderProps): React.ReactElement {
   const r = RADIUS_SCALE[theme.radius]
+  const fontOverride = (style as Record<string, unknown> | undefined)?.['--ui-font']
 
   const vars: React.CSSProperties & Record<string, string> = {
     '--ui-bg':         theme.bg,
@@ -26,12 +27,18 @@ export function ThemeProvider({
     '--ui-border':     theme.border,
     '--ui-text':       theme.text,
     '--ui-muted':      theme.muted,
+    '--ui-accent-text': theme.mode === 'light' ? theme.text : theme.primary,
     '--ui-primary':    theme.primary,
     '--ui-primary-fg': theme.primaryFg,
     '--ui-danger':     theme.danger,
     '--ui-font':       theme.font,
-    '--ui-font-body': theme.fontBody ?? 'var(--ui-font)',
-    '--ui-font-display': theme.fontDisplay ?? 'var(--ui-font)',
+    '--ui-font-body': fontOverride ? 'var(--ui-font)' : theme.fontBody ?? 'var(--ui-font)',
+    '--ui-font-mono': fontOverride ? 'var(--ui-font)' : theme.fontMono ?? 'var(--ui-font)',
+    '--ui-partner': theme.partner ?? 'var(--ui-primary)',
+    '--ui-glow': theme.glow ?? '0.65',
+    '--ui-gradient-start': theme.mode === 'light' ? theme.text : theme.primary,
+    '--ui-gradient-end': theme.mode === 'light' ? '#145A38' : (theme.partner ?? theme.primary),
+    '--ui-font-display': fontOverride ? 'var(--ui-font)' : theme.fontDisplay ?? 'var(--ui-font)',
     '--ui-success': theme.success ?? UI_FOUNDATIONS.semantic.success,
     '--ui-warning': theme.warning ?? UI_FOUNDATIONS.semantic.warning,
     '--ui-focus': theme.focus ?? 'var(--ui-primary)',
@@ -46,6 +53,8 @@ export function ThemeProvider({
     <Tag
       style={{ ...vars, ...style }}
       className={className}
+      data-ui-appearance={theme.appearance}
+      data-ui-mode={theme.mode}
       data-ui-radius={theme.radius}
       data-ui-theme=""
     >

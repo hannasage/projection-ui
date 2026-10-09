@@ -100,6 +100,8 @@ export function useChartGlow(): { ref: React.RefObject<HTMLDivElement | null>; m
     if (!host) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
     const forced = window.matchMedia('(forced-colors: active)')
+    const scope = host.closest('[data-ui-theme]')
+    const flat = () => scope?.getAttribute('data-ui-appearance') === 'flat'
     const marks = new Map<SVGPathElement, Mark>()
     let frame = 0
     let pointer: Point | null = null
@@ -113,10 +115,10 @@ export function useChartGlow(): { ref: React.RefObject<HTMLDivElement | null>; m
       }
       marks.clear()
     }
-    const mediaChange = () => { clear(); setMotionAllowed(!reduced.matches) }
+    const mediaChange = () => { clear(); setMotionAllowed(!reduced.matches && !flat()) }
     const render = () => {
       frame = 0
-      if (!pointer || reduced.matches || forced.matches || document.hidden) { clear(); return }
+      if (!pointer || reduced.matches || forced.matches || flat() || document.hidden) { clear(); return }
       const bounds = host.getBoundingClientRect()
       if (pointer.x < bounds.left - GLOW_RADIUS || pointer.x > bounds.right + GLOW_RADIUS || pointer.y < bounds.top - GLOW_RADIUS || pointer.y > bounds.bottom + GLOW_RADIUS) { clear(); return }
       const paths = host.querySelectorAll<SVGPathElement>(MARK_SELECTOR)
@@ -161,13 +163,15 @@ export function useChartGlow(): { ref: React.RefObject<HTMLDivElement | null>; m
       }
     }
     const move = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse' || reduced.matches || forced.matches) { clear(); return }
+      if (event.pointerType !== 'mouse' || reduced.matches || forced.matches || flat()) { clear(); return }
       pointer = { x: event.clientX, y: event.clientY }
       if (!frame) frame = requestAnimationFrame(render)
     }
     const leave = (event: PointerEvent) => { if (!event.relatedTarget) clear() }
     const visibility = () => { if (document.hidden) clear() }
     mediaChange()
+    const appearanceObserver = new MutationObserver(mediaChange)
+    if (scope) appearanceObserver.observe(scope, { attributes: true, attributeFilter: ['data-ui-appearance'] })
     document.addEventListener('pointermove', move, { passive: true })
     document.addEventListener('pointerout', leave)
     document.addEventListener('pointercancel', clear)
@@ -179,6 +183,7 @@ export function useChartGlow(): { ref: React.RefObject<HTMLDivElement | null>; m
     reduced.addEventListener('change', mediaChange)
     forced.addEventListener('change', mediaChange)
     return () => {
+      appearanceObserver.disconnect()
       clear()
       document.removeEventListener('pointermove', move)
       document.removeEventListener('pointerout', leave)

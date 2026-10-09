@@ -107,10 +107,12 @@ export function Modal({
         tabIndex={-1}
         aria-modal="true"
         aria-labelledby={headingId}
-        className={className}
+        className={['ui-surface', className].filter(Boolean).join(' ')}
+        data-material="glass"
+        data-edge-light
+        data-underglow
         onClick={(e) => e.stopPropagation()}
         style={{
-          background:   'var(--ui-surface)',
           border:       '1px solid var(--ui-border)',
           borderRadius: 'var(--ui-radius-lg)',
           boxShadow:    '0 24px 80px rgba(0,0,0,0.45)',
@@ -118,14 +120,14 @@ export function Modal({
           width:        '100%',
           maxHeight:    '90vh',
           overflowY:    'auto',
-          fontFamily:   'var(--ui-font)',
+          fontFamily:   'var(--ui-font-body, var(--ui-font))',
           color:        'var(--ui-text)',
         }}
       >
         <div style={{ padding: '18px 20px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h2
             id={headingId}
-            style={{ fontSize: 16, fontWeight: 700, margin: 0, lineHeight: 1.25, color: 'var(--ui-text)' }}
+            style={{ fontFamily: 'var(--ui-font-display, var(--ui-font))', fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.25, color: 'var(--ui-text)' }}
           >
             {title}
           </h2>
@@ -152,7 +154,7 @@ export function Modal({
                 padding:        '8px 18px',
                 fontSize:       13,
                 borderRadius:   'var(--ui-radius-md)',
-                fontFamily:     'var(--ui-font)',
+                fontFamily:     'var(--ui-font-body, var(--ui-font))',
                 cursor:         a.disabled ? 'not-allowed' : 'pointer',
                 fontWeight:     isPrimary ? 600 : 500,
                 border:         isPrimary ? '1px solid var(--ui-primary)'

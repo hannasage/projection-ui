@@ -1,7 +1,8 @@
 # Projection UI
 
 React components and shared design values for consumer-themed interfaces.
-The default appearance uses a dark palette and a chartreuse accent.
+Projection is the default dark theme, with a lime to blue-green gradient.
+Projection Light uses softer silver white surfaces and neon green accents.
 Your application supplies its colors, fonts, and radius through `ThemeProvider`.
 
 ```tsx
@@ -20,7 +21,8 @@ export function ProjectExample() {
 
 This branch prepares the unpublished `0.2.0-next.1` alpha.
 An alpha is a preview that receives consumer checks before publication.
-The current preview includes the shared neon chart palette and cursor proximity glow.
+The preview includes glass surfaces, edge light, soft underglow, gradients, and the shared neon chart palette.
+Both core themes offer flat modes that retain their v0.1 palettes.
 The new subpaths below describe that candidate, not the published `0.1.5` package.
 
 ## Install the candidate locally
@@ -93,13 +95,13 @@ Read [the compatibility guide](https://github.com/hannasage/projection-ui/blob/c
 `/styles` scopes shared component rules to theme wrappers.
 `/reset` supplies explicit page-wide rules.
 `/tokens` retains the legacy global rules for existing consumers.
-Read [the migration guide](https://projection-ui-docs.vercel.app/docs/migration/) before changing an existing stylesheet import.
+Read [the migration guide](https://docs.projectionui.dev/docs/migration/) before changing an existing stylesheet import.
 
 ## Components
 
 | Group | Exports |
 | --- | --- |
-| Foundations | ThemeProvider, DEFAULT_THEME, UI_FOUNDATIONS, RADIUS_SCALE |
+| Foundations | ThemeProvider, DEFAULT_THEME, UI_FOUNDATIONS, RADIUS_SCALE, THEME_PRESETS, Projection and Projection Light presets |
 | Surfaces and actions | Card, Badge, Button, ButtonGroup, LinkButton, ProjectionGlow |
 | Content | Container, Stack, Prose, Separator, VisuallyHidden |
 | Forms | Input, Select, Textarea, Toggle, Slider |
@@ -107,13 +109,15 @@ Read [the migration guide](https://projection-ui-docs.vercel.app/docs/migration/
 | Data | DataTable |
 | Sorting | SortableList, SortableItem, arrayMove |
 | Charts | AreaChart, BarChart, LineChart, DonutChart |
+| Materials | Surface, GradientBackground, GradientText |
+| Basics | Avatar, Checkbox, RadioGroup, Tabs, Accordion, Alert, Notification, Progress, Spinner, Tooltip, Carousel |
 
 The package exports component prop types and `UITheme`.
 `Toast` is a data type, not a React component.
 Application routes, business data, and 3D scenes belong in consuming applications.
 `ProjectionGlow` adds decorative light behind sibling content.
 It inherits the theme accent and stays still by default.
-Read [the token guide](https://projection-ui-docs.vercel.app/docs/tokens/) for its optional reveal and reduced-motion behavior.
+Read [the token guide](https://docs.projectionui.dev/docs/tokens/) for its optional reveal and reduced-motion behavior.
 
 ## Read and try the guides
 
@@ -125,12 +129,15 @@ The command builds the Fumadocs reader and component explorer from the same inst
 The static site appears in `docs-site/out`.
 The guides cover installation, themes, tokens, accessibility, migration, releases, and community.
 Every public component has a preview.
-Read the [documentation](https://projection-ui-docs.vercel.app) and use the [component explorer](https://projection-ui-docs.vercel.app/examples/) for interactive examples.
+Read the [documentation](https://docs.projectionui.dev) and use the [component explorer](https://docs.projectionui.dev/examples/) for interactive examples.
 Each reader page has a plain Markdown link.
-The [text index](https://projection-ui-docs.vercel.app/llms.txt) links all guides and component contracts.
+The [paired gallery](https://docs.projectionui.dev/examples/?path=/story/gallery-components--paired) covers the 49 approved categories in both core themes.
+It marks application examples as compositions, not separate package exports.
+The gallery includes a flat appearance selector.
+The [text index](https://docs.projectionui.dev/llms.txt) links all guides and component contracts.
 
-Read [the component reference](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md), [theme guide](https://projection-ui-docs.vercel.app/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/development.md).
-Read [the release contract](https://projection-ui-docs.vercel.app/docs/releases/) before publication.
+Read [the component reference](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/components.md), [theme guide](https://docs.projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/codex/community-and-release-docs/docs/development.md).
+Read [the release contract](https://docs.projectionui.dev/docs/releases/) before publication.
 
 ## Contribute and give feedback
 

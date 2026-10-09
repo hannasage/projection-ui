@@ -5,7 +5,7 @@
   ],
   "Card": [
     "children",
-    "padding=\"md\", border=\"default\", as=\"div\", className, style"
+    "padding=\"md\", border=\"default\", material=\"solid\", edgeLight=false, underglow=false, as=\"div\", className, style"
   ],
   "Badge": [
     "children",
@@ -13,7 +13,7 @@
   ],
   "Button": [
     "None",
-    "Native button attributes; variant=\"secondary\", size=\"md\", block=false"
+    "Native button attributes; variant=\"secondary\", appearance=\"solid\", size=\"md\", block=false"
   ],
   "ButtonGroup": [
     "options, value, onChange",
@@ -106,5 +106,61 @@
   "ProjectionGlow": [
     "None",
     "color=theme primary, intensity=\"standard\" or \"subtle\", motion=\"none\" or \"reveal\", className, style"
+  ],
+  "Avatar": [
+    "alt",
+    "src, fallback, size=40; native span attributes"
+  ],
+  "Checkbox": [
+    "label",
+    "Native checkbox input attributes; controlled checked or defaultChecked"
+  ],
+  "RadioGroup": [
+    "label, options",
+    "value, defaultValue, onValueChange, name, disabled; native fieldset attributes"
+  ],
+  "Tabs": [
+    "items",
+    "value, defaultValue, onValueChange, label; native div attributes"
+  ],
+  "Accordion": [
+    "items",
+    "value, defaultValue, onValueChange; native div attributes"
+  ],
+  "Alert": [
+    "children",
+    "tone=\"info\", title; native div attributes"
+  ],
+  "Notification": [
+    "children",
+    "tone=\"info\", title, onDismiss, dismissLabel; native div attributes"
+  ],
+  "Progress": [
+    "label",
+    "value, max=100; native progress attributes"
+  ],
+  "Spinner": [
+    "None",
+    "label=\"Loading\", size=24; native span attributes"
+  ],
+  "Tooltip": [
+    "content, children",
+    "One focusable child element; native wrapper attributes"
+  ],
+  "Carousel": [
+    "items, label",
+    "index, defaultIndex=0, onIndexChange, autoAdvance=false, interval; native div attributes"
+  ],
+  "Surface": [
+    "None",
+    "material=\"solid\", edgeLight=false, underglow=false; native div attributes"
+  ],
+  "GradientBackground": [
+    "None",
+    "variant=\"wash\"; native div attributes"
+  ],
+  "GradientText": [
+    "None",
+    "as=\"h2\"; native heading attributes"
   ]
 }

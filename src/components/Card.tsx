@@ -6,6 +6,9 @@ export interface CardProps {
   padding?:   'none' | 'sm' | 'md' | 'lg'
   /** Visual border style. Defaults to 'default'. */
   border?:    'default' | 'subtle' | 'accent' | 'none'
+  material?:  'solid' | 'glass'
+  edgeLight?: boolean
+  underglow?: boolean
   className?: string
   style?:     React.CSSProperties
   as?:        React.ElementType
@@ -29,18 +32,24 @@ export function Card({
   children,
   padding   = 'md',
   border    = 'default',
+  material  = 'glass',
+  edgeLight = true,
+  underglow = true,
   className,
   style,
   as: Tag   = 'div',
 }: CardProps): React.ReactElement {
   return (
     <Tag
-      className={className}
+      className={['ui-surface', className].filter(Boolean).join(' ')}
+      data-material={material}
+      data-edge-light={edgeLight || undefined}
+      data-underglow={underglow || undefined}
       style={{
-        background:   'var(--ui-surface)',
+        background:   material === 'solid' ? 'var(--ui-surface)' : undefined,
         borderRadius: 'var(--ui-radius-lg)',
         padding:      PAD[padding],
-        fontFamily:   'var(--ui-font)',
+        fontFamily:   'var(--ui-font-body, var(--ui-font))',
         ...BORDER_STYLE[border],
         ...style,
       }}

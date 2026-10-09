@@ -4,7 +4,8 @@ import { Meta } from '@storybook/blocks'
 
 # Migration from 0.1.5
 
-The 0.2 candidate retains root imports, existing required theme fields, radius presets, and `/tokens`.
+The 0.2 candidate retains root imports, existing required theme fields, and `/tokens`.
+The soft panel radius changes from 10px to 16px. Control radii stay unchanged.
 Existing theme objects do not need new fields.
 Keep your current imports first, then make optional changes separately.
 
@@ -34,3 +35,13 @@ Table sorting now orders rows.
 Supply `sortValue(row)` for a derived sortable value, or `compare(a, b)` for a custom comparison.
 Review dialog focus, radio arrow keys, switch activation, and sortable keyboard movement after your upgrade.
 Make sure that your application does not duplicate the library behavior.
+
+## Choose a core appearance
+
+Projection stays the default dark theme.
+Projection Light uses silver white surfaces with neon accents.
+Use `PROJECTION_FLAT_THEME` or `PROJECTION_LIGHT_FLAT_THEME` for the earlier core palettes and flat surfaces.
+Existing custom themes still work without new fields.
+Card now uses glass, edge light, and underglow by default.
+Set `material="solid"`, `edgeLight={false}`, and `underglow={false}` to choose a quiet card.
+Set Button `appearance="solid"` to choose a solid primary action.

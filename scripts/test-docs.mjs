@@ -25,9 +25,11 @@ const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
 const axe = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const failures = [];
+const widths = process.env.DOCS_WIDTHS ? process.env.DOCS_WIDTHS.split(',').map(Number) : [390,768,1440];
+assert.ok(widths.length && widths.every(width=>[390,768,1440].includes(width)),'Reader widths must use the supported viewport set');
 const localLinks = new Set(['/llms.txt','/llms-full.txt','/release.json','/api/search','/examples/','/examples/index.json']);
 try {
-  for (const width of [390,768,1440]) {
+  for (const width of widths) {
     const context = await browser.newContext({viewport:{width,height:900},permissions:['clipboard-read','clipboard-write']});
     const page = await context.newPage();
     const errors = [];
@@ -56,6 +58,39 @@ try {
         await viewport.evaluate(node=>new Promise((resolve,reject)=>{const deadline=performance.now()+2000;const inspect=()=>node.scrollLeft>0?resolve():performance.now()>deadline?reject(new Error('Code did not scroll with ArrowRight')):requestAnimationFrame(inspect);inspect()}));
       }
       if (errors.length || result.violations.length || measurements.overflow || measurements.bodySize!=='16px' || measurements.paragraphs.some(size=>size!=='16px')) failures.push({route,width,errors:[...errors],...measurements,violations:result.violations.map(item=>({id:item.id,impact:item.impact,nodes:item.nodes.map(node=>node.target)}))});
+      if (route === '/') {
+        assert.ok(await page.getByRole('progressbar',{name:'Setup progress',exact:true}).evaluate(node=>node.classList.contains('ui-progress')),'The landing renders the current packed progress component');
+        const checkCTA = async () => {
+          const colors = await page.locator('.landing-primary').evaluate(node=>{
+            const probe=document.createElement('span'); probe.style.cssText='background:var(--color-fd-primary);color:var(--color-fd-primary-foreground)'; document.body.append(probe);
+            const actual={background:getComputedStyle(node).backgroundColor,color:getComputedStyle(node).color};
+            const expected={background:getComputedStyle(probe).backgroundColor,color:getComputedStyle(probe).color}; probe.remove(); return {actual,expected};
+          });
+          assert.deepEqual(colors.actual,colors.expected,'The landing action uses the current theme accent and its foreground');
+        };
+        await checkCTA();
+        assert.equal(await page.getByRole('textbox',{name:'Project name',exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim()).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-body').trim().split(',').map(value=>value.trim()).join(',')),'Live controls use the self-hosted reading font');
+        assert.equal(await page.getByText('In progress',{exact:true}).evaluate(node=>getComputedStyle(node).fontFamily.split(',').map(value=>value.trim()).join(',')),await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--reader-code').trim().split(',').map(value=>value.trim()).join(',')),'Legacy labels use the self-hosted mono font');
+        await page.getByRole('button',{name:'Save project',exact:true}).click();
+        await page.getByText('Saved in this preview.',{exact:true}).waitFor();
+        await page.getByRole('textbox',{name:'Project name',exact:true}).fill('');
+        assert.equal(await page.getByRole('button',{name:'Save project',exact:true}).isDisabled(),true,'An empty project name cannot be saved');
+        await page.getByRole('textbox',{name:'Project name',exact:true}).fill('Example project');
+        await page.getByRole('button',{name:'Save project',exact:true}).click();
+        await page.getByRole('radio',{name:'Flat',exact:true}).click();
+        assert.equal(await page.locator('.landing-preview').getAttribute('data-ui-appearance'),'flat','The landing preview applies its selected appearance');
+        await page.getByRole('radio',{name:'Modern',exact:true}).click();
+        await page.getByRole('button',{name:'Switch to light theme',exact:true}).click();
+        await page.waitForFunction(()=>document.documentElement.classList.contains('light'));
+        await page.waitForFunction(()=>document.getAnimations().every(animation=>animation.playState!=='running'||animation.effect?.getTiming().iterations===Infinity));
+        await checkCTA();
+        const lightLandingAudit = await page.evaluate(()=>window.axe.run(document.body,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}));
+        assert.deepEqual(lightLandingAudit.violations.map(item=>({id:item.id,nodes:item.nodes.map(node=>node.target)})),[],'Light landing has no tested WCAG violations');
+        await page.screenshot({path:`/tmp/projection-landing-light-${width}.png`,fullPage:true});
+        await page.getByRole('button',{name:'Switch to dark theme',exact:true}).click();
+        await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
+
+      }
       if (['/','/docs/components/card/'].includes(route)) {
         for (const iframe of await page.locator('.component-example iframe').all()) {
           await iframe.scrollIntoViewIfNeeded();
@@ -71,6 +106,36 @@ try {
         if (route==='/') console.log(JSON.stringify({width,buttons:await page.getByRole('button').evaluateAll(nodes=>nodes.map(node=>({text:node.textContent,label:node.getAttribute('aria-label')})))}));
       }
     }
+    await page.goto(origin+'/docs/',{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
+    const changeTheme = async () => {
+      const toggle = page.getByRole('button',{name:'Toggle Theme',exact:true}).filter({visible:true}).first();
+      const openedDrawer = !await toggle.count();
+      if (openedDrawer) await page.getByRole('button',{name:'Open Sidebar',exact:true}).click();
+      await page.getByRole('button',{name:'Toggle Theme',exact:true}).filter({visible:true}).first().click();
+      if (openedDrawer) await page.locator('#nd-sidebar-mobile').getByRole('button',{name:'Close Sidebar',exact:true}).click();
+    };
+    await changeTheme();
+    await page.waitForFunction(()=>document.documentElement.classList.contains('light'));
+    assert.equal(await page.evaluate(()=>localStorage.getItem('projection-docs-theme')),'light','The reader saves its selected mode');
+    await page.reload();
+    await page.waitForFunction(()=>document.documentElement.classList.contains('light'));
+    await page.waitForLoadState('load');
+    await page.evaluate(()=>document.fonts.ready);
+    await page.waitForFunction(()=>document.getAnimations().every(animation=>animation.playState!=='running'||animation.effect?.getTiming().iterations===Infinity));
+    await page.addScriptTag({path:axe});
+    const desktopActiveLink = page.locator('#nd-sidebar a[data-active="true"]').first();
+    const openedLightDrawer = !await desktopActiveLink.count();
+    if (openedLightDrawer) await page.getByRole('button',{name:'Open Sidebar',exact:true}).click();
+    const activeReaderLink = page.locator(`${openedLightDrawer ? '#nd-sidebar-mobile' : '#nd-sidebar'} a[data-active="true"]`).first();
+    assert.equal(await activeReaderLink.evaluate(node=>getComputedStyle(node).color),await page.evaluate(()=>getComputedStyle(document.body).color),'The light reader uses text ink for its active navigation label');
+    if (openedLightDrawer) await page.locator('#nd-sidebar-mobile').getByRole('button',{name:'Close Sidebar',exact:true}).click();
+    await page.waitForFunction(()=>document.getAnimations().every(animation=>animation.playState!=='running'||animation.effect?.getTiming().iterations===Infinity));
+    const lightAudit = await page.evaluate(()=>window.axe.run(document.body,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}}));
+    assert.deepEqual(lightAudit.violations.map(item=>({id:item.id,nodes:item.nodes.map(node=>node.target)})),[],'Light reader has no tested WCAG violations');
+    await changeTheme();
+    await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
+    assert.equal(await page.evaluate(()=>localStorage.getItem('projection-docs-theme')),'dark','The reader saves its return to dark mode');
     await page.goto(origin+'/docs/installation/',{waitUntil:'domcontentloaded'});
     const copy = page.getByRole('button',{name:'Copy Text',exact:true}).first();
     await copy.focus();
@@ -133,7 +198,7 @@ try {
       if (searchRequests===1) await route.fulfill({status:503,contentType:'application/json',body:'{}'});
       else await route.continue();
     });
-    await page.reload({waitUntil:'domcontentloaded'});
+    await page.goto(origin+'/docs/',{waitUntil:'domcontentloaded'});
     await page.getByRole('button',{name:/^(Open Search|Search)/}).filter({visible:true}).first().click();
     const failedInput = page.getByRole('combobox',{name:'Search',exact:true});
     await failedInput.fill('Modal');
@@ -161,5 +226,5 @@ try {
     assert.equal(response.status,200,`Local documentation link resolves: ${link}`);
   }
   assert.deepEqual(failures,[],`Reader accessibility/runtime failures:\n${JSON.stringify(failures,null,2)}`);
-  console.log(`Verified ${localLinks.size} local links and ${routes.length} reader pages at three widths.`);
+  console.log(`Verified ${localLinks.size} local links and ${routes.length} reader pages at ${widths.length} widths.`);
 } finally { await browser.close(); await new Promise(resolve=>server.close(resolve)); }

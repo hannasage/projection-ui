@@ -28,3 +28,39 @@ test('component references retain all contracts and every published example rout
   assert.throws(() => componentDocuments({ Button:['None','None'] }, entries, {}), /packed react requirement/);
   assert.throws(() => componentDocuments({ Missing:['None','None'] }, entries), /Missing/);
 });
+
+test('every documented component has an authored packed-package story', async () => {
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const contracts = JSON.parse(readFileSync(new URL('../docs/component-contracts.json', import.meta.url), 'utf8'));
+  const files = readdirSync(new URL('../stories/', import.meta.url), { recursive: true }).filter(name => name.endsWith('.stories.tsx'));
+  const stories = files.map(file => readFileSync(new URL('../stories/' + file, import.meta.url), 'utf8')).join('\n');
+  for (const name of Object.keys(contracts)) assert.ok(stories.includes(`/${name}'`) || stories.includes(`/${name}"`), `${name} needs an authored story`);
+  assert.doesNotMatch(stories, /from ['"](?:\.\.\/)+src\//, 'Examples must resolve through the packed package');
+});
+
+test('paired gallery exposes complete category coverage and both core appearances', async () => {
+  const { readFileSync } = await import('node:fs');
+  const gallery = readFileSync(new URL('../stories/Gallery.stories.tsx', import.meta.url), 'utf8');
+  const categoryLine = gallery.match(/galleryCategories = \[([^\n]+)\] as const/)[1];
+  const categories = [...categoryLine.matchAll(/'([^']+)'/g)].map(match => match[1]);
+  assert.equal(categories.length,49);
+  assert.equal(new Set(categories).size,categories.length);
+  for (const category of categories) assert.ok(gallery.includes(`'${category}'`) || gallery.includes(`${category}:`), `${category} needs a rendered example`);
+  assert.match(gallery,/categorySamples\[category\]/);
+  for (const theme of ['PROJECTION_LIGHT_THEME','PROJECTION_THEME','PROJECTION_LIGHT_FLAT_THEME','PROJECTION_FLAT_THEME']) assert.match(gallery,new RegExp(theme));
+  assert.match(gallery,/Composition using library components/);
+  assert.match(gallery,/includeStories: \['Paired'\]/,'Gallery metadata must not become a blank story');
+});
+
+test('landing has its own layout and keeps an explicit reader home', async () => {
+  const { readFileSync } = await import('node:fs');
+  const landing = readFileSync(new URL('../docs-site/components/Landing.tsx',import.meta.url),'utf8');
+  const reader = readFileSync(new URL('../docs-site/app/(docs)/docs/layout.tsx',import.meta.url),'utf8');
+  assert.match(landing,/Yes\. Another UI library\./);
+  assert.match(landing,/href="\/docs\/"/);
+  assert.match(landing,/gallery-components--paired/);
+  assert.match(landing,/useState\('neon'\)/);
+  assert.match(landing,/PROJECTION_LIGHT_THEME/);
+  assert.match(reader,/DocsLayout/);
+  assert.doesNotMatch(readFileSync(new URL('../docs-site/app/(docs)/layout.tsx',import.meta.url),'utf8'),/DocsLayout/);
+});

@@ -97,7 +97,7 @@ export function Slider({
             display:         'flex',
             justifyContent:  'space-between',
             alignItems:      'baseline',
-            fontFamily:      'var(--ui-font)',
+            fontFamily:      'var(--ui-font-body, var(--ui-font))',
           }}>
             {label && (
               <label
@@ -134,7 +134,7 @@ export function Slider({
         <div style={{
           display:        'flex',
           justifyContent: 'space-between',
-          fontFamily:     'var(--ui-font)',
+          fontFamily:     'var(--ui-font-body, var(--ui-font))',
           fontSize:       10,
           color:          'var(--ui-muted)',
         }}>
@@ -143,7 +143,7 @@ export function Slider({
         </div>
 
         {hint && (
-          <span style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font)' }}>
+          <span style={{ fontSize: 11, color: 'var(--ui-muted)', fontFamily: 'var(--ui-font-body, var(--ui-font))' }}>
             {hint}
           </span>
         )}

@@ -28,7 +28,8 @@ try {
   assert.equal(guides.length, 8);
   const contracts = JSON.parse(readFileSync(join(repository,'docs/component-contracts.json'),'utf8'));
   const components = componentDocuments(contracts,entries,manifest.peerDependencies);
-  assert.equal(components.length,27);
+  assert.equal(components.length,Object.keys(contracts).length);
+  assert.ok(components.length > 0, 'Component contracts must not be empty');
   const records = [...guides,...components];
   const examples = join(packed.fixture,'documentation-examples');
   mkdirSync(examples);
@@ -50,13 +51,14 @@ try {
   }
   writeFileSync(join(site,'content/docs/meta.json'),JSON.stringify({pages:['index','installation','theming','tokens','accessibility','migration','releases','community','components']},null,2));
   writeFileSync(join(site,'content/docs/components/meta.json'),JSON.stringify({title:'Components',pages:components.map(page=>page.slug.split('/')[1])},null,2));
-  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projection-ui-docs.vercel.app/markdown/${record.slug}.md)`).join('\n')+'\n');
+  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://docs.projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n');
   writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
   writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');
   cpSync(join(repository,'storybook-static'),join(site,'public/examples'),{recursive:true});
-  const {DEFAULT_THEME:theme} = await import(pathToFileURL(join(packed.installed,'dist/foundations.js')).href);
+  const {PROJECTION_THEME:theme, PROJECTION_LIGHT_THEME:lightTheme} = await import(pathToFileURL(join(packed.installed,'dist/foundations.js')).href);
   mkdirSync(join(site,'.generated'),{recursive:true});
-  writeFileSync(join(site,'.generated/theme.css'),`.dark { --color-fd-background: ${theme.bg}; --color-fd-foreground: ${theme.text}; --color-fd-primary: ${theme.primary}; --color-fd-primary-foreground: ${theme.primaryFg}; --color-fd-muted: ${theme.surface}; --color-fd-muted-foreground: ${theme.muted}; --color-fd-border: ${theme.border}; }\n`);
+  const readerTheme = (selector, values) => `${selector} { --color-fd-background: ${values.bg}; --color-fd-foreground: ${values.text}; --color-fd-primary: ${values.primary}; --color-fd-primary-foreground: ${values.primaryFg}; --color-fd-muted: ${values.surface}; --color-fd-muted-foreground: ${values.muted}; --color-fd-border: ${values.border}; --color-fd-popover: ${values.surface}; --color-fd-popover-foreground: ${values.text}; --color-fd-card: ${values.surface}; --color-fd-card-foreground: ${values.text}; --color-fd-secondary: ${values.surface}; --color-fd-secondary-foreground: ${values.text}; --color-fd-accent: ${values.border}; --color-fd-accent-foreground: ${values.text}; --color-fd-ring: ${values.primary}; }\n`;
+  writeFileSync(join(site,'.generated/theme.css'), readerTheme(':root',lightTheme)+readerTheme('.dark',theme));
   run('npm',['run','build'],site,{...process.env,NEXT_TELEMETRY_DISABLED:'1'});
   run('npm',['run','typecheck'],site);
   run('npm',['run','lint'],site);

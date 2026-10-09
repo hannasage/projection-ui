@@ -9,7 +9,8 @@ const root = resolve('storybook-static');
 const index = JSON.parse(readFileSync(resolve(root, 'index.json'), 'utf8'));
 const entries = Object.values(index.entries);
 assert.ok(entries.some(entry => entry.type === 'docs'), 'Built Storybook must contain guides');
-assert.ok(entries.filter(entry => entry.type === 'story').length >= 26, 'Every public component needs a rendered story');
+const contracts = JSON.parse(readFileSync('docs/component-contracts.json','utf8'));
+for (const name of Object.keys(contracts)) assert.ok(entries.some(entry => entry.type === 'story' && entry.title.split('/').pop() === name), `${name} needs a rendered packed story`);
 const server = createServer((request,response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
