@@ -9,14 +9,17 @@
     "build": "next build --webpack"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@tsparticles/engine": "4.4.0",
+    "@tsparticles/react": "4.4.0",
+    "@tsparticles/slim": "4.4.0",
     "fumadocs-core": "16.16.2",
-    "fumadocs-ui": "16.16.2",
     "fumadocs-mdx": "15.4.6",
+    "fumadocs-ui": "16.16.2",
     "next": "16.4.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
-    "tailwindcss": "4.3.3",
-    "@tailwindcss/postcss": "4.3.3"
+    "tailwindcss": "4.3.3"
   },
   "devDependencies": {
     "@types/mdx": "2.0.14",
