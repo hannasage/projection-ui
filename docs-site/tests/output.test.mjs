@@ -61,6 +61,11 @@ test('landing offers the matching editable kit and official Figma agent setup', 
   assert.match(section, /href="\/docs\/releases\/#editable-figma-kit"/);
   assert.match(section, /href="https:\/\/developers\.figma\.com\/docs\/figma-mcp-server\/remote-server-installation\/"/);
   assert.match(section, /importer package, not a \.fig file/);
+  assert.match(section, /Design and prototype your layouts first\./);
+  assert.match(section, /Hop into Figma or/);
+  const card = section.match(/<div[^>]+class="[^"]*landing-figma-tools[^"]*"[\s\S]*?<\/div><a class="landing-figma-guide"/);
+  assert.ok(card, 'The connection guide follows the card');
+  assert.ok(card[0].includes('Download Figma kit') && card[0].includes('Import instructions'));
   assert.match(section, /class="landing-figma-mark"[^>]*fill="none"[^>]*stroke="currentColor"/);
 });
 
