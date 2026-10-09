@@ -1,4 +1,4 @@
-import { Controls, Description, Primary, Stories, Subtitle, Title, useOf } from '@storybook/blocks'
+import { ArgTypes, Description, Primary, Stories, Subtitle, Title, useOf } from '@storybook/blocks'
 
 import contractsData from '../docs/component-contracts.json'
 const contracts: Record<string, string[]> = contractsData
@@ -18,5 +18,5 @@ function ComponentContract() {
 }
 
 export function DocumentationPage() {
-  return <><Title /><Subtitle /><Description /><Primary /><ComponentContract /><Controls /><Stories /></>
+  return <><Title /><Subtitle /><Description /><Primary /><ComponentContract /><section aria-label="Prop reference"><h2>Props</h2><p>Open a story in Canvas and use the Controls panel to edit its props.</p><ArgTypes /></section><Stories /></>
 }

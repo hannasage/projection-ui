@@ -58,7 +58,8 @@ The Theme toolbar changes component previews between the modern and flat core th
 Reader examples follow the selected light or dark mode.
 The paired gallery keeps both themes visible for comparison.
 
-Controls changes a story through its accepted props.
+The Docs page lists prop types and defaults.
+Open a story in Canvas to change its accepted props through the Controls panel.
 The Button stories expose label, variant, size, appearance, disabled, and full-width controls.
 Actions shows the native click events from those stories.
 Interactions shows the keyboard activation steps and their assertions.

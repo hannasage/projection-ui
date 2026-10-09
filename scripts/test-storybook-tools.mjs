@@ -40,6 +40,26 @@ try {
     const result = await page.evaluate(() => window.axe.run(document.body, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }));
     assert.deepEqual(result.violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) })), [], `${id} has no tested light-mode WCAG violations`);
   }
+  for (const width of [390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const theme of ['light', 'dark']) {
+      for (const id of ['components-button--docs', 'components-card--docs', 'forms-select--docs', 'charts-areachart--docs', 'charts-donutchart--docs']) {
+        await page.goto(`${origin}/iframe.html?id=${id}&viewMode=docs&globals=${encodeURIComponent(`theme:${theme}`)}`);
+        const reference = page.getByRole('region', { name: 'Prop reference', exact: true });
+        await reference.getByRole('table').waitFor();
+        await reference.getByText('Open a story in Canvas and use the Controls panel to edit its props.', { exact: true }).waitFor();
+        assert.equal(await reference.locator('input, select, textarea, [aria-readonly], .rejt-tree').count(), 0, `${id} keeps Docs props readable without editable control widgets`);
+        await page.waitForFunction(expected => document.documentElement.dataset.previewTheme === expected, theme);
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForFunction(() => document.getAnimations().every(animation => animation.playState !== 'running' || animation.effect?.getTiming().iterations === Infinity));
+        await page.addScriptTag({ path: axe });
+        const result = await page.evaluate(() => window.axe.run(document.body, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }));
+        assert.deepEqual(result.violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) })), [], `${id} has no tested ${theme} Docs WCAG violations at ${width}px`);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1), false, `${id} does not overflow at ${width}px`);
+      }
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/?path=/story/components-button--primary&globals=theme%3Alight`);
   const canvas = page.frameLocator('#storybook-preview-iframe');
   await canvas.getByRole('button', { name: 'Primary', exact: true }).waitFor();
