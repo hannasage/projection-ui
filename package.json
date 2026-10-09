@@ -4,7 +4,7 @@
   "description": "Dark-first React component library and design token system. Consumer-configurable theming via ThemeProvider \u2014 no hardcoded themes.",
   "author": "Hanna Sage",
   "license": "MIT",
-  "homepage": "https://docs.projectionui.dev",
+  "homepage": "https://projectionui.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hannasage/projection-ui.git"
@@ -81,7 +81,9 @@
     "tokens": "node scripts/generate-tokens.mjs",
     "tokens:check": "node scripts/generate-tokens.mjs --check",
     "test:storybook": "node scripts/test-storybook.mjs",
+    "test:storybook-tools": "node scripts/test-storybook-tools.mjs",
     "test:docs": "node scripts/test-docs.mjs",
+    "test:docs-themes": "node scripts/test-docs-themes.mjs",
     "test:artifact": "node scripts/test-release-artifact.mjs"
   },
   "peerDependencies": {
@@ -91,9 +93,13 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "1.64.0",
+    "@storybook/addon-a11y": "8.6.18",
     "@storybook/addon-docs": "^8.6.12",
+    "@storybook/addon-essentials": "8.6.18",
+    "@storybook/addon-interactions": "8.6.18",
     "@storybook/blocks": "^8.6.12",
     "@storybook/react-vite": "^8.6.12",
+    "@storybook/test": "8.6.18",
     "@types/node": "^24.12.4",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
@@ -118,8 +124,8 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "react-is": "^19.2.6",
     "recharts": "^3.8.1",
-    "zustand": "^5.0.13",
-    "react-is": "^19.2.6"
+    "zustand": "^5.0.13"
   }
 }

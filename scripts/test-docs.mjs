@@ -8,7 +8,8 @@ import { chromium } from '@playwright/test';
 const root = resolve('docs-site/out');
 const contracts = JSON.parse(readFileSync('docs/component-contracts.json', 'utf8'));
 const routes = ['/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
-const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
+routes.push(...['', 'installation', 'theming', 'components', 'toasts', 'examples'].map(slug => `/docs/0.1.5/${slug ? slug + '/' : ''}`));
+const mime = {'.zip':'application/zip','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
 const server = createServer((request,response)=>{
   try {
     const pathname = decodeURIComponent(new URL(request.url,'http://localhost').pathname);
@@ -27,7 +28,7 @@ const axe = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const failures = [];
 const widths = process.env.DOCS_WIDTHS ? process.env.DOCS_WIDTHS.split(',').map(Number) : [390,768,1440];
 assert.ok(widths.length && widths.every(width=>[390,768,1440].includes(width)),'Reader widths must use the supported viewport set');
-const localLinks = new Set(['/llms.txt','/llms-full.txt','/release.json','/api/search','/examples/','/examples/index.json']);
+const localLinks = new Set(['/api/search-0.1.5','/archives/0.1.5/llms.txt','/archives/0.1.5/llms-full.txt','/llms.txt','/llms-full.txt','/release.json','/api/search','/examples/','/examples/index.json']);
 try {
   for (const width of widths) {
     const context = await browser.newContext({viewport:{width,height:900},permissions:['clipboard-read','clipboard-write']});
@@ -106,6 +107,27 @@ try {
         if (route==='/') console.log(JSON.stringify({width,buttons:await page.getByRole('button').evaluateAll(nodes=>nodes.map(node=>({text:node.textContent,label:node.getAttribute('aria-label')})))}));
       }
     }
+    await page.goto(origin+'/docs/installation/',{waitUntil:'domcontentloaded'});
+    const selectVersion = async value => {
+      const visible = page.getByRole('combobox', { name: 'Documentation version', exact: true }).filter({ visible: true });
+      if (!await visible.count()) await page.getByRole('button', { name: 'Open Sidebar', exact: true }).click();
+      await page.getByRole('combobox', { name: 'Documentation version', exact: true }).filter({ visible: true }).first().selectOption(value);
+    };
+    await selectVersion('0.1.5');
+    await page.waitForURL(origin+'/docs/0.1.5/installation/');
+    await page.getByText('You are reading version 0.1.5.', { exact: false }).waitFor();
+    assert.match(await page.locator('#nd-page > div.prose').innerText(), /npm install @hannasage\/projection-ui@0.1.5/);
+    await selectVersion('current');
+    await page.waitForURL(origin+'/docs/installation/');
+    await page.goto(origin+'/docs/components/button/',{waitUntil:'domcontentloaded'});
+    await selectVersion('0.1.5');
+    await page.waitForURL(url => /^\/docs\/0\.1\.5\/?$/.test(url.pathname));
+    await page.goto(origin+'/docs/0.1.5/', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: /^(Open Search|Search)/ }).filter({ visible: true }).first().click();
+    const legacySearch = page.getByRole('combobox', { name: 'Search', exact: true });
+    await legacySearch.fill('Toast usage');
+    await page.getByRole('option').filter({ hasText: 'Toast usage' }).first().click();
+    await page.waitForURL(/\/docs\/0\.1\.5\/toasts/);
     await page.goto(origin+'/docs/',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
     const changeTheme = async () => {

@@ -20,15 +20,51 @@ Existing root imports and theme fields remain available.
 The candidate also updates dialog focus, field associations, keyboard selection, sorting, and reduced-motion behavior.
 The [changelog](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/CHANGELOG.md) records the final additions and fixes.
 
+## Editable Figma kit
+
+Download the [0.2.0-next.2 design kit](/downloads/projection-ui-design-0.2.0-next.2.zip) for native editable components, text, variables, and styles.
+The [download manifest](/downloads/design-package.json) records its version and SHA256 hash.
+SHA256 is a fingerprint that detects changed file bytes.
+
+Extract the ZIP archive and follow its README to create a local Figma development plugin.
+Keep the plugin ID that Figma generates.
+Install Syne, IBM Plex Sans, and IBM Plex Mono before import.
+The importer makes no network requests and preserves existing pages.
+
+The kit includes light and dark variants, with Modern and Flat appearances.
+Use the imported component sets to create instances for mockups.
+The ZIP contains an importer package, not a `.fig` file.
+Its static designs do not reproduce React behavior or guarantee the same component properties.
+Use Storybook for interactive behavior and accessibility examples.
+
+Each alpha minor visual release includes a matching design kit.
+Each visual revision of an alpha release also includes a matching kit.
+Each production major visual release includes a matching kit.
+A production minor visual release includes one when its release notes specify it.
+Keep earlier kits with their matching versions.
+
 ## Earlier versions
 
 The published `0.1.5` package remains available on npm.
+Read its [preserved documentation](/docs/0.1.5/) with the original installation requirements and source examples.
 Keep the 0.2 candidate on its feature branch through review.
 After release, use a separate 0.1 maintenance branch for focused fixes.
 Start that branch from the exact source commit recorded by npm.
 Each backport needs separate tests and a reviewed publishing path.
 The current workflow accepts only the 0.2 release line.
 Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/releases.md#maintenance-branches) for the branch and distribution tag rules.
+
+## Preserve documentation
+
+Before you replace the current documentation, archive the previous published version from its exact release source.
+Add that archive to the version registry, routes, navigation, and search.
+Retain its matching design kit as an immutable download.
+An immutable download keeps the same file bytes after release.
+Run the archive integrity and browser tests before you publish the next version.
+
+The version switcher currently offers the alpha candidate and the preserved `0.1.5` documentation.
+Future releases need their own archives before the current documentation changes.
+Unpublished candidates do not imply published releases or archived release documentation.
 
 ## Release checks
 

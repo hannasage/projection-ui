@@ -58,13 +58,54 @@ test('static documentation serves the checked-in font binaries', () => {
   }
 });
 
-test('static deployment retains the docs-domain redirect and its real destination', () => {
+test('one host serves the landing and reader and redirects legacy subdomain links', () => {
   const config = JSON.parse(read('vercel.json'));
   assert.deepEqual(config,JSON.parse(readFileSync(new URL('../public/vercel.json',import.meta.url),'utf8')));
-  const redirect = config.redirects.find(rule=>rule.source==='/' && rule.has?.some(condition=>condition.type==='host' && condition.value==='docs.projectionui.dev'));
-  assert.ok(redirect,'The docs domain needs its own reader entry point');
-  assert.equal(redirect.destination,'/docs/');
-  assert.equal(redirect.permanent,false);
-  assert.match(read(redirect.destination.slice(1)+'index.html'),/Read this page as Markdown/);
-  assert.match(read('index.html'),/Yes\. Another UI library\./,'Other hosts retain the landing page');
+  const legacyHost = rule => rule.has?.some(condition => condition.type === 'host' && condition.value === 'docs.projectionui.dev');
+  const homeRedirect = config.redirects.find(rule => rule.source === '/' && legacyHost(rule));
+  assert.equal(homeRedirect?.destination, 'https://projectionui.dev/docs/');
+  assert.equal(homeRedirect?.permanent, true);
+  const redirect = config.redirects.find(rule => rule.source === '/:path*' && legacyHost(rule));
+  assert.ok(redirect,'Existing subdomain links retain their paths');
+  assert.equal(redirect.source,'/:path*');
+  assert.equal(redirect.destination,'https://projectionui.dev/:path*');
+  assert.equal(redirect.permanent,true);
+  assert.match(read('docs/index.html'),/Read this page as Markdown/);
+  assert.match(read('index.html'),/Yes\. Another UI library\./);
+});
+
+test('the stable archive retains its own routes, source bytes, and search index', async () => {
+  const { createHash } = await import('node:crypto');
+  const archive = JSON.parse(read('archives/0.1.5/archive.json'));
+  assert.equal(archive.gitHead, '8362d8b36b8d4928525aac16ebf5cc382e862f2c');
+  for (const record of archive.files) {
+    const bytes = readFileSync(new URL(`../out/archives/0.1.5/sources/${record.path}`, import.meta.url));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), record.sha256, record.path);
+  }
+  for (const slug of ['', 'installation', 'theming', 'components', 'toasts', 'examples']) {
+    const html = read(`docs/0.1.5/${slug ? slug + '/' : ''}index.html`);
+    assert.match(html, /You are reading version 0.1.5/);
+    assert.match(html, /Documentation version/);
+    assert.doesNotMatch(html, /component-example/);
+  }
+  assert.match(read('archives/0.1.5/markdown/installation.md'), /npm install @hannasage\/projection-ui@0.1.5/);
+  assert.match(read('api/search-0.1.5'), /Original examples|Component reference/);
+  const versions = JSON.parse(read('docs-versions.json'));
+  assert.equal(versions.current, JSON.parse(read('release.json')).version);
+  assert.equal(versions.versions[1].baseUrl, '/docs/0.1.5');
+});
+
+test('the design download matches its version and published fingerprint', async () => {
+  const { createHash } = await import('node:crypto');
+  const design = JSON.parse(read('downloads/design-package.json'));
+  const candidate = JSON.parse(read('release.json'));
+  assert.equal(design.version, candidate.version);
+  assert.equal(design.filename, `projection-ui-design-${candidate.version}.zip`);
+  const archive = readFileSync(new URL(`../out/downloads/${design.filename}`, import.meta.url));
+  assert.equal(archive.length, design.bytes);
+  assert.equal(createHash('sha256').update(archive).digest('hex'), design.sha256);
+  assert.equal(archive.readUInt32LE(0), 0x04034b50);
+  assert.ok(design.inventory.sets > 0, 'The kit contains editable component sets');
+  assert.ok(design.inventory.text > 0, 'The kit contains editable text');
+  assert.match(read('docs/releases/index.html'), new RegExp(design.filename.replaceAll('.', '\\.')));
 });

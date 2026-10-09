@@ -1,5 +1,7 @@
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import type { ReactNode } from 'react';
-import { source } from '@/lib/source';
-import { layoutOptions } from '@/lib/layout';
-export default function Layout({ children }: { children: ReactNode }) { return <DocsLayout tree={source.pageTree} {...layoutOptions}>{children}</DocsLayout>; }
+import { source, legacySource, versionPages } from '@/lib/source';
+import { VersionedLayout } from '@/components/VersionedLayout';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return <VersionedLayout trees={{ current: source.pageTree, '0.1.5': legacySource.pageTree }} pages={versionPages}>{children}</VersionedLayout>;
+}

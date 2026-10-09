@@ -31,12 +31,21 @@ jobs:
       - run: npm run build
       - run: npm run build:docs
       - run: npm run test:storybook
+      - run: npm run test:storybook-tools
       - run: npm run test:docs
+      - run: npm run test:docs-themes
       - run: npm run test:artifact
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: npm-release
           path: release-artifacts/hannasage-projection-ui-*.tgz
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: design-kit
+          path: |
+            docs-site/out/downloads/projection-ui-design-*.zip
+            docs-site/out/downloads/design-package.json
           if-no-files-found: error
   publish:
     needs: verify
@@ -59,3 +68,23 @@ jobs:
           name: npm-release
           path: release
       - run: node scripts/verify-release.mjs --publish
+  design-release:
+    needs: [verify, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.11.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: design-kit
+          path: design-release
+      - run: node scripts/publish-design-release.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}

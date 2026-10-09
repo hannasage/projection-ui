@@ -38,7 +38,9 @@ npm test
 npm run build
 npm run build:docs
 npm run test:storybook
+npm run test:storybook-tools
 npm run test:docs
+npm run test:docs-themes
 npm run test:artifact
 ```
 
@@ -48,6 +50,29 @@ Browser checks supplement the package checks for keyboard and accessibility beha
 The final artifact check repeats consumer checks against the release archive after both documentation builds.
 It does not rebuild the library.
 Read [the test guide](../tests/README.md) for their actual scope.
+
+## Use the explorer tools
+
+Open the component explorer at `/examples/` after the documentation build.
+The Theme toolbar changes component previews between the modern and flat core themes.
+Reader examples follow the selected light or dark mode.
+The paired gallery keeps both themes visible for comparison.
+
+Controls changes a story through its accepted props.
+The Button stories expose label, variant, size, appearance, disabled, and full-width controls.
+Actions shows the native click events from those stories.
+Interactions shows the keyboard activation steps and their assertions.
+An assertion states the result that a test expects.
+
+The Accessibility panel runs axe against the rendered story.
+Automated results do not establish accessibility compliance.
+Review keyboard behavior, assistive technology, and custom theme contrast separately.
+The viewport toolbar supplies phone, tablet, and desktop sizes.
+Measure and Outline expose spacing and element boundaries.
+
+These extensions use Storybook 8.6.18 and remain development dependencies.
+They do not add dependencies to an installed Projection UI application.
+Read the official [Controls](https://storybook.js.org/docs/8/essentials/controls), [Interactions](https://storybook.js.org/docs/8/essentials/interactions), and [accessibility](https://storybook.js.org/docs/8/writing-tests/accessibility-testing) guides for their interfaces.
 
 ## Add documentation
 

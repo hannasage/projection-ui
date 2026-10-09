@@ -1,4 +1,4 @@
-import { Description, Primary, Stories, Subtitle, Title, useOf } from '@storybook/blocks'
+import { Controls, Description, Primary, Stories, Subtitle, Title, useOf } from '@storybook/blocks'
 
 import contractsData from '../docs/component-contracts.json'
 const contracts: Record<string, string[]> = contractsData
@@ -18,5 +18,5 @@ function ComponentContract() {
 }
 
 export function DocumentationPage() {
-  return <><Title /><Subtitle /><Description /><Primary /><ComponentContract /><Stories /></>
+  return <><Title /><Subtitle /><Description /><Primary /><ComponentContract /><Controls /><Stories /></>
 }

@@ -234,11 +234,17 @@ test('the decorative glow renders without content, input, or browser-only depend
   }
 });
 
-test('README and guide TSX examples compile against the installed tarball', () => {
+test('README and current guide TSX examples compile against the installed tarball', () => {
   const examples = join(fixture, 'examples');
   mkdirSync(examples);
-  function walk(folder) { return readdirSync(join(repository, folder), {withFileTypes:true}).flatMap(entry => entry.isDirectory() ? walk(`${folder}/${entry.name}`) : /\.(md|mdx)$/.test(entry.name) ? [`${folder}/${entry.name}`] : []) }
+  function walk(folder) {
+    if (folder === 'docs/archive') return [];
+    return readdirSync(join(repository, folder), {withFileTypes:true}).flatMap(entry => entry.isDirectory() ? walk(`${folder}/${entry.name}`) : /\.(md|mdx)$/.test(entry.name) ? [`${folder}/${entry.name}`] : []);
+  }
   const guides = ['README.md', ...walk('docs').sort()];
+  assert.ok(guides.includes('docs/pages/Installation.mdx'), 'Current guides remain in the consumer compilation');
+  assert.ok(readdirSync(join(repository, 'docs/archive/0.1.5/sources')).includes('README.md'), 'The authentic legacy README remains archived');
+  assert.ok(guides.every(guide => !guide.startsWith('docs/archive/')), 'Legacy examples retain their original API instead of compiling against the current candidate');
   let count = 0;
   for (const guide of guides) {
     const markdown = readFileSync(join(repository, guide), 'utf8');

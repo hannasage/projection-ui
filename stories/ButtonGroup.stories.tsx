@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import { ButtonGroup } from '@hannasage/projection-ui/core'
-import { withTheme, darkTheme } from './decorators'
+import { withTheme } from './decorators'
+import { usePreviewTheme } from '../.storybook/PreviewTheme'
 import { ThemeProvider } from '@hannasage/projection-ui/core'
 
 const meta: Meta<typeof ButtonGroup> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
@@ -139,9 +140,10 @@ export const WithDisabledOption: StoryObj = {
 export const RadiusSharp: StoryObj = {
   name: 'Radius — Sharp',
   render: function RadiusSharpExample() {
+    const theme = usePreviewTheme()
     const [val, setVal] = useState('a')
     return (
-      <ThemeProvider theme={{ ...darkTheme, radius: 'sharp' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
+      <ThemeProvider theme={{ ...theme, radius: 'sharp' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
         <ButtonGroup aria-label="Example selection"
           options={[
             { value: 'a', label: 'Square' },
@@ -159,9 +161,10 @@ export const RadiusSharp: StoryObj = {
 export const RadiusRounded: StoryObj = {
   name: 'Radius — Rounded',
   render: function RadiusRoundedExample() {
+    const theme = usePreviewTheme()
     const [val, setVal] = useState('a')
     return (
-      <ThemeProvider theme={{ ...darkTheme, radius: 'rounded' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
+      <ThemeProvider theme={{ ...theme, radius: 'rounded' }} style={{ background: 'var(--ui-bg)', padding: 24 }}>
         <ButtonGroup aria-label="Example selection"
           options={[
             { value: 'a', label: 'Soft'    },

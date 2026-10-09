@@ -22,3 +22,13 @@ export const projectionDocsTheme = create({
   inputBorder: '#1B2535',
   inputTextColor: '#DDE3EE',
 })
+
+export const coastalDocsTheme = create({
+  ...projectionDocsTheme,
+  base: 'light',
+  colorPrimary: '#006A85', colorSecondary: '#006A85',
+  appBg: '#F1F8FC', appContentBg: '#FFFFFF', appPreviewBg: '#F1F8FC',
+  appBorderColor: '#B7CFDD', textColor: '#172B3A', textInverseColor: '#FFFFFF',
+  barTextColor: '#465F70', barSelectedColor: '#006A85', barBg: '#FFFFFF',
+  inputBg: '#FFFFFF', inputBorder: '#B7CFDD', inputTextColor: '#172B3A',
+})

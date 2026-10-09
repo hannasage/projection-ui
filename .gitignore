@@ -16,3 +16,6 @@ docs-site/next-env.d.ts
 docs-site/tsconfig.tsbuildinfo
 release-artifacts
 .playwright-cli
+docs-site/public/archives
+docs-site/public/docs-versions.json
+docs-site/public/downloads

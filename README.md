@@ -15,7 +15,7 @@ Yes. Another UI library.
 React components, shared themes, and a thing for light.
 You still have to build the app.
 
-[Documentation](https://docs.projectionui.dev) · [Component explorer](https://docs.projectionui.dev/examples/) · [Give feedback](https://github.com/hannasage/projection-ui/discussions)
+[Documentation](https://projectionui.dev/docs/) · [Component explorer](https://projectionui.dev/examples/) · [Give feedback](https://github.com/hannasage/projection-ui/discussions)
 
 ![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/materials-paired.png)
 
@@ -109,7 +109,7 @@ export function LightExample() {
 Use `PROJECTION_FLAT_THEME` or `COASTAL_DAY_FLAT_THEME` for the main pair with solid surfaces.
 Coastal Day Flat keeps blue accents.
 `FERNWOOD_FLAT_THEME` retains the original green light palette.
-The [theme guide](https://docs.projectionui.dev/docs/theming/) covers custom values and all presets.
+The [theme guide](https://projectionui.dev/docs/theming/) covers custom values and all presets.
 
 ## Choose an entry
 
@@ -160,7 +160,7 @@ export function ReviewChart() {
 
 These values are example data.
 Pair charts with a text summary or table for readers who cannot use the visual.
-Read the [accessibility guide](https://docs.projectionui.dev/docs/accessibility/).
+Read the [accessibility guide](https://projectionui.dev/docs/accessibility/).
 
 <img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
@@ -169,7 +169,7 @@ Read the [accessibility guide](https://docs.projectionui.dev/docs/accessibility/
 `/styles` scopes shared component rules to theme wrappers.
 `/reset` supplies explicit page-wide rules.
 `/tokens` retains the legacy global rules for existing consumers.
-Read [the migration guide](https://docs.projectionui.dev/docs/migration/) before changing an existing stylesheet import.
+Read [the migration guide](https://projectionui.dev/docs/migration/) before changing an existing stylesheet import.
 
 ## Components
 
@@ -191,7 +191,7 @@ The package exports component prop types and `UITheme`.
 Application routes, business data, and 3D scenes belong in consuming applications.
 `ProjectionGlow` adds decorative light behind sibling content.
 It inherits the theme accent and stays still by default.
-Read [the token guide](https://docs.projectionui.dev/docs/tokens/) for its optional reveal and reduced-motion behavior.
+Read [the token guide](https://projectionui.dev/docs/tokens/) for its optional reveal and reduced-motion behavior.
 
 ![A real Projection form with a project input, progress bar, slider, toggle, and gradient save button.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/projection-dark.png)
 
@@ -207,15 +207,22 @@ The command builds the Fumadocs reader and component explorer from the same inst
 The static site appears in `docs-site/out`.
 The guides cover installation, themes, tokens, accessibility, migration, releases, and community.
 Every public component has a preview.
-Read the [documentation](https://docs.projectionui.dev) and use the [component explorer](https://docs.projectionui.dev/examples/) for interactive examples.
+Read the [documentation](https://projectionui.dev/docs/) and use the [component explorer](https://projectionui.dev/examples/) for interactive examples.
 Each reader page has a plain Markdown link.
-The [paired gallery](https://docs.projectionui.dev/examples/?path=/story/gallery-components--paired) covers the 49 approved categories in both core themes.
+The version selector retains the [v0.1.5 documentation](https://projectionui.dev/docs/0.1.5/) and its original source examples.
+Live examples follow the selected light or dark theme.
+The explorer includes prop controls, action logs, accessibility scans, keyboard interaction steps, and viewport tools.
+The [paired gallery](https://projectionui.dev/examples/?path=/story/gallery-components--paired) covers the 49 approved categories in both core themes.
 It marks application examples as compositions, not separate package exports.
 The gallery includes a flat appearance selector.
-The [text index](https://docs.projectionui.dev/llms.txt) links all guides and component contracts.
+The [text index](https://projectionui.dev/llms.txt) links all guides and component contracts.
 
-Read [the component reference](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md), [theme guide](https://docs.projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/development.md).
-Read [the release contract](https://docs.projectionui.dev/docs/releases/) before publication.
+Read [the component reference](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md), [theme guide](https://projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/development.md).
+Read [the release contract](https://projectionui.dev/docs/releases/) before publication.
+
+Download the [matching Figma design kit](https://projectionui.dev/downloads/projection-ui-design-0.2.0-next.2.zip) for editable mockups.
+Its local importer creates native components, text, variables, and Modern/Flat theme variants.
+The kit includes its source inventory and the React contracts without a matching design category.
 
 ## Contribute and give feedback
 

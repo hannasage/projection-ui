@@ -5,6 +5,9 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { packFixture, repository } from '../tests/helpers/packed.mjs';
 import { componentDocuments, transformGuide } from './docs-content.mjs';
+import { legacyDocuments } from './docs-versions.mjs';
+import { docsVersions } from '../docs-site/lib/versions.mjs';
+import { buildDesignPackage } from './build-design-package.mjs';
 
 const site = join(repository, 'docs-site');
 const packed = packFixture('docs', ['@types']);
@@ -18,6 +21,7 @@ try {
   const expected = JSON.parse(readFileSync(join(repository, 'package.json'), 'utf8'));
   assert.equal(manifest.name, expected.name);
   assert.equal(manifest.version, expected.version);
+  assert.ok(docsVersions[0].label.startsWith(manifest.version), 'The version selector must identify the packed candidate');
   run(process.execPath, ['scripts/build-storybook.mjs'], repository, {...process.env,PROJECTION_UI_PACKAGE_DIR:packed.installed,PROJECTION_UI_TYPING_DIR:packed.temporary});
   run('npm', ['ci','--ignore-scripts','--legacy-peer-deps=false','--no-audit','--no-fund'], site);
   run('npm', ['install','--no-save','--package-lock=false','--ignore-scripts','--legacy-peer-deps=false','--no-audit','--no-fund',join(packed.temporary,packed.packed.filename)], site);
@@ -51,7 +55,21 @@ try {
   }
   writeFileSync(join(site,'content/docs/meta.json'),JSON.stringify({pages:['index','installation','theming','tokens','accessibility','migration','releases','community','components']},null,2));
   writeFileSync(join(site,'content/docs/components/meta.json'),JSON.stringify({title:'Components',pages:components.map(page=>page.slug.split('/')[1])},null,2));
-  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://docs.projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n');
+  const legacy = legacyDocuments(join(repository, 'docs/archive/0.1.5'));
+  for (const record of legacy) {
+    const path = join(site, 'content/versions/0.1.5', record.slug + '.mdx');
+    mkdirSync(join(path, '..'), { recursive: true });
+    writeFileSync(path, `---\ntitle: ${JSON.stringify(record.title)}\ndescription: "Projection UI 0.1.5 archive"\n---\n\n${record.mdx}\n`);
+    const markdown = join(site, 'public/archives/0.1.5/markdown', record.slug + '.md');
+    mkdirSync(join(markdown, '..'), { recursive: true });
+    writeFileSync(markdown, record.markdown);
+  }
+  writeFileSync(join(site, 'content/versions/0.1.5/meta.json'), JSON.stringify({ pages: legacy.map(record => record.slug) }, null, 2));
+  cpSync(join(repository, 'docs/archive/0.1.5'), join(site, 'public/archives/0.1.5'), { recursive: true });
+  writeFileSync(join(site, 'public/archives/0.1.5/llms.txt'), '# Projection UI 0.1.5\n\n' + legacy.map(record => `- [${record.title}](https://projectionui.dev/archives/0.1.5/markdown/${record.slug}.md)`).join('\n') + '\n');
+  writeFileSync(join(site, 'public/archives/0.1.5/llms-full.txt'), legacy.map(record => record.markdown).join('\n\n'));
+  writeFileSync(join(site, 'public/docs-versions.json'), JSON.stringify({ current: manifest.version, versions: docsVersions }, null, 2) + '\n');
+  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n');
   writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
   writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');
   cpSync(join(repository,'storybook-static'),join(site,'public/examples'),{recursive:true});
@@ -59,6 +77,8 @@ try {
   mkdirSync(join(site,'.generated'),{recursive:true});
   const readerTheme = (selector, values) => `${selector} { --color-fd-background: ${values.bg}; --color-fd-foreground: ${values.text}; --color-fd-primary: ${values.primary}; --color-fd-primary-foreground: ${values.primaryFg}; --color-fd-muted: ${values.surface}; --color-fd-muted-foreground: ${values.muted}; --color-fd-border: ${values.border}; --color-fd-popover: ${values.surface}; --color-fd-popover-foreground: ${values.text}; --color-fd-card: ${values.surface}; --color-fd-card-foreground: ${values.text}; --color-fd-secondary: ${values.surface}; --color-fd-secondary-foreground: ${values.text}; --color-fd-accent: ${values.border}; --color-fd-accent-foreground: ${values.text}; --color-fd-ring: ${values.primary}; }\n`;
   writeFileSync(join(site,'.generated/theme.css'), readerTheme(':root',lightTheme)+readerTheme('.dark',theme));
+  const designPackage = buildDesignPackage(join(site, 'public/downloads'));
+  assert.equal(designPackage.version, manifest.version, 'The design package must match the packed candidate');
   run('npm',['run','build'],site,{...process.env,NEXT_TELEMETRY_DISABLED:'1'});
   run('npm',['run','typecheck'],site);
   run('npm',['run','lint'],site);
