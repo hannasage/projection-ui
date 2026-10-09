@@ -19,6 +19,28 @@ The build supplies `PROJECTION_UI_PACKAGE_DIR` to Storybook.
 That directory contains the installed candidate used by the preview.
 The Storybook configuration refuses a build without that package directory.
 
+## Update the social preview
+
+The landing site, documentation, and Storybook share `docs-site/public/social/projection-ui.png`.
+The shared definition lives in `docs-site/lib/social-preview.ts`.
+Storybook also serves the same image from its own `/social/` directory.
+
+After a documentation build, serve `docs-site/out` on port 4173:
+
+```bash
+python3 -m http.server 4173 --bind 127.0.0.1 --directory docs-site/out
+```
+
+In another terminal, capture the landing components with the fixed preview layout:
+
+```bash
+node scripts/render-social-preview.mjs http://127.0.0.1:4173
+```
+
+The command writes a 1200 by 630 pixel PNG with the local fonts and dark theme.
+Rebuild the documentation to include the updated image.
+Run `npm run test:docs` to test the preview tags and image copies.
+
 ## Start the live preview
 
 ```bash
