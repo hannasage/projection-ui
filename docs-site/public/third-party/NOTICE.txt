@@ -1,0 +1,2 @@
+The landing page uses Three.js 0.180.0, released under the MIT License.
+Read three-MIT.txt for the license and copyright notice.

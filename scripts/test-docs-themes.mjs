@@ -20,7 +20,7 @@ const server = createServer((request, response) => {
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
-const browser = await chromium.launch();
+const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] });
 try {
   for (const width of [390, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
@@ -112,6 +112,12 @@ try {
       await page.getByRole('button', { name: `Switch to ${mode} theme`, exact: true }).click();
       await page.waitForFunction(theme => document.querySelector('.landing-shell')?.getAttribute('data-ui-mode') === theme, mode);
 
+      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+      await page.getByRole('button', { name: 'Copy AI prompt', exact: true }).click();
+      await page.getByRole('status').filter({ hasText: 'Prompt copied.' }).waitFor();
+      const copied = await page.evaluate(() => navigator.clipboard.readText());
+      assert.match(copied, /Oh great AI, take this elite component library/);
+      assert.match(copied, /https:\/\/projectionui\.dev\/docs\//);
       await page.getByRole('textbox', { name: 'Project name' }).fill('A working preview');
       await page.getByRole('button', { name: 'Save project', exact: true }).click();
       await page.getByRole('status').filter({ hasText: 'Saved in this preview.' }).waitFor();
@@ -119,51 +125,98 @@ try {
       await page.evaluate(() => scrollTo(0, 0));
       await page.waitForFunction(() => document.querySelector('.landing-hero').getBoundingClientRect().top >= 0);
       const box = await hero.boundingBox();
-      const core = flow.locator('[data-trail-path="core"]');
+      const canvas = flow.locator('canvas');
+      await page.waitForFunction(() => Number(document.querySelector('.landing-flow')?.dataset.frames) > 0);
+      assert.ok(await canvas.evaluate(node => node.width > 0 && node.height > 0), 'The 3D canvas has a sized drawing buffer');
+      assert.equal(await canvas.evaluate(node => node.getContext('webgl2')?.getContextAttributes().alpha), true, 'The tube renderer keeps the page background transparent');
+      await page.keyboard.press('Escape');
       await page.mouse.move(0, 0);
-      const clip = { x: box.x + 10, y: box.y + 4, width: Math.floor(box.width - 20), height: 40 };
+      const clip = { x: box.x, y: box.y, width: Math.floor(box.width), height: Math.floor(Math.min(box.height, 1000 - box.y)) };
       const idle = PNG.sync.read(await page.screenshot({ clip }));
-      await page.mouse.move(box.x + box.width * .1, box.y + 24);
-      await page.mouse.move(box.x + box.width * .85, box.y + 24, { steps: 16 });
-      await page.waitForFunction(() => document.querySelector('[data-trail-path="core"]')?.getTotalLength() > 30);
-      assert.match(await core.getAttribute('d'), / Q /, 'The trail draws lagging curves rather than translating a static decoration');
+      const before = Number(await flow.getAttribute('data-frames'));
+      await page.mouse.move(box.x + box.width * .15, box.y + Math.min(280, box.height * .3));
+      await page.mouse.move(box.x + box.width * .7, box.y + Math.min(160, box.height * .2), { steps: 16 });
+      await page.waitForFunction(count => Number(document.querySelector('.landing-flow')?.dataset.frames) > count + 3, before);
+      assert.equal(await flow.getAttribute('data-flow-state'), 'active', 'Mouse movement starts the 3D tube response');
       const active = PNG.sync.read(await page.screenshot({ clip }));
       let visiblePixels = 0;
       for (let i = 0; i < idle.data.length; i += 4) {
-        if (Math.max(...[0, 1, 2].map(channel => Math.abs(active.data[i + channel] - idle.data[i + channel]))) >= 10) visiblePixels++;
+        if (Math.max(...[0, 1, 2].map(channel => Math.abs(active.data[i + channel] - idle.data[i + channel]))) >= 12) visiblePixels++;
       }
-      assert.ok(visiblePixels >= 35, `${mode} ${width}px horizontal mouse motion paints visible light (${visiblePixels} pixels)`);
-      await page.screenshot({ path: `/tmp/projection-trail-${mode}-${width}.png`, fullPage: false });
-      await page.waitForFunction(() => document.querySelector('.landing-flow')?.dataset.trailState === 'idle');
-      assert.equal(await core.getAttribute('d'), '', 'The ribbon clears after settling');
+      assert.ok(visiblePixels >= 100, `${mode} ${width}px 3D tube movement paints visible light (${visiblePixels} pixels)`);
+      await page.screenshot({ path: `/tmp/projection-tubes-${mode}-${width}.png`, fullPage: false });
+      await page.waitForFunction(() => document.querySelector('.landing-flow')?.dataset.flowState === 'still');
+      const settled = await flow.getAttribute('data-frames');
+      await page.waitForTimeout(180);
+      assert.equal(await flow.getAttribute('data-frames'), settled, 'Idle input stops GPU frames');
       await page.mouse.move(box.x + box.width * .25, box.y + 26, { steps: 4 });
       await page.keyboard.press('Escape');
-      assert.equal(await core.getAttribute('d'), '', 'Keyboard input clears the decorative trail');
-      await page.mouse.move(box.x + box.width * .55, box.y + 26, { steps: 4 });
-      await page.waitForFunction(() => document.querySelector('[data-trail-path="core"]')?.getTotalLength() > 5);
-      await page.evaluate(() => scrollBy(0, 10));
-      await page.waitForFunction(() => document.querySelector('[data-trail-path="core"]')?.getAttribute('d') === '');
-      assert.equal(await core.getAttribute('d'), '', 'Page scrolling clears the trail without further pointer movement');
+      assert.equal(await flow.getAttribute('data-flow-state'), 'still', 'Keyboard input stops the decorative animation');
+      const keyboardFrames = await flow.getAttribute('data-frames');
+      await page.waitForTimeout(180);
+      assert.equal(await flow.getAttribute('data-frames'), keyboardFrames, 'Keyboard mode leaves no pending animation frames');
       for (const pointerType of ['touch', 'pen']) {
         await hero.dispatchEvent('pointermove', { pointerType, clientX: box.x + 50, clientY: box.y + 24 });
-        assert.equal(await core.getAttribute('d'), '', `${pointerType} does not draw a mouse trail`);
+        assert.equal(await flow.getAttribute('data-flow-state'), 'still', `${pointerType} does not capture the page gesture`);
       }
+      await page.mouse.move(box.x + box.width * .55, box.y + 26, { steps: 4 });
+      await page.evaluate(() => scrollBy(0, 10));
+      await page.waitForFunction(() => document.querySelector('.landing-flow')?.dataset.flowState === 'still');
       await page.setViewportSize({ width, height: 500 });
       await page.locator('.landing-last').scrollIntoViewIfNeeded();
       await page.waitForFunction(() => document.querySelector('.landing-hero').getBoundingClientRect().bottom <= 0);
       assert.ok(await hero.evaluate(node => node.getBoundingClientRect().bottom <= 0), 'Hero is fully outside the viewport before testing its pause');
       await page.waitForFunction(() => document.querySelector('.landing-flow')?.getAttribute('data-in-view') === 'false');
-      assert.equal(await flow.getAttribute('data-trail-state'), 'paused', 'Offscreen hero stops the trail frame loop');
-      assert.equal(await core.getAttribute('d'), '', 'Offscreen clears trail geometry');
+      assert.equal(await flow.getAttribute('data-flow-state'), 'paused', 'Offscreen hero stops GPU rendering');
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await hero.scrollIntoViewIfNeeded();
-      assert.equal(await flow.locator('.landing-flow-canvas').evaluate(node => getComputedStyle(node).display), 'none', 'Reduced motion retains a static arc and removes the mouse ribbon');
+      assert.equal(await flow.locator('.landing-flow-canvas').evaluate(node => getComputedStyle(node).display), 'none', 'Reduced motion removes spatial tube animation');
       await page.emulateMedia({ forcedColors: 'active' });
       assert.equal(await flow.evaluate(node => getComputedStyle(node).display), 'none', 'Forced colors remove decorative light');
       assert.deepEqual(errors, [], 'Landing effects and working controls cause no runtime errors');
       console.log(`Landing ${mode} at ${width}px: retained boot, hydration, live theme switch, Flat, controls, pointer, offscreen pause, reduced motion, and forced colors passed.`);
       await context.close();
     }
+  }
+  for (const failure of ['unavailable', 'lost', 'initial-draw', 'later-draw']) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 900 } });
+    if (failure === 'unavailable') await context.addInitScript(() => {
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+        return type === 'webgl2' || type === 'webgl' ? null : getContext.call(this, type, ...args);
+      };
+    });
+    if (failure.endsWith('draw')) await context.addInitScript(initial => {
+      window.__projectionFailDraw = initial;
+      const drawElements = WebGL2RenderingContext.prototype.drawElements;
+      WebGL2RenderingContext.prototype.drawElements = function(...args) {
+        if (window.__projectionFailDraw) { window.__projectionFailDraw = false; throw new Error('Injected graphics failure'); }
+        return drawElements.apply(this, args);
+      };
+    }, failure === 'initial-draw');
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(origin);
+    const flow = page.locator('.landing-flow');
+    if (failure === 'lost') {
+      await page.waitForFunction(() => Number(document.querySelector('.landing-flow')?.dataset.frames) > 0);
+      await flow.locator('canvas').dispatchEvent('webglcontextlost');
+    }
+    if (failure === 'later-draw') {
+      await page.waitForFunction(() => Number(document.querySelector('.landing-flow')?.dataset.frames) > 0);
+      await page.evaluate(() => { window.__projectionFailDraw = true; });
+      const box = await page.locator('.landing-hero').boundingBox();
+      await page.mouse.move(box.x + 40, box.y + 50);
+    }
+    await page.waitForFunction(() => document.querySelector('.landing-flow')?.dataset.flowState === 'unavailable');
+    if (failure.endsWith('draw')) await page.waitForFunction(() => document.querySelector('.landing-flow canvas').getContext('webgl2').isContextLost());
+    assert.equal(await flow.evaluate(node => getComputedStyle(node).display), 'none');
+    await page.getByRole('textbox', { name: 'Project name' }).fill('Still usable');
+    await page.getByRole('button', { name: 'Save project', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: 'Saved in this preview.' }).waitFor();
+    assert.deepEqual(errors, [], `${failure} leaves controls usable without page errors`);
+    await context.close();
   }
   console.log('Reader examples and explorer links follow light and dark modes at mobile and desktop widths.');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

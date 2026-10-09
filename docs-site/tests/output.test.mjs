@@ -128,3 +128,13 @@ test('the design download matches its version and published fingerprint', async 
   assert.ok(design.inventory.text > 0, 'The kit contains editable text');
   assert.match(read('docs/releases/index.html'), new RegExp(design.filename.replaceAll('.', '\\.')));
 });
+
+test('landing prompt and graphics notices ship with the static preview', () => {
+  const landing = read('index.html');
+  assert.match(landing, /Just give our site to your AI/);
+  assert.match(landing, /Oh great AI, take this elite component library/);
+  assert.match(landing, /Copy AI prompt/);
+  assert.doesNotMatch(landing, /You still have to build the app\. Sorry\./);
+  assert.match(read('third-party/three-MIT.txt'), /The MIT License/);
+  assert.match(landing, /third-party\/NOTICE\.txt/);
+});
