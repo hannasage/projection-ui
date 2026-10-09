@@ -4,7 +4,7 @@ import { Modal } from '@hannasage/projection-ui/core'
 import { Button } from '@hannasage/projection-ui/core'
 import { withTheme } from './decorators'
 
-const meta: Meta<typeof Modal> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },
+const meta: Meta<typeof Modal> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
   component: Modal,
   title:      'Components/Modal',
   decorators: [withTheme],

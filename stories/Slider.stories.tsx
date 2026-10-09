@@ -4,7 +4,7 @@ import { Slider } from '@hannasage/projection-ui/core'
 import { withTheme, darkTheme } from './decorators'
 import { ThemeProvider } from '@hannasage/projection-ui/core'
 
-const meta: Meta<typeof Slider> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },
+const meta: Meta<typeof Slider> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/core`. This entry requires React and React DOM. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
   title:      'Components/Slider',
   component:  Slider,
   decorators: [withTheme],

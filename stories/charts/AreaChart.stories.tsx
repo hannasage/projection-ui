@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { DEFAULT_CHART_COLORS, AreaChart } from '@hannasage/projection-ui/charts'
 import { withTheme } from '../decorators'
 
-const meta: Meta<typeof AreaChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },
+const meta: Meta<typeof AreaChart> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/charts`. This entry requires React and React DOM, and Recharts. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },
   title:      'Charts/AreaChart',
   component:  AreaChart,
   render: args => <><AreaChart {...args} /><table tabIndex={0}><caption>Synthetic chart values</caption><thead><tr><th scope="col">Label</th>{args.series.map(series => <th key={series.key} scope="col">{series.label ?? series.key}</th>)}</tr></thead><tbody>{args.data.map((row, index) => <tr key={index}><th scope="row">{String(row[args.xKey])}</th>{args.series.map(series => <td key={series.key}>{String(row[series.key])}</td>)}</tr>)}</tbody></table></>,

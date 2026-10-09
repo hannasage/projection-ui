@@ -3,7 +3,7 @@ import { ToastContainer, useToastStore } from '@hannasage/projection-ui/toast'
 import { Button } from '@hannasage/projection-ui/core'
 import { withTheme } from './decorators'
 
-const meta: Meta<typeof ToastContainer> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/toast`. This entry requires React and React DOM, and Zustand. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/831d9aecaca2bcff1c4ea55d85a85636453f1982/docs/components.md) for required props and interaction behavior.' } } },  title: 'Components/ToastContainer', component: ToastContainer, decorators: [withTheme], tags: ['autodocs'] }
+const meta: Meta<typeof ToastContainer> = { parameters: { docs: { description: { component: 'Import from `@hannasage/projection-ui/toast`. This entry requires React and React DOM, and Zustand. Read the [component contracts](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md) for required props and interaction behavior.' } } },  title: 'Components/ToastContainer', component: ToastContainer, decorators: [withTheme], tags: ['autodocs'] }
 export default meta
 type Story = StoryObj<typeof ToastContainer>
 
