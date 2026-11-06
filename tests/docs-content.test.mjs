@@ -117,7 +117,8 @@ test('landing has its own layout and keeps an explicit reader home', async () =>
   assert.match(landing,/href="\/docs\/"/);
   assert.match(landing,/gallery-components--paired/);
   assert.match(landing,/useState\('neon'\)/);
-  assert.match(landing,/COASTAL_DAY_THEME/);
+  const landingTheme = readFileSync(new URL('../docs-site/components/landing-theme.ts',import.meta.url),'utf8');
+  assert.match(landingTheme,/COASTAL_DAY_THEME/);
   assert.match(landing,/COASTAL_DAY_FLAT_THEME/);
   assert.match(reader,/VersionedLayout/);
   assert.doesNotMatch(readFileSync(new URL('../docs-site/app/(docs)/layout.tsx',import.meta.url),'utf8'),/DocsLayout/);

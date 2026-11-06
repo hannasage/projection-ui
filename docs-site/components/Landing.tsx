@@ -1,39 +1,18 @@
 'use client';
 import { useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { useTheme } from 'fumadocs-ui/provider/base';
-import { Avatar, Badge, Button, ButtonGroup, Card, GradientBackground, GradientText, Input, LinkButton, THEME_PRESETS, Progress, PROJECTION_FLAT_THEME, COASTAL_DAY_FLAT_THEME, COASTAL_DAY_THEME, PROJECTION_THEME, Slider, ThemeProvider, Toggle } from '@hannasage/projection-ui/core';
+import { Avatar, Badge, Button, ButtonGroup, Card, GradientBackground, GradientText, Input, LinkButton, Progress, PROJECTION_FLAT_THEME, COASTAL_DAY_FLAT_THEME, Slider, ThemeProvider, Toggle } from '@hannasage/projection-ui/core';
 import '@hannasage/projection-ui/styles';
 import { NavLight } from './NavLight';
 import { useLandingMotion } from './useLandingMotion';
 import { useAppearanceAudio } from './useAppearanceAudio';
 import { FigmaMark } from './FigmaMark';
 import { ThemePicker } from './ThemePicker';
+import { bootstrapPalette, pairs } from './landing-theme';
 import { SpringGlyph } from './SpringGlyph';
 import './armature.css';
 
-// The theme bootstrap script runs before React. Keep its palette through hydration.
-export const bootstrapPalette = {
-  '--ui-bg': 'var(--color-fd-background)',
-  '--ui-surface': 'var(--color-fd-card)',
-  '--ui-text': 'var(--color-fd-foreground)',
-  '--ui-muted': 'var(--color-fd-muted-foreground)',
-  '--ui-border': 'var(--color-fd-border)',
-  '--ui-primary': 'var(--color-fd-primary)',
-  '--ui-primary-fg': 'var(--color-fd-primary-foreground)',
-  '--ui-partner': 'var(--landing-boot-partner)',
-  '--ui-accent-end': 'var(--landing-boot-partner)',
-  '--ui-accent-text': 'var(--color-fd-foreground)',
-  '--ui-gradient-start': 'var(--color-fd-foreground)',
-  '--ui-gradient-end': 'color-mix(in srgb, var(--color-fd-foreground) 72%, var(--color-fd-primary))',
-};
-
 const AI_PROMPT = "Oh great AI, take this elite component library and make my project super shiny and cool, like Hanna's projects! Read https://projectionui.dev/docs/ for setup, components, and themes. Then do your thing.";
-
-export const pairs = {
-  core: { label: 'Projection / Coastal Day', dark: PROJECTION_THEME, light: COASTAL_DAY_THEME, particles: { dark: '#D8FF87', light: '#086C9E' } },
-  ember: { label: 'Ember Tide / Dust & Flame', dark: THEME_PRESETS['ember-tide'], light: THEME_PRESETS['dust-and-flame'], particles: { dark: '#FFB66F', light: '#9B4214' } },
-  bloom: { label: 'Noir Bloom / Confetti Studio', dark: THEME_PRESETS['noir-bloom'], light: THEME_PRESETS['confetti-studio'], particles: { dark: '#FF8CCD', light: '#7635A4' } },
-};
 
 const subscribeToHydration = () => () => {};
 const clientReady = () => true;
@@ -134,7 +113,7 @@ export function Landing() {
             <p>The physics motion engine built alongside Projection UI. Use it on its own.</p>
             <span className="armature-card-go">See how it moves <ArrowIcon /></span>
           </div>
-          <SpringGlyph />
+          <SpringGlyph decorative />
         </a>
       </section>
       <section className="landing-last" aria-labelledby="landing-last-title">
@@ -145,7 +124,7 @@ export function Landing() {
         </div>
       </section>
     </main>
-    <footer className="landing-footer"><div className="landing-footer-inner"><span>Projection UI</span><nav aria-label="Footer navigation"><a href="/docs/">Documentation</a><a href="https://github.com/hannasage/projection-ui">Source</a><a href="/font-licenses/NOTICE.txt">Font licenses</a><a href="/third-party/NOTICE.txt">Graphics license</a></nav><span>Being built to build things that look good.</span></div></footer>
+    <footer className="landing-footer"><div className="landing-footer-inner"><span>Projection UI</span><nav aria-label="Footer navigation"><a href="/docs/">Documentation</a><a href="/armature/">Armature</a><a href="https://github.com/hannasage/projection-ui">Source</a><a href="/font-licenses/NOTICE.txt">Font licenses</a><a href="/third-party/NOTICE.txt">Graphics license</a></nav><span>Being built to build things that look good.</span></div></footer>
   </ThemeProvider>;
 }
 

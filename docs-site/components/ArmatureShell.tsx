@@ -3,7 +3,7 @@ import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } fr
 import { useTheme } from 'fumadocs-ui/provider/base';
 import { ThemeProvider } from '@hannasage/projection-ui/core';
 import '@hannasage/projection-ui/styles';
-import { bootstrapPalette, pairs } from './Landing';
+import { bootstrapPalette, pairs } from './landing-theme';
 import { NavLight } from './NavLight';
 import { ThemePicker } from './ThemePicker';
 import './armature.css';
@@ -28,11 +28,11 @@ export function ArmatureShell({ children }: { children: ReactNode }) {
       <a href="/" className="landing-wordmark">Projection UI<span aria-hidden="true">.</span></a>
       <nav aria-label="Main navigation">
         <a href="/docs/">Docs</a><a href="/examples/?path=/story/gallery-components--paired">Gallery</a><a href="/armature/" aria-current="page">Armature</a>
-        <ThemePicker pairs={pairs} pair={pair} onPair={setPair} light={light} palette={palette} themeName={palette.name ?? selected.label} mode={mode} nextMode={nextMode} onMode={setTheme} />
+        <ThemePicker pairs={pairs} pair={pair} onPair={setPair} light={light} palette={palette} themeName={palette.name} mode={mode} nextMode={nextMode} onMode={setTheme} />
       </nav>
       <NavLight flat={false} color={particleColor} />
     </header>
     <main id="nd-page" tabIndex={-1} className="landing-main armature-main">{children}</main>
-    <footer className="landing-footer"><div className="landing-footer-inner"><span>Projection UI</span><nav aria-label="Footer navigation"><a href="/docs/">Documentation</a><a href="https://github.com/hannasage/projection-ui">Source</a><a href="/font-licenses/NOTICE.txt">Font licenses</a><a href="/third-party/NOTICE.txt">Graphics license</a></nav><span>Projection UI and Armature are separate packages. Armature is MIT licensed.</span></div></footer>
+    <footer className="landing-footer"><div className="landing-footer-inner"><span>Projection UI</span><nav aria-label="Footer navigation"><a href="/docs/">Documentation</a><a href="/armature/">Armature</a><a href="https://github.com/hannasage/projection-ui">Source</a><a href="/font-licenses/NOTICE.txt">Font licenses</a><a href="/third-party/NOTICE.txt">Graphics license</a></nav><span>Projection UI and Armature are separate packages. Armature is MIT licensed.</span></div></footer>
   </ThemeProvider>;
 }
