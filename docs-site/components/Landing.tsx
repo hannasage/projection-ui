@@ -7,9 +7,12 @@ import { NavLight } from './NavLight';
 import { useLandingMotion } from './useLandingMotion';
 import { useAppearanceAudio } from './useAppearanceAudio';
 import { FigmaMark } from './FigmaMark';
+import { ThemePicker } from './ThemePicker';
+import { SpringGlyph } from './SpringGlyph';
+import './armature.css';
 
 // The theme bootstrap script runs before React. Keep its palette through hydration.
-const bootstrapPalette = {
+export const bootstrapPalette = {
   '--ui-bg': 'var(--color-fd-background)',
   '--ui-surface': 'var(--color-fd-card)',
   '--ui-text': 'var(--color-fd-foreground)',
@@ -26,7 +29,7 @@ const bootstrapPalette = {
 
 const AI_PROMPT = "Oh great AI, take this elite component library and make my project super shiny and cool, like Hanna's projects! Read https://projectionui.dev/docs/ for setup, components, and themes. Then do your thing.";
 
-const pairs = {
+export const pairs = {
   core: { label: 'Projection / Coastal Day', dark: PROJECTION_THEME, light: COASTAL_DAY_THEME, particles: { dark: '#D8FF87', light: '#086C9E' } },
   ember: { label: 'Ember Tide / Dust & Flame', dark: THEME_PRESETS['ember-tide'], light: THEME_PRESETS['dust-and-flame'], particles: { dark: '#FFB66F', light: '#9B4214' } },
   bloom: { label: 'Noir Bloom / Confetti Studio', dark: THEME_PRESETS['noir-bloom'], light: THEME_PRESETS['confetti-studio'], particles: { dark: '#FF8CCD', light: '#7635A4' } },
@@ -63,27 +66,8 @@ export function Landing() {
     <header className="landing-nav">
       <a href="/" className="landing-wordmark">Projection UI<span aria-hidden="true">.</span></a>
       <nav aria-label="Main navigation">
-        <a href="/docs/">Docs</a><a href="/examples/?path=/story/gallery-components--paired">Gallery</a>
-        <details className="landing-theme-picker" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
-          <summary aria-label="Choose theme" title="Themes" style={{ backgroundImage: `linear-gradient(135deg, ${palette.primary}, ${palette.partner})`, color: palette.primaryFg }}><PaletteIcon /></summary>
-          <div className="landing-theme-menu">
-            <p>Flexing on you with our themes lol</p>
-            <div className="landing-theme-grid" role="group" aria-label="Theme palettes">
-              {(Object.keys(pairs) as (keyof typeof pairs)[]).map(key => {
-                const value = pairs[key];
-                const swatch = light ? value.light : value.dark;
-                const active = pair === key;
-                const gradient = key === 'core'
-                  ? `linear-gradient(135deg, ${value.dark.primary}, ${value.dark.partner} 50%, ${value.light.primary} 50%, ${value.light.partner})`
-                  : `linear-gradient(135deg, ${swatch.primary}, ${swatch.partner})`;
-                return <button key={key} type="button" className="landing-theme-swatch" aria-label={value.label} title={value.label} aria-pressed={active} style={{ backgroundImage: gradient, color: swatch.primaryFg }} onClick={() => setPair(key)}>
-                  {active && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>}
-                </button>;
-              })}
-            </div>
-            <div className="landing-theme-footer"><span className="landing-theme-current">{theme.name}</span><button type="button" className="landing-mode-control" data-color-mode={mode} aria-label={`Color mode: ${mode}. Switch to ${nextMode}.`} title={`Color mode: ${mode}. Switch to ${nextMode}.`} onClick={() => setTheme(nextMode)}><ModeIcon mode={mode} /></button></div>
-          </div>
-        </details>
+        <a href="/docs/">Docs</a><a href="/examples/?path=/story/gallery-components--paired">Gallery</a><a href="/armature/">Armature</a>
+        <ThemePicker pairs={pairs} pair={pair} onPair={setPair} light={light} palette={palette} themeName={theme.name} mode={mode} nextMode={nextMode} onMode={setTheme} />
       </nav>
       <NavLight flat={appearance === 'flat'} color={particleColor} />
     </header>
@@ -142,6 +126,17 @@ export function Landing() {
           <a className="landing-figma-guide" href="https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/">Connect Figma to your agent <ArrowIcon /></a>
         </div>
       </section>
+      <section className="armature-teaser" aria-labelledby="armature-teaser-title">
+        <a className="armature-card" href="/armature/">
+          <div className="armature-card-copy">
+            <span className="armature-pill"><i aria-hidden="true" />Pre-release</span>
+            <h2 id="armature-teaser-title">Armature</h2>
+            <p>The physics motion engine built alongside Projection UI. Use it on its own.</p>
+            <span className="armature-card-go">See how it moves <ArrowIcon /></span>
+          </div>
+          <SpringGlyph />
+        </a>
+      </section>
       <section className="landing-last" aria-labelledby="landing-last-title">
         <div data-scroll-scene="closing">
           <GradientText as="h2" id="landing-last-title">Go forth, make incredible things.</GradientText>
@@ -158,8 +153,4 @@ function ArrowIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="curre
 function SparkleIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" /><path d="M20 2v4M18 4h4" /></svg>; }
 function StarIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m10 2 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9L7.5 7Z" /></svg>; }
 
-function PaletteIcon() { return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M10 2a8 8 0 1 0 0 16h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.6H15a3 3 0 0 0 3-3.2A8 8 0 0 0 10 2Z" /><path d="M6 6h.01M10 5h.01M14 7h.01M5 10h.01" strokeLinecap="round" strokeWidth="2.5" /></svg>; }
-
 function SoundIcon({ active }: { active: boolean }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m11 5-5 4H3v6h3l5 4Z" />{active ? <><path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14" /></> : <path d="m16 9 6 6m0-6-6 6" />}</svg>; }
-
-function ModeIcon({ mode }: { mode: string }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">{mode === 'system' ? <><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4" /></> : mode === 'light' ? <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" /></> : <path d="M20.5 13A9 9 0 0 1 11 3.5 9 9 0 1 0 20.5 13Z" />}</svg>; }

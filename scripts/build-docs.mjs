@@ -69,7 +69,7 @@ try {
   writeFileSync(join(site, 'public/archives/0.1.5/llms.txt'), '# Projection UI 0.1.5\n\n' + legacy.map(record => `- [${record.title}](https://projectionui.dev/archives/0.1.5/markdown/${record.slug}.md)`).join('\n') + '\n');
   writeFileSync(join(site, 'public/archives/0.1.5/llms-full.txt'), legacy.map(record => record.markdown).join('\n\n'));
   writeFileSync(join(site, 'public/docs-versions.json'), JSON.stringify({ current: edition.label, packageVersion: manifest.version, versions: docsVersions }, null, 2) + '\n');
-  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n');
+  writeFileSync(join(site,'public/llms.txt'),`# Projection UI\n\nReact component and token documentation for ${manifest.version}.\n\n`+records.map(record=>`- [${record.title}](https://projectionui.dev/markdown/${record.slug}.md)`).join('\n')+'\n\n## Optional\n\n- [Armature](https://projectionui.dev/armature/): a pre-release physics motion engine. It is a separate package from Projection UI.\n');
   writeFileSync(join(site,'public/llms-full.txt'),records.map(record=>record.markdown).join('\n\n'));
   writeFileSync(join(site,'public/release.json'),JSON.stringify({name:manifest.name,version:manifest.version,integrity:packed.packed.integrity},null,2)+'\n');
   cpSync(join(repository, 'CHANGELOG.md'), join(site, 'public/changelog.md'));

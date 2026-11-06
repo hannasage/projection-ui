@@ -8,7 +8,7 @@ import { socialPreview } from '../docs-site/lib/social-preview.ts';
 
 const root = resolve('docs-site/out');
 const contracts = JSON.parse(readFileSync('docs/component-contracts.json', 'utf8'));
-const routes = ['/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
+const routes = ['/', '/armature/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
 routes.push(...['', 'installation', 'theming', 'components', 'toasts', 'examples'].map(slug => `/docs/0.1.5/${slug ? slug + '/' : ''}`));
 const mime = {'.zip':'application/zip','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
 function staticServer(root) {
@@ -59,6 +59,7 @@ try {
     const currentEdition = editions.versions.find(edition => edition.id === 'current');
     const titles = {
       '/': 'Projection UI · Yes. Another UI library.',
+      '/armature/': 'Armature · Projection UI',
       '/docs/': 'Projection UI · Projection UI',
       '/docs/installation/': 'Installation · Projection UI',
       '/docs/0.1.5/': 'Projection UI 0.1.5 · 0.1.5 · Projection UI',
@@ -78,6 +79,7 @@ try {
         assert.equal(await crawlerPage.locator('head link[rel="canonical"]').getAttribute('href'), canonicalOrigin + route, `The route keeps its canonical URL: ${route}`);
         const description = route === '/'
           ? 'React components, glass morphism, and themes. Give your AI the prompt or try the live Storybook.'
+          : route === '/armature/' ? 'A physics motion engine for the web. Play with a live spring and see how flavors give each product its own way of moving.'
           : route.startsWith('/docs/0.1.5/') ? 'Projection UI 0.1.5 archive' : `Projection UI ${currentEdition.label} ${currentEdition.status}`;
         assert.equal(await crawlerPage.locator('head meta[name="description"]').getAttribute('content'), description, `The route keeps its SEO description: ${route}`);
         if (titles[route]) assert.equal(await crawlerPage.title(), titles[route], `The route keeps its SEO title: ${route}`);
@@ -182,6 +184,42 @@ try {
         await page.locator('.landing-theme-picker summary').click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
 
+      }
+      if (route === '/armature/') {
+        const stat = async label => page.locator('.armature-stat', { hasText: label }).locator('strong').innerText();
+        await page.getByRole('heading', { level: 1, name: 'Armature', exact: true }).waitFor();
+        assert.equal(await stat('damping ratio'), '0.572', 'The lab opens on the Mechanical spring');
+        assert.equal(await stat('overshoot'), '9.0%');
+        assert.equal(await stat('settles in'), '225 ms');
+        await page.getByRole('button', { name: 'Settle', exact: true }).click();
+        assert.equal(await page.getByRole('button', { name: 'Settle', exact: true }).getAttribute('aria-pressed'), 'true', 'The chosen preset is marked pressed');
+        assert.equal(await stat('overshoot'), '0.0%', 'The Settle spring does not overshoot');
+        for (const name of ['stiffness k', 'damping c', 'mass m']) await page.getByRole('slider', { name, exact: true }).waitFor();
+        const mass = page.getByRole('slider', { name: 'mass m', exact: true });
+        await mass.focus();
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.locator('.armature-presets button[aria-pressed="true"]').count(), 0, 'A moved slider leaves no preset marked');
+        assert.match(await page.locator('.armature-chart-svg').getAttribute('aria-describedby'), /./, 'The chart points at a text description');
+        assert.match(await page.locator('.armature-sr[aria-live]').innerText(), /^Position moves from 0 toward a target of 1\./, 'The chart has a text description');
+        const toggle = page.getByRole('switch', { name: 'Mechanical toggle', exact: true });
+        await toggle.focus();
+        await page.keyboard.press('Space');
+        assert.equal(await toggle.getAttribute('aria-checked'), 'true', 'The switch turns on from the keyboard');
+        await page.waitForFunction(() => document.querySelector('[aria-label="Mechanical toggle"]').style.getPropertyValue('--v') === '1.0000');
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await toggle.click();
+        assert.equal(await toggle.evaluate(node => node.style.getPropertyValue('--v')), '0.0000', 'Reduced motion snaps the switch with no animation');
+        await page.emulateMedia({ reducedMotion: null });
+        const copy = await page.locator('#nd-page').innerText();
+        assert.doesNotMatch(copy, /behind Projection UI/i, 'The page does not claim Projection UI uses Armature');
+        assert.doesNotMatch(copy, /npm (install|i) /, 'The page shows no install command');
+        assert.match(copy, /semi-implicit Euler at 1\/120 second/);
+      }
+      if (route === '/') {
+        const card = page.locator('a.armature-card');
+        assert.equal(await card.getAttribute('href'), '/armature/', 'The landing links to the Armature page');
+        assert.match(await card.innerText(), /The physics motion engine built alongside Projection UI\. Use it on its own\./);
+        assert.equal(await card.locator('svg[role="img"] path').count(), 1, 'The card draws one spring curve');
       }
       if (['/','/docs/components/card/'].includes(route)) {
         for (const iframe of await page.locator('.component-example iframe').all()) {
