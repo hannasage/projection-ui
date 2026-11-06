@@ -64,6 +64,9 @@
 
 .armature-code { margin: 18px 0 0; padding: 16px 18px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-lg); background: var(--ui-surface); color: var(--landing-ink); font: 13px/1.6 var(--reader-code), monospace; }
 .armature-code code { font: inherit; }
+.armature-install-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 12px 0 18px; }
+.armature-install-actions button { min-height: 44px; }
+.armature-install-actions .landing-prompt-status { margin-top: 0; }
 .armature-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; margin: 24px 0 0; padding: 0; list-style: none; }
 .armature-facts li { padding-top: 10px; border-top: 1px solid var(--landing-border); font-size: 15px; }
 .armature-facts li span { display: block; color: var(--landing-muted); font: 12px var(--reader-code), monospace; }
