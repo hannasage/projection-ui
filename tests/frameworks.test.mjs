@@ -45,7 +45,7 @@ test('Next App Router builds both server and client components from the packed p
   writeFileSync(join(packed.fixture, 'next.config.mjs'), 'export default { experimental: { cpus: 1 }, devIndicators: false }\n');
   writeFileSync(join(packed.fixture, 'tsconfig.json'), JSON.stringify({compilerOptions:{target:'ES2020',lib:['DOM','DOM.Iterable','ESNext'],strict:true,module:'ESNext',moduleResolution:'bundler',jsx:'react-jsx',esModuleInterop:true,skipLibCheck:true,noEmit:true},include:['app/**/*.tsx','next-env.d.ts']}));
   const manifest = JSON.parse(readFileSync(join(packed.fixture, 'package.json')));
-  manifest.dependencies = {'@hannasage/projection-ui': 'file:../' + packed.packed.filename, next:'16.4.0', react:'19.2.5', 'react-dom':'19.2.5'};
+  manifest.dependencies = {'@hannasage/projection-ui': 'file:../' + packed.packed.filename, next:'16.4.1', react:'19.2.5', 'react-dom':'19.2.5'};
   writeFileSync(join(packed.fixture, 'package.json'), JSON.stringify(manifest));
   // The framework sees one intentionally created lockfile, never another workspace's.
   writeFileSync(join(packed.fixture, 'package-lock.json'), JSON.stringify({name:manifest.name,version:'1.0.0',lockfileVersion:3,packages:{'':{name:manifest.name,version:'1.0.0',dependencies:manifest.dependencies}}}));
