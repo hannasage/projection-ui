@@ -8,7 +8,7 @@ const {name, version} = JSON.parse(readFileSync('package.json', 'utf8'));
 assert.equal(name, '@hannasage/projection-ui');
 const channel = releaseChannel(version);
 assert.notEqual(channel, 'legacy', 'Legacy publishing requires a reviewed maintenance checkout and its own artifact gates; this workflow cannot publish 0.1.x');
-assert.match(version, /^0\.2\.0(?:-next\.\d+)?$/, 'Only the reviewed 0.2.0 release line can publish');
+assert.match(version, /^1\.0\.0(?:-beta\.\d+)?$/, 'Only the reviewed 1.0.0 release line can publish');
 assert.equal(process.env.GITHUB_REF, `refs/tags/v${version}`, 'Tag must match the package version');
 const escapedVersion = version.replaceAll('.', '\\.');
 assert.match(readFileSync('CHANGELOG.md', 'utf8'), new RegExp(`^##[ \\t]+${escapedVersion}(?=[ \\t]|$)`, 'm'), 'Changelog must have a heading for this exact version');

@@ -64,7 +64,7 @@ export function Landing() {
             <a href="/examples/?path=/story/gallery-components--paired">Poke the components</a>
           </div>
           <p className="landing-prompt-status" role="status">{promptStatus}</p>
-          <p className="landing-release">Alpha · 0.2.0-next.2 · Candidate</p>
+          <p className="landing-release">Beta · 1.0.0-beta.0 · Candidate</p>
         </div>
         <div className="landing-demo" data-scroll-scene="demo">
           <div className="landing-demo-toolbar"><span>An appetizer while you wait.</span><div className="landing-appearance-controls"><ButtonGroup aria-label="Preview appearance" value={appearance} onChange={next => { setAppearance(next); sounds.play(next); }} options={[{value:'neon',label:'Modern'},{value:'flat',label:'Flat'}]} /><button type="button" className="landing-sound-control" aria-label={sounds.active ? 'Mute style sounds' : 'Enable style sounds'} title={sounds.status === 'unavailable' ? 'Style sounds unavailable' : sounds.active ? 'Mute style sounds' : 'Enable style sounds'} data-audio-status={sounds.status} disabled={sounds.status === 'unavailable'} onClick={() => sounds.toggle(appearance)}><SoundIcon active={sounds.active} /></button></div></div>
@@ -95,9 +95,9 @@ export function Landing() {
           <GradientBackground variant="spotlight" className="landing-figma-tools">
             <FigmaMark flat={appearance === 'flat'} primary={palette.primary} partner={palette.partner} ink={palette.text} light={light} />
             <ul><li>Native components</li><li>Editable text</li><li>Theme variables</li></ul>
-            <p>Light and dark. Modern and Flat. Kit 0.2.0-next.2.</p>
+            <p>Light and dark. Modern and Flat. Kit 1.0.0-beta.0.</p>
             <div className="landing-actions">
-              <LinkButton className="landing-glow-button" data-proximity-glow variant="primary" appearance="gradient" href="/downloads/projection-ui-design-0.2.0-next.2.zip" download>Download Figma kit <ArrowIcon /></LinkButton>
+              <LinkButton className="landing-glow-button" data-proximity-glow variant="primary" appearance="gradient" href="/downloads/projection-ui-design-1.0.0-beta.0.zip" download>Download Figma kit <ArrowIcon /></LinkButton>
               <LinkButton className="landing-outline landing-glow-button" data-proximity-glow href="/docs/releases/#editable-figma-kit" style={{ background: 'transparent', color: 'var(--ui-accent-text)', borderColor: 'var(--ui-primary)' }}>Import instructions <ArrowIcon /></LinkButton>
             </div>
             <p className="landing-figma-note">The ZIP is a local importer package, not a .fig file.</p>

@@ -6,8 +6,8 @@ import { delimiter, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 
-test('release channels keep legacy patches separate from the next alpha and stable current line', () => {
-  for (const [version, channel] of [['0.1.5', 'legacy'], ['0.1.6', 'legacy'], ['0.1.99', 'legacy'], ['0.2.0-next.0', 'next'], ['0.2.0-next.2', 'next'], ['0.2.0-next.73', 'next'], ['0.2.0', 'latest'], ['0.2.1', 'latest'], ['0.2.99', 'latest']]) assert.equal(releaseChannel(version), channel, version);
+test('release channels keep legacy patches separate from the beta and stable current line', () => {
+  for (const [version, channel] of [['0.1.5', 'legacy'], ['0.1.6', 'legacy'], ['0.1.99', 'legacy'], ['1.0.0-beta.0', 'beta'], ['1.0.0-beta.2', 'beta'], ['1.0.0-beta.73', 'beta'], ['1.0.0', 'latest'], ['1.0.1', 'latest'], ['1.2.99', 'latest']]) assert.equal(releaseChannel(version), channel, version);
 });
 
 test('the publisher keeps the reviewed archive, provenance, and channel while legacy releases fail before npm', () => {
@@ -19,7 +19,7 @@ test('the publisher keeps the reviewed archive, provenance, and channel while le
     const executable = join(temporary, 'bin', 'npm');
     writeFileSync(executable, `#!/usr/bin/env node\nrequire('node:fs').writeFileSync(process.env.CAPTURE_NPM_ARGS, JSON.stringify(process.argv.slice(2)));\n`);
     chmodSync(executable, 0o755);
-    for (const [version, channel] of [['0.2.0-next.2', 'next'], ['0.2.0', 'latest'], ['0.1.6', 'legacy']]) {
+    for (const [version, channel] of [['1.0.0-beta.2', 'beta'], ['1.0.0', 'latest'], ['0.1.6', 'legacy']]) {
       const archive = `hannasage-projection-ui-${version}.tgz`;
       writeFileSync(join(temporary, 'package.json'), JSON.stringify({ name: '@hannasage/projection-ui', version }));
       writeFileSync(join(temporary, 'CHANGELOG.md'), `## ${version}\n`);
@@ -29,7 +29,7 @@ test('the publisher keeps the reviewed archive, provenance, and channel while le
       if (channel === 'legacy') {
         assert.notEqual(result.status, 0);
         assert.match(result.stderr, /reviewed maintenance checkout/);
-        assert.deepEqual(JSON.parse(readFileSync(captured, 'utf8')), ['publish', join(temporary, 'release', 'hannasage-projection-ui-0.2.0.tgz'), '--access', 'public', '--provenance', '--tag', 'latest', '--ignore-scripts'], 'legacy verification must not call npm');
+        assert.deepEqual(JSON.parse(readFileSync(captured, 'utf8')), ['publish', join(temporary, 'release', 'hannasage-projection-ui-1.0.0.tgz'), '--access', 'public', '--provenance', '--tag', 'latest', '--ignore-scripts'], 'legacy verification must not call npm');
       } else {
         assert.equal(result.status, 0, result.stderr);
         assert.deepEqual(JSON.parse(readFileSync(captured, 'utf8')), ['publish', join(temporary, 'release', archive), '--access', 'public', '--provenance', '--tag', channel, '--ignore-scripts']);
@@ -41,7 +41,7 @@ test('the publisher keeps the reviewed archive, provenance, and channel while le
 
 test('the approved modern workflow keeps legacy tags outside modern docs and design-kit gates', () => {
   const workflow = readFileSync(new URL('../.github/workflows/publish.yml', import.meta.url), 'utf8');
-  assert.match(workflow, /tags: \['v0\.2\.0', 'v0\.2\.0-next\.\*'\]/);
+  assert.match(workflow, /tags: \['v1\.0\.0', 'v1\.0\.0-beta\.\*'\]/);
   assert.doesNotMatch(workflow, /tags:.*v0\.1/);
   assert.match(workflow, /environment: npm-publish/);
   assert.match(workflow, /id-token: write/);
@@ -51,5 +51,5 @@ test('the approved modern workflow keeps legacy tags outside modern docs and des
 });
 
 test('unknown release lines and malformed versions cannot select an npm channel', () => {
-  for (const version of ['0.1.6-next.0', '0.2.1-next.0', '0.2.0-beta.1', '0.2.0-next.01', '0.2.01', '0.2.0+build', 'v0.2.0', '0.3.0', '1.0.0', '', null]) assert.throws(() => releaseChannel(version), /Unsupported release version/, String(version));
+  for (const version of ['0.1.6-beta.0', '1.1.0-beta.0', '1.0.0-next.0', '1.0.0-beta.01', '1.0.0-beta', '1.0.01', '01.0.0', '1.0.0+build', '1.0.0-beta.0+build', 'v1.0.0', 'v1.0.0-beta.0', '0.2.0', '0.2.0-next.2', '0.3.0', '2.0.0', '', null]) assert.throws(() => releaseChannel(version), /Unsupported release version/, String(version));
 });

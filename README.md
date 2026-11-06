@@ -19,12 +19,12 @@ You still have to build the app.
 
 ![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/materials-paired.png)
 
-`0.2.0-next.2` is an unpublished candidate.
-The current documentation is one evolving `0.2.0` edition, marked Alpha.
-An alpha is a preview that can change before stable release.
+`1.0.0-beta.0` is an unpublished candidate.
+The current documentation is one evolving `1.0.0` edition, marked Beta.
+A beta is a preview that can change before stable release.
 The screenshots show real components from the packed library.
 The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
-The component examples below describe 0.2, while the preserved documentation covers the published `0.1.5` package.
+The component examples below describe 1.0, while the preserved documentation covers the published `0.1.5` package.
 
 <img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
@@ -38,31 +38,31 @@ npm install @hannasage/projection-ui@0.1
 
 The current stable release is `0.1.5`.
 Use its root imports and [preserved documentation](https://projectionui.dev/docs/0.1.5/installation/) for feature dependency requirements.
-The 0.2 examples below require a 0.2 alpha package.
+The 1.0 examples below require a 1.0 beta package.
 
-npm currently has only 0.1.x releases and no `next` tag.
-The alpha commands below are post-publication steps and do not work today.
-After an alpha is published under `next`, opt in with:
+npm currently has only 0.1.x releases and no `beta` tag.
+The beta commands below are post-publication steps and do not work today.
+After a beta is published under `beta`, opt in with:
 
 ```bash
-npm install --save-exact @hannasage/projection-ui@next
+npm install --save-exact @hannasage/projection-ui@beta
 ```
 
-`--save-exact` keeps later alpha and stable updates manual.
+`--save-exact` keeps later beta and stable updates manual.
 It saves the resolved version instead of a version range.
 
-After `0.2.0-next.2` appears on npm, pin that exact version with:
+After `1.0.0-beta.0` appears on npm, pin that exact version with:
 
 ```bash
-npm install --save-exact @hannasage/projection-ui@0.2.0-next.2
+npm install --save-exact @hannasage/projection-ui@1.0.0-beta.0
 ```
 
-In an existing React 19 application, install one 0.2 Projection UI package.
+In an existing React 19 application, install one 1.0 Projection UI package.
 The library manages its chart, drag, and toast dependencies.
 npm downloads them automatically with the package.
 React 19 and React DOM 19 stay shared with your application.
 They are peer dependencies: packages that your application supplies.
-The alpha does not promise 1.0 API stability.
+The beta can still change before the stable 1.0.0 release.
 Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
 
 ### Review the candidate locally
@@ -249,7 +249,7 @@ The [text index](https://projectionui.dev/llms.txt) links all guides and compone
 Read [the component reference](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md), [theme guide](https://projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/development.md).
 Read [the release contract](https://projectionui.dev/docs/releases/) before publication.
 
-Download the [matching Figma design kit](https://projectionui.dev/downloads/projection-ui-design-0.2.0-next.2.zip) for editable mockups.
+Download the [matching Figma design kit](https://projectionui.dev/downloads/projection-ui-design-1.0.0-beta.0.zip) for editable mockups.
 Its local importer creates native components, text, variables, and Modern/Flat theme variants.
 The kit includes its source inventory and the React contracts without a matching design category.
 

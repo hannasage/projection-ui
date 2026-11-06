@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0-beta.0 first beta
+
+This is the first beta of v1.
+It moves the prerelease channel from `next` to `beta` and sets the version line to 1.0.0.
+
+- Publish prereleases under the npm `beta` tag instead of `next`.
+- Name prerelease versions `1.0.0-beta.N`, and stable v1 versions `1.x.y` under `latest`.
+- Accept the `v1.0.0` and `v1.0.0-beta.*` release tags.
+- Name the matching design kit `projection-ui-design-1.0.0-beta.0.zip`.
+- Label the current documentation edition `1.0.0`, marked Beta.
+- Keep the `0.1.x` line on the `legacy` channel.
+- The `0.2.0-next.*` entries below stay as history; none of them was published.
+
 ## 0.2.0-next.2 alpha candidate
 
 This candidate includes the earlier unpublished alpha work and the final review changes.

@@ -1,6 +1,6 @@
 # Component reference
 
-The 0.2 candidate retains the combined `@hannasage/projection-ui` import.
+The 1.0 beta retains the combined `@hannasage/projection-ui` import.
 Use `/core`, `/charts`, `/sortable`, or `/toast` to isolate features.
 Import `/styles` once for scoped component rules.
 Keep `/tokens` when an existing application needs its legacy global rules.

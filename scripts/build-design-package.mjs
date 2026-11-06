@@ -21,7 +21,8 @@ export function requiresDesignPackage(version, previous, visualChange, explicitM
   const prior = parse(previous);
   if (!visualChange) return false;
   if (current.major === 0) return current.minor > prior.minor || (current.minor === prior.minor && current.patch === prior.patch && current.prerelease !== prior.prerelease);
-  return current.major > prior.major || (explicitMinor && current.minor > prior.minor);
+  const revisesPrerelease = current.major === prior.major && current.minor === prior.minor && current.patch === prior.patch && current.prerelease !== prior.prerelease;
+  return current.major > prior.major || revisesPrerelease || (explicitMinor && current.minor > prior.minor);
 }
 
 const categoriesForContract = {
@@ -50,7 +51,7 @@ export function createDesignManifest(scene) {
     tokens: { themes: { dark: THEME_PRESETS.projection, light: THEME_PRESETS['coastal-day'], darkFlat: PROJECTION_FLAT_THEME, lightFlat: COASTAL_DAY_FLAT_THEME }, foundations: UI_FOUNDATIONS, radius: RADIUS_SCALE },
     coverage: { claim: 'Editable design mockups. React behavior and property parity are not implied.', categories, runtimeWithoutDesignCategory: runtimeContracts.filter(item => item.designCategories.length === 0).map(item => item.name) },
     runtimeContracts,
-    releaseCadence: { alpha: 'Include a matching design kit with every minor visual release and each visual prerelease revision.', production: 'Include a matching design kit with every major visual release. Include one with a minor visual release when that release specifies it.' },
+    releaseCadence: { beta: 'Include a matching design kit with every minor visual release and each visual prerelease revision.', production: 'Include a matching design kit with every major visual release. Include one with a minor visual release when that release specifies it.' },
     fonts: ['Syne', 'IBM Plex Sans', 'IBM Plex Mono'],
   };
 }

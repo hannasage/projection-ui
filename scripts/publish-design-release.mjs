@@ -12,10 +12,10 @@ const gh = args => spawnSync('gh', args, { encoding: null, maxBuffer: 64 * 1024 
 export function publishDesignRelease({ cwd = process.cwd(), directory = resolve(cwd, 'design-release'), environment = process.env, runGh = gh } = {}) {
   const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8'));
   assert.equal(pkg.name, '@hannasage/projection-ui', 'Use the Projection UI package.');
-  assert.match(pkg.version, /^0\.2\.0(?:-next\.\d+)?$/, 'Use the reviewed release line.');
+  assert.match(pkg.version, /^1\.0\.0(?:-beta\.\d+)?$/, 'Use the reviewed release line.');
   const version = pkg.version;
   const tag = `v${version}`;
-  const prerelease = version.includes('-next.');
+  const prerelease = version.includes('-beta.');
   assert.equal(environment.GITHUB_REF, `refs/tags/${tag}`, 'The tag must match the package version.');
   assert.equal(environment.GITHUB_REPOSITORY, 'hannasage/projection-ui', 'Use the official release repository.');
   assert.match(environment.GITHUB_SHA ?? '', /^[a-f\d]{40}$/i, 'The workflow must identify its commit.');

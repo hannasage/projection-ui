@@ -11,7 +11,7 @@ The legacy `/tokens` entry retains global focus, form, scrollbar, and selection 
 ## Theme fields
 
 The existing fields below remain required.
-The 0.2 candidate adds optional fields without changing existing theme objects.
+The 1.0 beta adds optional fields without changing existing theme objects.
 The palette below comes from `DEFAULT_THEME` and the generated token stylesheet.
 
 | Field | CSS variable | Fallback |
