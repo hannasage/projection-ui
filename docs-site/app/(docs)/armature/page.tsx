@@ -32,7 +32,7 @@ export default function ArmaturePage() {
 
     <section id="lab" className="armature-section" aria-labelledby="armature-lab-title">
       <h2 id="armature-lab-title">Motion is an equation. Change it.</h2>
-      <p className="armature-sub">Every Armature spring solves one equation. Move the sliders and the curve redraws from the real solver, 120 steps a second. The lab runs the same step as the package: semi-implicit Euler at 1/120 second.</p>
+      <p className="armature-sub">Every Armature spring solves one equation. Move the sliders and the curve redraws from the real solver, 120 steps a second. The lab uses the same step rule as the package: semi-implicit Euler, in steps of at most 1/120 second.</p>
       <SpringLab />
     </section>
 
@@ -42,7 +42,7 @@ export default function ArmaturePage() {
       <div className="armature-flavors">
         <article className="armature-card-plain"><span className="armature-tag">Engine</span><h3>Fixed-step springs</h3><p>The solver steps in 1/120 second slices and keeps the leftover time, so a 30, 60, or 144 Hz screen lands in the same place. It runs in Node, so tests need no browser.</p></article>
         <article className="armature-card-plain"><span className="armature-tag">Flavor one</span><h3>Liquid glass</h3><p>A refracting lens, a travelling nav indicator, a pressable surface with a glint, and scroll reveals that read scroll speed.</p></article>
-        <article className="armature-card-plain"><span className="armature-tag">Flavor two</span><h3>Mechanical</h3><p>A flavor that matches the look of Projection UI. Crisp presses and switch thumbs that overshoot a little and settle in about a fifth of a second. Exits settle with no bounce.</p></article>
+        <article className="armature-card-plain"><span className="armature-tag">Example flavor</span><h3>Mechanical</h3><p>An example flavor that matches the look of Projection UI. Crisp presses and switch thumbs that overshoot a little and settle in about a fifth of a second. Exits settle with no bounce.</p></article>
       </div>
     </section>
 

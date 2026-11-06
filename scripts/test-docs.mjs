@@ -199,13 +199,20 @@ try {
         await mass.focus();
         await page.keyboard.press('ArrowRight');
         assert.equal(await page.locator('.armature-presets button[aria-pressed="true"]').count(), 0, 'A moved slider leaves no preset marked');
-        assert.match(await page.locator('.armature-chart-svg').getAttribute('aria-describedby'), /./, 'The chart points at a text description');
-        assert.match(await page.locator('.armature-sr[aria-live]').innerText(), /^Position moves from 0 toward a target of 1\./, 'The chart has a text description');
-        const toggle = page.getByRole('switch', { name: 'Mechanical toggle', exact: true });
+        const describedBy = await page.locator('.armature-chart-svg').getAttribute('aria-describedby');
+        assert.match(await page.locator(`[id="${describedBy}"]`).innerText(), /^Position moves from 0 toward a target of 1\. The chart spans 0 to \d+ ms\./, 'The chart has a current text description');
+        assert.equal(await page.locator('[id="' + describedBy + '"]').getAttribute('aria-live'), null, 'The description itself is not a live region');
+        await page.getByRole('status').filter({ hasText: /Position moves/ }).waitFor({ state: 'attached', timeout: 3000 });
+        assert.match(await page.getByRole('status').filter({ hasText: /Position moves/ }).innerText(), /overshoot|does not overshoot/, 'The status node announces the settled spring after a pause');
+        const toggle = page.getByRole('switch', { name: 'Mechanical', exact: true });
+        assert.match(await toggle.getAttribute('aria-describedby'), /./, 'The caption describes its switch');
+        assert.equal(await page.getByRole('switch').count(), 3, 'The lab has three switches');
+        for (const name of ['Mechanical', 'Settle', 'Your spring']) await page.getByRole('switch', { name, exact: true }).waitFor();
+        await page.getByText('Flip each one. Same switch, three springs.', { exact: true }).waitFor();
         await toggle.focus();
         await page.keyboard.press('Space');
         assert.equal(await toggle.getAttribute('aria-checked'), 'true', 'The switch turns on from the keyboard');
-        await page.waitForFunction(() => document.querySelector('[aria-label="Mechanical toggle"]').style.getPropertyValue('--v') === '1.0000');
+        await page.waitForFunction(() => document.querySelector('button[role="switch"][aria-label="Mechanical"]').style.getPropertyValue('--v') === '1.0000');
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await toggle.click();
         assert.equal(await toggle.evaluate(node => node.style.getPropertyValue('--v')), '0.0000', 'Reduced motion snaps the switch with no animation');
@@ -213,13 +220,19 @@ try {
         const copy = await page.locator('#nd-page').innerText();
         assert.doesNotMatch(copy, /behind Projection UI/i, 'The page does not claim Projection UI uses Armature');
         assert.doesNotMatch(copy, /npm (install|i) /, 'The page shows no install command');
-        assert.match(copy, /semi-implicit Euler at 1\/120 second/);
+        assert.match(copy, /The lab uses the same step rule as the package: semi-implicit Euler, in steps of at most 1\/120 second\./);
+        assert.match(copy, /Example flavor\s+Mechanical\s+An example flavor that matches the look of Projection UI\./i, 'The Mechanical card is an example flavor');
+        for (const tag of ['Engine', 'Flavor one']) assert.match(copy, new RegExp(tag, 'i'), `The ${tag} card tag stays`);
+        assert.equal(await page.locator('footer a[href="/armature/"]').count(), 1, 'The footer links to the Armature page');
       }
       if (route === '/') {
         const card = page.locator('a.armature-card');
         assert.equal(await card.getAttribute('href'), '/armature/', 'The landing links to the Armature page');
         assert.match(await card.innerText(), /The physics motion engine built alongside Projection UI\. Use it on its own\./);
-        assert.equal(await card.locator('svg[role="img"] path').count(), 1, 'The card draws one spring curve');
+        assert.equal(await card.locator('svg.armature-glyph path').count(), 1, 'The card draws one spring curve');
+        assert.equal(await card.locator('svg.armature-glyph').getAttribute('aria-hidden'), 'true', 'The card glyph adds nothing to the link name');
+        assert.equal(await card.evaluate(node => node.querySelectorAll('[role="img"]').length), 0, 'The card link has no image label inside it');
+        assert.equal(await page.locator('footer a[href="/armature/"]').count(), 1, 'The footer links to the Armature page');
       }
       if (['/','/docs/components/card/'].includes(route)) {
         for (const iframe of await page.locator('.component-example iframe').all()) {

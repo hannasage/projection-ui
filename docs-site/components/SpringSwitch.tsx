@@ -1,12 +1,16 @@
 'use client';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { advanceSpring, type SpringParams, type SpringState } from '@/lib/spring-lab';
 
-type SpringSwitchProps = { label: string; params: SpringParams; caption: [string, string] };
+type SpringSwitchProps = { name: string; params: SpringParams; detail: string };
 
-/** A switch whose thumb is driven by the lab solver. With reduced motion it snaps. */
-export function SpringSwitch({ label, params, caption }: SpringSwitchProps) {
+/**
+ * A switch whose thumb is driven by the lab solver. With reduced motion it snaps.
+ * Its name is the spring name, and the caption below it, with the constants, describes it.
+ */
+export function SpringSwitch({ name, params, detail }: SpringSwitchProps) {
   const [on, setOn] = useState(false);
+  const captionId = useId();
   const button = useRef<HTMLButtonElement>(null);
   const live = useRef(params);
   const state = useRef<SpringState>({ position: 0, velocity: 0, carry: 0 });
@@ -46,7 +50,7 @@ export function SpringSwitch({ label, params, caption }: SpringSwitchProps) {
     run(target);
   };
   return <div className="armature-switch">
-    <button ref={button} type="button" role="switch" aria-checked={on} aria-label={label} style={{ '--v': 0 } as CSSProperties} onClick={toggle} />
-    <span>{caption[0]}<br />{caption[1]}</span>
+    <button ref={button} type="button" role="switch" aria-checked={on} aria-label={name} aria-describedby={captionId} style={{ '--v': 0 } as CSSProperties} onClick={toggle} />
+    <span><strong>{name}</strong><br /><span id={captionId}>{detail}</span></span>
   </div>;
 }

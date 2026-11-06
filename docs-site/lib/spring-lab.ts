@@ -171,14 +171,14 @@ export type ChartModel = {
   yLabels: ChartLabel[];
   xLabels: (ChartLabel & { anchor: 'start' | 'middle' | 'end' })[];
   curve: string;
-  peak: { x: number; y: number; labelX: number; labelY: number; label: string } | null;
+  peak: { x: number; y: number; labelX: number; labelY: number; label: string; anchor: 'start' | 'end' } | null;
   settle: { x: number; labelX: number; labelY: number } | null;
 };
 
 type Layout = { width: number; height: number; left: number; top: number; plotWidth: number; plotHeight: number; fontSize: number };
 
 /** A wide chart for desktop and a taller, larger-labelled chart for a phone. */
-const WIDE: Layout = { width: 640, height: 252, left: 44, top: 14, plotWidth: 580, plotHeight: 192, fontSize: 11 };
+const WIDE: Layout = { width: 640, height: 226, left: 44, top: 14, plotWidth: 580, plotHeight: 166, fontSize: 11 };
 const COMPACT: Layout = { width: 480, height: 360, left: 52, top: 16, plotWidth: 416, plotHeight: 296, fontSize: 17 };
 
 /** A label's width in chart units, for a monospace face. */
@@ -212,6 +212,15 @@ export function chartModel(input: SpringParams, compact = false): ChartModel {
   const bandBottom = toY(1 - SETTLE_BAND);
   const peakLabel = `peak +${result.overshootPercent.toFixed(1)}%`;
   const stride = Math.max(1, Math.round((4 * STEP_SECONDS) / result.stepSeconds));
+  // The peak label sits right of the peak. When that would cross the settle line, it sits left of the peak.
+  const peakMark = () => {
+    const wide = Math.max(70, labelWidth(peakLabel, fontSize) + 4);
+    const crossesSettle = result.settled && peakX + 8 + wide > settleX - 4;
+    const base = { x: peakX, y: toY(result.peak), labelY: toY(result.peak) - gap, label: peakLabel };
+    return crossesSettle && peakX - 8 - wide >= left
+      ? { ...base, labelX: peakX - 8, anchor: 'end' as const }
+      : { ...base, labelX: Math.min(peakX + 8, right - wide), anchor: 'start' as const };
+  };
   return {
     width: layout.width,
     height: layout.height,
@@ -234,15 +243,7 @@ export function chartModel(input: SpringParams, compact = false): ChartModel {
       anchor,
     })),
     curve: curvePath(result.samples, seconds, { x: left, y: top, width, height, yMin, yMax }, stride, result.stepSeconds),
-    peak: result.overshootPercent > 0.5
-      ? {
-        x: peakX,
-        y: toY(result.peak),
-        labelX: Math.min(peakX + 8, right - Math.max(70, labelWidth(peakLabel, fontSize) + 4)),
-        labelY: toY(result.peak) - gap,
-        label: peakLabel,
-      }
-      : null,
+    peak: result.overshootPercent > 0.5 ? peakMark() : null,
     settle: result.settled
       ? {
         x: settleX,

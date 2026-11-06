@@ -120,7 +120,7 @@ test('chartModel keeps the labels inside the plot', () => {
   for (const preset of SPRING_PRESETS) {
     const model = chartModel(preset.params);
     const right = model.plot.left + model.plot.width;
-    if (model.peak) assert.ok(model.peak.labelX <= right - 70 + 1e-9);
+    if (model.peak && model.peak.anchor === 'start') assert.ok(model.peak.labelX <= right - 70 + 1e-9);
     if (model.settle) assert.ok(model.settle.labelX <= right - 80 + 1e-9);
   }
 });
@@ -277,7 +277,7 @@ test('compact labels stay inside the viewBox and do not touch each other', () =>
         const left = anchor === 'end' ? x - width : anchor === 'middle' ? x - width / 2 : x;
         boxes.push({ text, left, right: left + width, top: y - model.fontSize, bottom: y });
       };
-      if (model.peak) add(model.peak.label, model.peak.labelX, model.peak.labelY, 'start');
+      if (model.peak) add(model.peak.label, model.peak.labelX, model.peak.labelY, model.peak.anchor);
       if (model.settle) add('settled', model.settle.labelX, model.settle.labelY, 'start');
       add(model.band.label.text, model.band.label.x, model.band.label.y, 'end');
       for (const label of model.xLabels) add(label.text, label.x, label.y, label.anchor);
@@ -308,4 +308,17 @@ test('the glyph labels its reference line', () => {
   const glyph = glyphModel();
   assert.equal(glyph.label.text, '1.0');
   assert.ok(glyph.label.y < glyph.baselineY);
+});
+
+test('the peak label never crosses the settle line', () => {
+  for (const preset of SPRING_PRESETS) {
+    for (const compact of [false, true]) {
+      const model = chartModel(preset.params, compact);
+      if (!model.peak || !model.settle) continue;
+      const width = model.peak.label.length * model.fontSize * 0.6;
+      const left = model.peak.anchor === 'end' ? model.peak.labelX - width : model.peak.labelX;
+      const edge = model.peak.anchor === 'end' ? model.peak.labelX : left + width;
+      assert.ok(edge <= model.settle.x || left >= model.settle.x, `${preset.name} ${compact ? 'compact' : 'wide'}`);
+    }
+  }
 });
