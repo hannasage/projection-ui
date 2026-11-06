@@ -8,7 +8,7 @@ import { socialPreview } from '../docs-site/lib/social-preview.ts';
 
 const root = resolve('docs-site/out');
 const contracts = JSON.parse(readFileSync('docs/component-contracts.json', 'utf8'));
-const routes = ['/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
+const routes = ['/', '/armature/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
 routes.push(...['', 'installation', 'theming', 'components', 'toasts', 'examples'].map(slug => `/docs/0.1.5/${slug ? slug + '/' : ''}`));
 const mime = {'.zip':'application/zip','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
 function staticServer(root) {
@@ -59,6 +59,7 @@ try {
     const currentEdition = editions.versions.find(edition => edition.id === 'current');
     const titles = {
       '/': 'Projection UI · Yes. Another UI library.',
+      '/armature/': 'Armature · Projection UI',
       '/docs/': 'Projection UI · Projection UI',
       '/docs/installation/': 'Installation · Projection UI',
       '/docs/0.1.5/': 'Projection UI 0.1.5 · 0.1.5 · Projection UI',
@@ -78,6 +79,7 @@ try {
         assert.equal(await crawlerPage.locator('head link[rel="canonical"]').getAttribute('href'), canonicalOrigin + route, `The route keeps its canonical URL: ${route}`);
         const description = route === '/'
           ? 'React components, glass morphism, and themes. Give your AI the prompt or try the live Storybook.'
+          : route === '/armature/' ? 'A physics motion engine for the web. Play with a live spring and see how flavors give each product its own way of moving.'
           : route.startsWith('/docs/0.1.5/') ? 'Projection UI 0.1.5 archive' : `Projection UI ${currentEdition.label} ${currentEdition.status}`;
         assert.equal(await crawlerPage.locator('head meta[name="description"]').getAttribute('content'), description, `The route keeps its SEO description: ${route}`);
         if (titles[route]) assert.equal(await crawlerPage.title(), titles[route], `The route keeps its SEO title: ${route}`);
@@ -182,6 +184,55 @@ try {
         await page.locator('.landing-theme-picker summary').click();
         await page.waitForFunction(()=>document.documentElement.classList.contains('dark'));
 
+      }
+      if (route === '/armature/') {
+        const stat = async label => page.locator('.armature-stat', { hasText: label }).locator('strong').innerText();
+        await page.getByRole('heading', { level: 1, name: 'Armature', exact: true }).waitFor();
+        assert.equal(await stat('damping ratio'), '0.572', 'The lab opens on the Mechanical spring');
+        assert.equal(await stat('overshoot'), '9.0%');
+        assert.equal(await stat('settles in'), '225 ms');
+        await page.getByRole('button', { name: 'Settle', exact: true }).click();
+        assert.equal(await page.getByRole('button', { name: 'Settle', exact: true }).getAttribute('aria-pressed'), 'true', 'The chosen preset is marked pressed');
+        assert.equal(await stat('overshoot'), '0.0%', 'The Settle spring does not overshoot');
+        for (const name of ['stiffness k', 'damping c', 'mass m']) await page.getByRole('slider', { name, exact: true }).waitFor();
+        const mass = page.getByRole('slider', { name: 'mass m', exact: true });
+        await mass.focus();
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.locator('.armature-presets button[aria-pressed="true"]').count(), 0, 'A moved slider leaves no preset marked');
+        const describedBy = await page.locator('.armature-chart-svg').getAttribute('aria-describedby');
+        assert.match(await page.locator(`[id="${describedBy}"]`).innerText(), /^Position moves from 0 toward a target of 1\. The chart spans 0 to \d+ ms\./, 'The chart has a current text description');
+        assert.equal(await page.locator('[id="' + describedBy + '"]').getAttribute('aria-live'), null, 'The description itself is not a live region');
+        await page.getByRole('status').filter({ hasText: /Position moves/ }).waitFor({ state: 'attached', timeout: 3000 });
+        assert.match(await page.getByRole('status').filter({ hasText: /Position moves/ }).innerText(), /overshoot|does not overshoot/, 'The status node announces the settled spring after a pause');
+        const toggle = page.getByRole('switch', { name: 'Mechanical', exact: true });
+        assert.match(await toggle.getAttribute('aria-describedby'), /./, 'The caption describes its switch');
+        assert.equal(await page.getByRole('switch').count(), 3, 'The lab has three switches');
+        for (const name of ['Mechanical', 'Settle', 'Your spring']) await page.getByRole('switch', { name, exact: true }).waitFor();
+        await page.getByText('Flip each one. Same switch, three springs.', { exact: true }).waitFor();
+        await toggle.focus();
+        await page.keyboard.press('Space');
+        assert.equal(await toggle.getAttribute('aria-checked'), 'true', 'The switch turns on from the keyboard');
+        await page.waitForFunction(() => document.querySelector('button[role="switch"][aria-label="Mechanical"]').style.getPropertyValue('--v') === '1.0000');
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await toggle.click();
+        assert.equal(await toggle.evaluate(node => node.style.getPropertyValue('--v')), '0.0000', 'Reduced motion snaps the switch with no animation');
+        await page.emulateMedia({ reducedMotion: null });
+        const copy = await page.locator('#nd-page').innerText();
+        assert.doesNotMatch(copy, /behind Projection UI/i, 'The page does not claim Projection UI uses Armature');
+        assert.doesNotMatch(copy, /npm (install|i) /, 'The page shows no install command');
+        assert.match(copy, /The lab uses the same step rule as the package: semi-implicit Euler, in steps of at most 1\/120 second\./);
+        assert.match(copy, /Example flavor\s+Mechanical\s+An example flavor that matches the look of Projection UI\./i, 'The Mechanical card is an example flavor');
+        for (const tag of ['Engine', 'Flavor one']) assert.match(copy, new RegExp(tag, 'i'), `The ${tag} card tag stays`);
+        assert.equal(await page.locator('footer a[href="/armature/"]').count(), 1, 'The footer links to the Armature page');
+      }
+      if (route === '/') {
+        const card = page.locator('a.armature-card');
+        assert.equal(await card.getAttribute('href'), '/armature/', 'The landing links to the Armature page');
+        assert.match(await card.innerText(), /The physics motion engine built alongside Projection UI\. Use it on its own\./);
+        assert.equal(await card.locator('svg.armature-glyph path').count(), 1, 'The card draws one spring curve');
+        assert.equal(await card.locator('svg.armature-glyph').getAttribute('aria-hidden'), 'true', 'The card glyph adds nothing to the link name');
+        assert.equal(await card.evaluate(node => node.querySelectorAll('[role="img"]').length), 0, 'The card link has no image label inside it');
+        assert.equal(await page.locator('footer a[href="/armature/"]').count(), 1, 'The footer links to the Armature page');
       }
       if (['/','/docs/components/card/'].includes(route)) {
         for (const iframe of await page.locator('.component-example iframe').all()) {

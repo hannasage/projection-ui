@@ -39,6 +39,10 @@ The reader lives at [projectionui.dev/docs](https://projectionui.dev/docs/).
 The explorer lives at `/examples/` on the same host.
 Keep the Vercel Preview deployment available for review.
 
+The Armature page lives at [projectionui.dev/armature](https://projectionui.dev/armature/).
+It describes a separate, pre-release package and shows a live spring lab.
+The lab math is in `lib/spring-lab.ts`, and `npm run test:docs` checks the page.
+
 `public/vercel.json` carries the static deployment configuration.
 The build copies it into `out/vercel.json`.
 The same deployment serves the landing page at `/` and the reader at `/docs/`.
