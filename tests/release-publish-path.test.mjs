@@ -8,7 +8,7 @@ import { repository } from './helpers/packed.mjs';
 
 test('the release script publishes a local archive through the real npm parser', () => {
   const temporary = mkdtempSync(join(tmpdir(), 'projection-publish-path-'));
-  const version = '0.2.0-next.73';
+  const version = '1.0.0-beta.73';
   try {
     mkdirSync(join(temporary, 'release'));
     mkdirSync(join(temporary, 'bin'));
@@ -38,7 +38,7 @@ process.exit(result.status ?? 91);
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     assert.match(result.stdout, new RegExp(`\\+ @hannasage/projection-ui@${version.replaceAll('.', '\\.')}\\b`));
     assert.match(result.stderr, /Publishing to .*\(dry-run\)/);
-    assert.match(result.stderr, /with tag next/);
+    assert.match(result.stderr, /with tag beta/);
     assert.doesNotMatch(result.stderr, /git --no-replace-objects ls-remote/);
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 });

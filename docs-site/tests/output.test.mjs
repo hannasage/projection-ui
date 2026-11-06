@@ -47,7 +47,7 @@ test('landing and reader keep separate usable entry points', () => {
   assert.match(landing,/Yes\. Another UI library\./);
   assert.match(landing,/href="\/docs\/"/);
   assert.match(landing,/gallery-components--paired/);
-  assert.match(landing,/Alpha/);
+  assert.match(landing,/Beta/);
   assert.doesNotMatch(landing,/id="nd-sidebar"/);
   assert.match(read('docs/index.html'),/Read this page as Markdown/);
 });
@@ -110,25 +110,25 @@ test('the stable archive retains its own routes, source bytes, and search index'
   assert.match(read('archives/0.1.5/markdown/installation.md'), /npm install @hannasage\/projection-ui@0.1.5/);
   assert.match(read('api/search-0.1.5'), /Original examples|Component reference/);
   const versions = JSON.parse(read('docs-versions.json'));
-  assert.equal(versions.current, '0.2.0');
+  assert.equal(versions.current, '1.0.0');
   assert.equal(versions.packageVersion, JSON.parse(read('release.json')).version);
-  assert.deepEqual(versions.versions[0], { id: 'current', label: '0.2.0', status: 'Alpha', baseUrl: '/docs' });
+  assert.deepEqual(versions.versions[0], { id: 'current', label: '1.0.0', status: 'Beta', baseUrl: '/docs' });
   assert.equal(versions.versions.length, 2, 'Prerelease and patch updates share the current edition');
   assert.equal(versions.versions[1].baseUrl, '/docs/0.1.5');
 });
 
-test('the current edition has an Alpha badge and registry-first install guidance', () => {
+test('the current edition has a Beta badge and registry-first install guidance', () => {
   const html = read('docs/index.html');
-  assert.match(html, /<option value="current" selected="">0\.2\.0<\/option>/);
-  assert.match(html, /aria-label="Documentation status"[^>]*>Alpha<\/span>/);
+  assert.match(html, /<option value="current" selected="">1\.0\.0<\/option>/);
+  assert.match(html, /aria-label="Documentation status"[^>]*>Beta<\/span>/);
   const guide = read('markdown/installation.md');
   assert.match(guide, /npm install @hannasage\/projection-ui@0\.1\n/);
-  assert.match(guide, /npm install --save-exact @hannasage\/projection-ui@next\n/);
-  assert.match(guide, /npm install --save-exact @hannasage\/projection-ui@0\.2\.0-next\.2\n/);
-  assert.match(guide, /`0\.2\.0-next\.2` is an unpublished candidate/);
-  assert.match(guide, /npm currently has only 0\.1\.x releases and no `next` tag/);
-  assert.match(guide, /After an alpha is published under `next`/);
-  assert.match(guide, /`--save-exact` keeps later alpha and stable updates manual/);
+  assert.match(guide, /npm install --save-exact @hannasage\/projection-ui@beta\n/);
+  assert.match(guide, /npm install --save-exact @hannasage\/projection-ui@1\.0\.0-beta\.0\n/);
+  assert.match(guide, /`1\.0\.0-beta\.0` is an unpublished candidate/);
+  assert.match(guide, /npm currently has only 0\.1\.x releases and no `beta` tag/);
+  assert.match(guide, /After a beta is published under `beta`/);
+  assert.match(guide, /`--save-exact` keeps later beta and stable updates manual/);
 });
 
 test('the design download matches its version and published fingerprint', async () => {

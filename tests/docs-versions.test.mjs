@@ -4,12 +4,12 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const root = new URL('../', import.meta.url);
-test('alpha revisions and stable patches share one edition without accepting another release line', async () => {
+test('beta revisions and stable patches share one edition without accepting another release line', async () => {
   const { editionForPackage } = await import('../docs-site/lib/versions.mjs');
-  for (const version of ['0.2.0-next.2', '0.2.0-next.20', '0.2.0', '0.2.7']) {
-    assert.equal(editionForPackage(version).label, '0.2.0');
+  for (const version of ['1.0.0-beta.0', '1.0.0-beta.20', '1.0.0', '1.0.7']) {
+    assert.equal(editionForPackage(version).label, '1.0.0');
   }
-  for (const version of ['0.1.5', '0.3.0-next.1', '1.2.0', 'invalid']) {
+  for (const version of ['0.1.5', '0.2.0-next.2', '2.0.0-beta.1', '0.3.0', 'invalid']) {
     assert.throws(() => editionForPackage(version), /No current docs edition/);
   }
 });
@@ -22,7 +22,7 @@ test('version switching retains equivalent pages and falls back to the destinati
   assert.equal(versionDestination('/docs/0.1.5/', 'current', pages), '/docs/');
   assert.equal(versionDestination('/docs/0.1.5/theming/', 'unknown', pages), '/docs/');
   assert.equal(docsVersions.length, 2);
-  assert.deepEqual(docsVersions[0], { id: 'current', label: '0.2.0', status: 'Alpha', baseUrl: '/docs' });
+  assert.deepEqual(docsVersions[0], { id: 'current', label: '1.0.0', status: 'Beta', baseUrl: '/docs' });
 });
 test('the version selector shows an edition and a separate status badge', async () => {
   const { createRequire } = await import('node:module');
@@ -39,9 +39,9 @@ test('the version selector shows an edition and a separate status badge', async 
   runInNewContext(output, { exports, require: name => name === 'next/navigation' ? { usePathname: () => pathname, useRouter: () => ({ push() {} }) } : name === '@/lib/versions.mjs' ? versions : require(name) });
   const render = () => renderToStaticMarkup(createElement(exports.VersionSwitcher, { pages: { current: ['', 'installation'], '0.1.5': ['', 'installation'] } }));
   const current = render();
-  assert.match(current, /<option value="current" selected="">0\.2\.0<\/option>/);
-  assert.match(current, /<span[^>]*aria-label="Documentation status"[^>]*>Alpha<\/span>/);
-  assert.doesNotMatch(current, /next\.\d/);
+  assert.match(current, /<option value="current" selected="">1\.0\.0<\/option>/);
+  assert.match(current, /<span[^>]*aria-label="Documentation status"[^>]*>Beta<\/span>/);
+  assert.doesNotMatch(current, /beta\.\d/);
   pathname = '/docs/0.1.5/installation/';
   const legacy = render();
   assert.match(legacy, /<option value="0\.1\.5" selected="">0\.1\.5<\/option>/);

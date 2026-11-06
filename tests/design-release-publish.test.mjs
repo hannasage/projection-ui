@@ -8,7 +8,7 @@ import { publishDesignRelease } from '../scripts/publish-design-release.mjs';
 
 const sha = 'a'.repeat(40);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-function fixture(version = '0.2.0-next.2') {
+function fixture(version = '1.0.0-beta.2') {
   const cwd = mkdtempSync(join(tmpdir(), 'projection-design-release-'));
   const directory = join(cwd, 'design-release');
   mkdirSync(directory);
@@ -54,7 +54,7 @@ function github(f, { existing = false, immutable = false, draft = false, missing
   return { runGh, calls, mutations: () => calls.filter(args => args[0] === 'release') };
 }
 
-test('a verified alpha tag creates a prerelease with both matching design assets', () => {
+test('a verified beta tag creates a prerelease with both matching design assets', () => {
   const f = fixture();
   try {
     const gh = github(f, { annotated: true });
@@ -73,7 +73,7 @@ test('a verified alpha tag creates a prerelease with both matching design assets
 });
 
 test('a stable tag creates a stable release', () => {
-  const f = fixture('0.2.0');
+  const f = fixture('1.0.0');
   try {
     const gh = github(f);
     publishDesignRelease({ ...f, runGh: gh.runGh });
@@ -116,9 +116,9 @@ test('invalid tag, package, metadata, hash, and byte count stop before any GitHu
   for (const change of ['tag', 'version', 'filename', 'hash', 'bytes']) {
     const f = fixture();
     try {
-      if (change === 'tag') f.environment.GITHUB_REF = 'refs/tags/v0.2.0-next.1';
+      if (change === 'tag') f.environment.GITHUB_REF = 'refs/tags/v1.0.0-beta.1';
       else {
-        f.metadata[{ version: 'version', filename: 'filename', hash: 'sha256', bytes: 'bytes' }[change]] = { version: '0.2.0-next.1', filename: '../outside.zip', hash: '0'.repeat(64), bytes: 1 }[change];
+        f.metadata[{ version: 'version', filename: 'filename', hash: 'sha256', bytes: 'bytes' }[change]] = { version: '1.0.0-beta.1', filename: '../outside.zip', hash: '0'.repeat(64), bytes: 1 }[change];
         writeFileSync(join(f.directory, 'design-package.json'), JSON.stringify(f.metadata));
       }
       const gh = github(f);
