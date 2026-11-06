@@ -219,11 +219,12 @@ try {
         await page.emulateMedia({ reducedMotion: null });
         const copy = await page.locator('#nd-page').innerText();
         assert.doesNotMatch(copy, /behind Projection UI/i, 'The page does not claim Projection UI uses Armature');
-        assert.match(copy, /Pre-release\. On npm as 1\.0\.0-next\.0\./, 'The pill says the pre-release is on npm');
-        assert.match(copy, /Pre-release\. On the npm next tag\. The API can still change\./, 'The Status fact names the next tag');
+        assert.match(copy, /Pre-release\. On npm as 1\.0\.0-beta\.0\./, 'The pill says the pre-release is on npm');
+        assert.match(copy, /Pre-release\. On the npm beta tag\. The API can still change\./, 'The Status fact names the beta tag');
         assert.doesNotMatch(copy, /Not published/i, 'The page no longer says Not published');
-        assert.match(copy, /npm install @hannasage\/armature@next/, 'The page shows the exact install command');
-        assert.equal(await page.locator('#nd-page').getByText('npm install @hannasage/armature@next', { exact: true }).count(), 1, 'The install command appears once');
+        assert.doesNotMatch(copy, /@next/, 'The page no longer shows the next tag');
+        assert.match(copy, /npm install @hannasage\/armature@beta/, 'The page shows the exact install command');
+        assert.equal(await page.locator('#nd-page').getByText('npm install @hannasage/armature@beta', { exact: true }).count(), 1, 'The install command appears once');
         assert.doesNotMatch(copy, /npm (install|i) @hannasage\/projection-ui/, 'The page shows no Projection UI install command');
         assert.match(copy, /The lab uses the same step rule as the package: semi-implicit Euler, in steps of at most 1\/120 second\./);
         assert.match(copy, /Example flavor\s+Mechanical\s+An example flavor that matches the look of Projection UI\./i, 'The Mechanical card is an example flavor');

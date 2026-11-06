@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://projectionui.dev/armature/' },
 };
 
-const installCommand = 'npm install @hannasage/armature@next';
+const installCommand = 'npm install @hannasage/armature@beta';
 
 const example = `import { createSpring, retarget, stepSpring } from "@hannasage/armature";
 
@@ -24,7 +24,7 @@ function frame(seconds: number): number {
 export default function ArmaturePage() {
   return <ArmatureShell>
     <header className="armature-hero" aria-labelledby="armature-title">
-      <span className="armature-pill"><i aria-hidden="true" />Pre-release. On npm as 1.0.0-next.0.</span>
+      <span className="armature-pill"><i aria-hidden="true" />Pre-release. On npm as 1.0.0-beta.0.</span>
       <GradientText as="h1" id="armature-title">Armature</GradientText>
       <p className="armature-lede">A physics motion engine for the web. Springs that behave the same at any frame rate, scroll reveals that read how fast you scroll, and named flavors that give each product its own way of moving.</p>
       <div className="landing-actions">
@@ -58,7 +58,7 @@ export default function ArmaturePage() {
         <li><span>License</span>MIT</li>
         <li><span>Runtime dependencies</span>None in the engine. React is optional.</li>
         <li><span>Entries</span>Engine, dom, react, glass, and glass for React. ESM only.</li>
-        <li><span>Status</span>Pre-release. On the npm next tag. The API can still change.</li>
+        <li><span>Status</span>Pre-release. On the npm beta tag. The API can still change.</li>
       </ul>
     </section>
   </ArmatureShell>;
