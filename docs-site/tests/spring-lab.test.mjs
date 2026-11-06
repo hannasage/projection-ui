@@ -4,6 +4,7 @@ import {
   STEP_SECONDS, MAX_FRAME_SECONDS, SPRING_PRESETS, MECHANICAL,
   simulate, measure, dampingRatio, naturalFrequency, matchesPreset,
   bezierPath, curvePath, chartModel, glyphModel, describeSpring, advanceSpring,
+  stepSeconds, clampParams,
 } from '../lib/spring-lab.ts';
 
 const spring = (stiffness, damping, mass = 1) => ({ stiffness, damping, mass });
@@ -62,8 +63,8 @@ test('a spring that never settles inside the horizon says so', () => {
 
 test('damping ratio and natural frequency follow the textbook formulas', () => {
   assert.ok(Math.abs(dampingRatio(spring(100, 20, 1)) - 1) < 1e-12);
-  assert.ok(Math.abs(dampingRatio(spring(400, 20, 4)) - 20 / (2 * Math.sqrt(1600))) < 1e-12);
-  assert.ok(Math.abs(naturalFrequency(spring(400, 20, 4)) - 10) < 1e-12);
+  assert.ok(Math.abs(dampingRatio(spring(400, 20, 2)) - 20 / (2 * Math.sqrt(800))) < 1e-12);
+  assert.ok(Math.abs(naturalFrequency(spring(400, 20, 2)) - Math.sqrt(200)) < 1e-12);
 });
 
 test('presets include the two named springs and match by value', () => {
@@ -137,6 +138,7 @@ test('glyphModel draws the Mechanical curve inside its box', () => {
 test('describeSpring gives a text alternative with the measured numbers', () => {
   const text = describeSpring(spring(600, 28, 1));
   assert.match(text, /overshoots/);
+  assert.match(text, /The chart spans 0 to \d+ ms\./);
   assert.match(text, /9\.0 percent/);
   assert.match(text, /\d+ milliseconds/);
   assert.match(describeSpring(spring(600, 48.99, 1)), /does not overshoot/);
@@ -187,15 +189,123 @@ test('advanceSpring keeps its velocity when the target flips mid-flight', () => 
   assert.ok(flipped.position > state.position - 0.2);
 });
 
-test('a compact chart draws larger labels and keeps them inside the plot', () => {
-  for (const preset of SPRING_PRESETS) {
-    const wide = chartModel(preset.params);
-    const compact = chartModel(preset.params, true);
-    assert.ok(compact.fontSize > wide.fontSize);
-    assert.equal(compact.curve, wide.curve);
-    const right = compact.plot.left + compact.plot.width;
-    if (compact.peak) assert.ok(compact.peak.labelX <= right - 70 * 1.8 + 1e-9);
-    if (compact.settle) assert.ok(compact.settle.labelY > compact.plot.top + compact.plot.height / 2, 'The settle label sits low');
-    for (const label of compact.xLabels) assert.ok(label.y < compact.height);
+
+test('a step rule mirrors the package: at most 1/120 second, smaller for a stiff or heavily damped spring', () => {
+  assert.equal(stepSeconds(MECHANICAL), STEP_SECONDS);
+  for (const preset of SPRING_PRESETS) assert.equal(stepSeconds(preset.params), STEP_SECONDS, preset.name);
+  const stiff = stepSeconds(spring(1200, 90, 0.5));
+  assert.ok(stiff < STEP_SECONDS);
+  assert.equal(stiff, 1 / 180);
+  assert.equal(stepSeconds(spring(1200, 90, 3)), STEP_SECONDS);
+});
+
+test('simulate and measure use the spring step, so a small step gives more samples', () => {
+  const stiff = spring(1200, 90, 0.5);
+  assert.equal(simulate(stiff, 1).length, 181);
+  assert.equal(simulate(MECHANICAL, 1).length, 121);
+  const result = measure(stiff);
+  assert.equal(result.stepSeconds, 1 / 180);
+  assert.equal(measure(MECHANICAL).stepSeconds, STEP_SECONDS);
+  assert.ok(result.samples.every(Number.isFinite));
+});
+
+test('the pinned numbers do not move when the step rule is applied', () => {
+  const result = measure(MECHANICAL);
+  assert.ok(Math.abs(result.overshootPercent - 9.0049) < 0.001);
+  assert.equal(Math.round(result.settleSeconds * 1000), 225);
+  assert.ok(Math.abs(measure(spring(600, 30, 1)).overshootPercent - 6.5442) < 0.001);
+});
+
+test('advanceSpring keeps the same shape with a smaller step and still ignores the screen rate', () => {
+  const stiff = spring(1200, 90, 0.5);
+  const positions = [30, 60, 144].map(rate => {
+    let state = { position: 0, velocity: 0, carry: 0 };
+    for (let frame = 0; frame < rate * 0.2; frame++) ({ state } = advanceSpring(state, stiff, 1, 1 / rate));
+    return state.position;
+  });
+  assert.ok(Math.max(...positions) - Math.min(...positions) < 0.03, positions.join(', '));
+});
+
+test('advanceSpring treats a negative or non-finite elapsed time as zero', () => {
+  const start = { position: 0.2, velocity: 1, carry: 0.001 };
+  for (const elapsed of [-1, Number.NaN, Number.NEGATIVE_INFINITY]) {
+    const { state } = advanceSpring(start, MECHANICAL, 1, elapsed);
+    assert.deepEqual(state, start);
   }
+});
+
+test('clampParams keeps every value inside the slider ranges and replaces a broken value', () => {
+  assert.deepEqual(clampParams(spring(1e9, 1e9, 1e9)), spring(1200, 90, 3));
+  assert.deepEqual(clampParams(spring(-5, -5, 0)), spring(40, 2, 0.5));
+  assert.deepEqual(clampParams(spring(Number.NaN, Number.POSITIVE_INFINITY, undefined)), spring(MECHANICAL.stiffness, 90, MECHANICAL.mass));
+  assert.deepEqual(clampParams(MECHANICAL), MECHANICAL);
+});
+
+test('no broken input reaches a chart path, a measurement, or a description', () => {
+  const broken = [spring(Number.NaN, Number.NaN, Number.NaN), spring(1e12, 1e12, 1e-12), spring(-1, -1, -1), spring(Infinity, 0, 0)];
+  for (const params of broken) {
+    for (const compact of [false, true]) {
+      const model = chartModel(params, compact);
+      const text = JSON.stringify(model);
+      assert.doesNotMatch(text, /NaN|Infinity|null,null/, JSON.stringify(params));
+      assert.doesNotMatch(model.curve, /NaN|Infinity/);
+    }
+    const result = measure(params);
+    assert.ok(Number.isFinite(result.peak) && Number.isFinite(result.overshootPercent));
+    assert.doesNotMatch(describeSpring(params), /NaN|Infinity/);
+    assert.ok(Number.isFinite(dampingRatio(params)) && Number.isFinite(naturalFrequency(params)));
+  }
+});
+
+test('a compact chart is about four to three, with labels big enough to read on a phone', () => {
+  const wide = chartModel(MECHANICAL);
+  const compact = chartModel(MECHANICAL, true);
+  assert.ok(Math.abs(compact.width / compact.height - 4 / 3) < 0.01);
+  assert.ok(wide.width / wide.height > 2);
+  assert.ok(compact.fontSize > wide.fontSize * 1.4);
+});
+
+test('compact labels stay inside the viewBox and do not touch each other', () => {
+  const estimate = (text, size) => text.length * size * 0.6;
+  for (const preset of SPRING_PRESETS) {
+    for (const compact of [false, true]) {
+      const model = chartModel(preset.params, compact);
+      const right = model.plot.left + model.plot.width;
+      const boxes = [];
+      const add = (text, x, y, anchor) => {
+        const width = estimate(text, model.fontSize);
+        const left = anchor === 'end' ? x - width : anchor === 'middle' ? x - width / 2 : x;
+        boxes.push({ text, left, right: left + width, top: y - model.fontSize, bottom: y });
+      };
+      if (model.peak) add(model.peak.label, model.peak.labelX, model.peak.labelY, 'start');
+      if (model.settle) add('settled', model.settle.labelX, model.settle.labelY, 'start');
+      add(model.band.label.text, model.band.label.x, model.band.label.y, 'end');
+      for (const label of model.xLabels) add(label.text, label.x, label.y, label.anchor);
+      for (const label of model.yLabels) add(label.text, label.x, label.y, 'end');
+      for (const box of boxes) {
+        assert.ok(box.left >= -1 && box.right <= model.width + 1, `${preset.name} ${box.text} fits across`);
+        assert.ok(box.bottom <= model.height + 2, `${preset.name} ${box.text} fits down`);
+      }
+      for (let first = 0; first < boxes.length; first++) {
+        for (let second = first + 1; second < boxes.length; second++) {
+          const a = boxes[first];
+          const b = boxes[second];
+          const overlap = a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+          assert.equal(overlap, false, `${preset.name} ${compact ? 'compact' : 'wide'}: ${a.text} meets ${b.text}`);
+        }
+      }
+    }
+  }
+});
+
+test('the chart marks its two percent band with an edge and a label', () => {
+  const model = chartModel(MECHANICAL);
+  assert.equal(model.band.label.text, '2% band');
+  assert.ok(model.band.label.y > model.band.y + model.band.height);
+});
+
+test('the glyph labels its reference line', () => {
+  const glyph = glyphModel();
+  assert.equal(glyph.label.text, '1.0');
+  assert.ok(glyph.label.y < glyph.baselineY);
 });
