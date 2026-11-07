@@ -44,7 +44,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { gitEnv, isMain, makeHome, removeHome, toolEnv } from "../tools/lib/env.mjs";
 import { deepRedact, failingLine, printable, redact, show } from "../tools/lib/text.mjs";
-import { gateProblem, matchingFilters, pushTagFilters } from "../tools/lib/workflow.mjs";
+import { gateProblem, matchingFilters, pushTagFilters, workflowHash } from "../tools/lib/workflow.mjs";
 import { runSupervised } from "../tools/lib/run.mjs";
 import { readZip, zipEntryData } from "../tools/lib/zip.mjs";
 
@@ -133,7 +133,9 @@ export function configProblem(config) {
   if (!isCount(config.expectedFileCount) || !isCount(config.maxPackageBytes)) return "expectedFileCount and maxPackageBytes must be whole numbers";
 
   const w = config.workflow;
-  if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified", "publishEnvironment", "publishUses"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified, publishEnvironment, publishUses";
+  if (isPlainObject(w) && !("sha256" in w)) return "workflow.sha256 is missing from release.config.json. It pins the content of the publish workflow, so a person must add it after reviewing the file";
+  if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified", "publishEnvironment", "publishUses", "sha256"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified, publishEnvironment, publishUses, sha256";
+  if (!isText(w.sha256) || !/^[0-9a-f]{64}$/.test(w.sha256)) return "workflow.sha256 must be 64 lowercase hex digits";
   if (!isText(w.publishEnvironment) || !/^[A-Za-z0-9_-]+$/.test(w.publishEnvironment)) return "workflow.publishEnvironment is not valid";
   if (!Array.isArray(w.publishUses) || !w.publishUses.every((use) => isText(use) && /^[A-Za-z0-9_.\/-]+@[A-Za-z0-9._-]+$/.test(use))) return "workflow.publishUses must be a list of action@reference texts";
   if (!isPlainObject(w.justified) || !Object.values(w.justified).every((keys) => Array.isArray(keys) && keys.every((key) => key === "working-directory" || key === "shell"))) return "workflow.justified must map a step command to a list of working-directory or shell";
@@ -141,7 +143,8 @@ export function configProblem(config) {
   if (w.verifier !== PINNED.verifier) return `workflow.verifier must be ${PINNED.verifier}`;
   for (const name of ["verifyJob", "publishJob"]) if (!isText(w[name]) || !/^[A-Za-z0-9_-]+$/.test(w[name])) return `workflow.${name} is not valid`;
 
-  if (!Array.isArray(config.ciOnlyGates) || !config.ciOnlyGates.every(ciOnlyOk)) return "ciOnlyGates must be a list of { name, reason } or { name, command, reason } with plain text";
+  if (!Array.isArray(config.ciOnlyGates) || !config.ciOnlyGates.every(ciOnlyOk)) return "ciOnlyGates must be a list of { name, reason } or { name, command, reason } with plain text, and a command must be npm run <script> or npx playwright install";
+  if (Array.isArray(config.gates) && config.ciOnlyGates.some((entry) => config.gates.includes(entry.name))) return "a name in ciOnlyGates is also in gates, so the script would both run it and call it CI-only";
   if (!hasKeys(config.gitTag, ["name", "message"]) || config.gitTag.name !== PINNED.tagName || config.gitTag.message !== PINNED.tagMessage) return `gitTag must be exactly name ${PINNED.tagName} and message ${PINNED.tagMessage}`;
   if (!Array.isArray(config.gates) || config.gates.length === 0 || !config.gates.every((name) => isText(name) && PATTERNS.scriptName.test(name))) return "gates must be a list of npm script names";
 
@@ -184,11 +187,14 @@ export function configProblem(config) {
   return null;
 }
 
+/** A CI-only command is an npm script (`npm run <script>`) or the Playwright browser install. Nothing else, so `npm publish` cannot be listed. */
+const CI_ONLY_COMMAND = /^(?:npm run [a-z][a-z0-9:_-]*|npx playwright install(?: --with-deps)?(?: [a-z]+)?)$/;
+
 /** One entry of ciOnlyGates: an npm script name (or a name with its own command) and a one-line reason. */
 function ciOnlyOk(entry) {
   if (!hasKeys(entry, ["name", "reason"]) && !hasKeys(entry, ["name", "command", "reason"])) return false;
   if (!isText(entry.name) || !PATTERNS.scriptName.test(entry.name)) return false;
-  if ("command" in entry && !(isText(entry.command) && /^[A-Za-z0-9 .:_/=@-]{1,200}$/.test(entry.command))) return false;
+  if ("command" in entry && !(isText(entry.command) && CI_ONLY_COMMAND.test(entry.command))) return false;
   return isText(entry.reason) && entry.reason.length <= 200 && !entry.reason.includes("\n");
 }
 
@@ -519,13 +525,20 @@ function claimsCommand(root, config) {
   return { command: [...command, "--", ...paths] };
 }
 
+/** One printed line, redacted first and then cut, so a minified file cannot flood the output. */
+const capLine = (line) => {
+  const text = redact(line);
+  return text.length > 200 ? `${text.slice(0, 200)}...` : text;
+};
+
+/** { ok: true } when no file holds a claim, { ok: false } when one does, and { ok: null } when the check could not run. */
 function runClaims(run, root, config) {
   const built = claimsCommand(root, config);
-  if (built.problem !== undefined) return { ok: false, first: built.problem };
+  if (built.problem !== undefined) return { ok: null, first: capLine(built.problem) };
   const result = run.exec(built.command);
   if (result.status === 1) return { ok: true, first: "" };
-  if (result.status === 0) return { ok: false, first: redact(result.stdout.split("\n").find((line) => line.trim() !== "") ?? "") };
-  return { ok: false, first: failingLine(result.stdout, result.stderr) };
+  if (result.status === 0) return { ok: false, first: capLine(result.stdout.split("\n").find((line) => line.trim() !== "") ?? "") };
+  return { ok: null, first: capLine(failingLine(result.stdout, result.stderr)) };
 }
 
 function configDisagreement(root, config) {
@@ -580,8 +593,21 @@ function warnCiOnly(ctx) {
   run.warn(`CI also runs: ${list}. Run them before you push a tag, because a tag cannot be moved`);
 }
 
-/** The publish workflow must start for this tag, must run every gate the script runs, and must not let a gate be skipped. */
+/**
+ * The content pin, and the safety control for the publish workflow: the hash of the file (CRLF as LF, no trailing whitespace)
+ * must equal workflow.sha256. Returns a problem text, or null. The reader in tools/lib/workflow.mjs does not replace this check.
+ */
+function workflowPinProblem(root, config) {
+  const resolved = safePath(root, config.workflow.file);
+  if (resolved.problem !== undefined) return resolved.problem;
+  if (workflowHash(readFileSync(resolved.path, "utf8")) === config.workflow.sha256) return null;
+  return `${config.workflow.file} changed since the script was last checked: review the change by hand, then update workflow.sha256 in release.config.json (a person does this)`;
+}
+
+/** The publish workflow must match its pin, must start for this tag, must run every gate the script runs, and must not let a gate be skipped. */
 function workflowProblem(root, config) {
+  const pin = workflowPinProblem(root, config);
+  if (pin !== null) return pin;
   const resolved = safePath(root, config.workflow.file);
   if (resolved.problem !== undefined) return resolved.problem;
   const text = readFileSync(resolved.path, "utf8");
@@ -834,6 +860,8 @@ const STEPS = {
 
   async gates(ctx) {
     const { run, root, config, flags } = ctx;
+    const pin = workflowPinProblem(root, config);
+    if (pin !== null) return fail(ctx, pin);
     warnCiOnly(ctx);
     const commit = head(run);
     const lock = lockHash(root);
@@ -858,6 +886,8 @@ const STEPS = {
 
   async "dry-run"(ctx) {
     const { run, root, config, flags } = ctx;
+    const pin = workflowPinProblem(root, config);
+    if (pin !== null) return fail(ctx, pin);
     warnCiOnly(ctx);
     const commit = head(run);
     const lock = lockHash(root);
@@ -1056,7 +1086,7 @@ const STEPS = {
   claims(ctx) {
     const { run, root, config } = ctx;
     const found = runClaims(run, root, config);
-    if (!found.ok) return fail(ctx, found.first);
+    if (found.ok !== true) return fail(ctx, found.ok === null ? `the claim check could not run: ${found.first}` : found.first);
     return ok(ctx, "no file holds a stale claim");
   },
 
@@ -1094,7 +1124,7 @@ const STEPS = {
     add("verify", known(view.ok ? recorded(state.verify, commit, lock) && view.tags[config.npmTag] === config.version : verdict.accepted ? false : null), commit === null ? headNote : view.ok ? "" : verdict.note);
     add("retire", retireState(ctx), config.retire.commands.length === 0 ? "nothing to retire" : view.ok ? "" : verdict.note);
     const claims = runClaims(run, root, config);
-    add("claims", claims.ok, claims.ok ? "" : claims.first);
+    add("claims", claims.ok, claims.ok === true ? "" : claims.first);
     const left = phases.filter((phase) => phase.state !== "done").map((phase) => phase.name);
     const unknown = phases.filter((phase) => phase.state === "unknown").map((phase) => phase.name);
     run.say(`${config.package}@${config.version} on the ${config.npmTag} tag`);

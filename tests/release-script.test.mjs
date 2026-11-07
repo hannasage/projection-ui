@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runRelease } from '../scripts/release.mjs';
-import { cleanup, filtersFor, git, makeReleaseRepo, snapshot, tempDir, workflowText } from './helpers/tools-support.mjs';
+import { cleanup, filtersFor, git, makeReleaseRepo, pinWorkflow, snapshot, tempDir, workflowText } from './helpers/tools-support.mjs';
 
 afterEach(cleanup);
 
@@ -19,6 +19,8 @@ function expectNoRegistryWrites(repo) {
 function commitFile(repo, path, text) {
   mkdirSync(join(repo.work, path, '..'), { recursive: true });
   writeFileSync(join(repo.work, path), text);
+  // A changed publish workflow is a reviewed change here: the pin in the config follows it, so the other checks can be tested alone.
+  if (path === '.github/workflows/publish.yml') pinWorkflow(repo.work, text);
   git(repo.work, 'add', '-A');
   git(repo.work, 'commit', '-q', '--allow-empty', '-m', `change ${path}`);
   git(repo.work, 'push', '-q', 'origin', repo.config.releaseBranch);
@@ -1144,8 +1146,8 @@ describe('round of the final-head review (C, D)', () => {
     const withKey = async (key, config) => {
       const repo = await makeReleaseRepo();
       const text = workflowText(filtersFor(repo.config.version)).replace('      - run: npm run lint', `      - run: npm run lint\n        ${key}: x`);
-      commitFile(repo, '.github/workflows/publish.yml', text);
       if (config) commitFile(repo, 'release.config.json', JSON.stringify(config(repo.config)));
+      commitFile(repo, '.github/workflows/publish.yml', text);
       return repo.run(['preflight']);
     };
     for (const key of ['working-directory', 'shell']) {

@@ -7,6 +7,7 @@ import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirS
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { workflowHash } from '../../tools/lib/workflow.mjs';
 
 export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const temps = [];
@@ -309,6 +310,7 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
   const real = JSON.parse(readFileSync(join(repoRoot, 'release.config.json'), 'utf8'));
   const line = await currentLine();
   const config = { ...real, version: line.version, npmTag: line.npmTag, expectedFileCount: 7, maxPackageBytes: 200000 };
+  config.workflow = { ...config.workflow, sha256: workflowHash(workflowText(filtersFor(config.version))) };
   if (configEdit) configEdit(config);
   const branch = config.releaseBranch;
   git(origin, 'init', '-q', '--bare', '-b', branch);
@@ -384,6 +386,14 @@ function writeFlags(fake, extraEnv) {
 }
 
 /** The tag filters a publish workflow needs for a version. */
+/** Writes the pin of a workflow text into release.config.json of a work tree, as a person would after reviewing the file. */
+export function pinWorkflow(work, text) {
+  const file = join(work, 'release.config.json');
+  const config = JSON.parse(readFileSync(file, 'utf8'));
+  config.workflow.sha256 = workflowHash(text);
+  writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`);
+}
+
 export function filtersFor(version) {
   const core = version.split('-')[0];
   return version.includes('-') ? [`v${core}`, `v${core}-${version.split('-')[1].split('.')[0]}.*`] : [`v${core}`];
