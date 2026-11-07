@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { makeHome, removeHome, toolEnv } from '../tools/lib/env.mjs';
 import { redact, deepRedact } from '../tools/lib/text.mjs';
 import { privateContentProblems, validateBody, validateTitle, FOOTER } from '../tools/lib/pr-body.mjs';
-import { cleanup, git, makeFakeBin, makeRepo, makeRepoWithRemote, makeReleaseRepo, repoRoot, runNode, scrubbed, tempDir } from './helpers/tools-support.mjs';
+import { withEnv, cleanup, git, makeFakeBin, makeRepo, makeRepoWithRemote, makeReleaseRepo, repoRoot, runNode, scrubbed, tempDir } from './helpers/tools-support.mjs';
 
 afterEach(cleanup);
 
@@ -470,20 +470,19 @@ describe('registry integrity shapes and the scratch folder (4, 6)', () => {
     writeFileSync(join(project, 'package.json'), '{"name":"outer","version":"1.0.0"}');
     const inner = join(project, 'tmp');
     mkdirSync(inner);
-    const saved = process.env.TMPDIR;
-    process.env.TMPDIR = inner;
-    let home;
-    try {
-      home = makeHome();
-      assert.ok(home.startsWith(inner));
-      const env = toolEnv({ PATH: process.env.PATH }, home);
-      const result = spawnSync('npm', ['config', 'get', 'registry', '--prefix', home], { env, cwd: home, encoding: 'utf8' });
-      assert.equal(result.status, 0, result.stderr);
-      assert.equal(result.stdout.trim(), 'https://registry.npmjs.org/');
-    } finally {
-      process.env.TMPDIR = saved;
-      if (home) removeHome(home);
-    }
+    withEnv('TMPDIR', inner, () => {
+      let home;
+      try {
+        home = makeHome();
+        assert.ok(home.startsWith(inner));
+        const env = toolEnv({ PATH: process.env.PATH }, home);
+        const result = spawnSync('npm', ['config', 'get', 'registry', '--prefix', home], { env, cwd: home, encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        assert.equal(result.stdout.trim(), 'https://registry.npmjs.org/');
+      } finally {
+        if (home) removeHome(home);
+      }
+    });
   });
 });
 
@@ -516,14 +515,10 @@ describe('scratch cleanup and git failures (5)', () => {
     writeFileSync(join(shimDir, 'git'), `#!/bin/sh\ncase "$*" in *--show-toplevel*) echo "fatal: forced failure" >&2; exit 128;; esac\nexec ${real} "$@"\n`);
     chmodSync(join(shimDir, 'git'), 0o755);
     const repo = makeRepo();
-    const saved = process.env.PATH;
-    process.env.PATH = `${shimDir}:${saved}`;
-    try {
+    withEnv('PATH', `${shimDir}:${process.env.PATH ?? ''}`, () => {
       const result = resolveWorkTree(repo);
       assert.equal(result.ok, false);
       assert.equal(result.kind, 'env');
-    } finally {
-      process.env.PATH = saved;
-    }
+    });
   });
 });

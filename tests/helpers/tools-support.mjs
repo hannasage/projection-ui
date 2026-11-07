@@ -17,6 +17,32 @@ export function tempDir(prefix = 'projection-tools-') {
   return dir;
 }
 
+/**
+ * Runs a function with one environment variable set to a value (or removed, when the value is undefined), and then puts the
+ * variable back as it was. A variable that was not set is deleted again. Assigning undefined to process.env would store the
+ * text "undefined", which broke os.tmpdir() on a CI runner where TMPDIR is not set.
+ */
+export function withEnv(name, value, fn) {
+  const had = Object.hasOwn(process.env, name);
+  const saved = process.env[name];
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+  const restore = () => {
+    if (had) process.env[name] = saved;
+    else delete process.env[name];
+  };
+  let result;
+  try {
+    result = fn();
+  } catch (error) {
+    restore();
+    throw error;
+  }
+  if (result instanceof Promise) return result.finally(restore);
+  restore();
+  return result;
+}
+
 export function cleanup() {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true });
 }

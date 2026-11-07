@@ -8,7 +8,7 @@ import { readZip, zipEntryData } from '../tools/lib/zip.mjs';
 import { gateProblem, jobRunSteps, matchingFilters, parseJobs, pushTagFilters, tagMatches } from '../tools/lib/workflow.mjs';
 import { countWords, validateBody, privateContentProblems, FOOTER } from '../tools/lib/pr-body.mjs';
 import { bodyDirRoot, resolveFile, resolvePackageTree, resolveWorkTree, tempRoot } from '../tools/lib/paths.mjs';
-import { cleanup, makeRepo, tempDir, workflowText } from './helpers/tools-support.mjs';
+import { cleanup, makeRepo, tempDir, withEnv, workflowText } from './helpers/tools-support.mjs';
 
 afterEach(cleanup);
 
@@ -38,6 +38,37 @@ describe('redact and failingLine', () => {
 
   it('shows a command the way a person types it', () => {
     assert.equal(show(['git', 'tag', '-m', "it's here"]), "git tag -m 'it'\\''s here'");
+  });
+});
+
+describe('withEnv', () => {
+  const NAME = 'RELEASE_TEST_WITHENV';
+
+  it('deletes a variable that was not set, and restores one that was', () => {
+    delete process.env[NAME];
+    withEnv(NAME, 'inside', () => assert.equal(process.env[NAME], 'inside'));
+    assert.equal(Object.hasOwn(process.env, NAME), false, 'an unset variable is deleted again, never stored as the text "undefined"');
+    process.env[NAME] = 'before';
+    withEnv(NAME, 'inside', () => {});
+    assert.equal(process.env[NAME], 'before');
+    delete process.env[NAME];
+  });
+
+  it('removes the variable inside the function when the value is undefined, and restores it after a throw', () => {
+    process.env[NAME] = 'before';
+    withEnv(NAME, undefined, () => assert.equal(Object.hasOwn(process.env, NAME), false));
+    assert.throws(() => withEnv(NAME, 'inside', () => { throw new Error('boom'); }), /boom/);
+    assert.equal(process.env[NAME], 'before');
+    delete process.env[NAME];
+  });
+
+  it('restores after an async function', async () => {
+    delete process.env[NAME];
+    await withEnv(NAME, 'inside', async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      assert.equal(process.env[NAME], 'inside');
+    });
+    assert.equal(Object.hasOwn(process.env, NAME), false);
   });
 });
 
@@ -296,15 +327,11 @@ describe('path arguments', () => {
 
   it('reports a missing git as an environment failure, not a wrong use', () => {
     const repo = makeRepo();
-    const saved = process.env.PATH;
-    process.env.PATH = '/nonexistent';
-    try {
+    withEnv('PATH', '/nonexistent', () => {
       const result = resolveWorkTree(repo);
       assert.equal(result.ok, false);
       assert.equal(result.kind, 'env');
-    } finally {
-      process.env.PATH = saved;
-    }
+    });
   });
 
   it('resolves a file only under the allowed roots and under the size limit', () => {
