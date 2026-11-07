@@ -1,20 +1,29 @@
 // A small reader for .github/workflows/publish.yml. It is NOT a safety control. It only extracts what the release script
 // compares with its own lists: the tag filters under `on.push.tags` and the `run:` lines of the verify job, so the script
-// can warn about gates that only CI runs. The safety control is the content pin: release.config.json holds workflow.sha256,
-// and every release step fails when the hash of the file differs (see workflowHash). A person reviews a change by hand
+// can warn about gates that only CI runs. The safety control is the content pin: release.config.json holds workflow.pins,
+// and every release step fails when the hash of a pinned file differs (see pinHash). A person reviews a change by hand
 // and then updates the hash. The checks below that look at job switches are extra and prove nothing about YAML forms
 // they do not know.
 
 import { createHash } from "node:crypto";
 
-/** The text the pin is computed from: CRLF as LF, and no trailing whitespace on any line. */
-export function normalizedWorkflow(text) {
-  return text.replace(/\r\n/g, "\n").split("\n").map((line) => line.trimEnd()).join("\n");
-}
-
-/** The SHA-256 (hex) of the normalised workflow text. Any other change to the file changes it. */
-export function workflowHash(text) {
-  return createHash("sha256").update(normalizedWorkflow(text)).digest("hex");
+/**
+ * The pin of one file. `bytes` is a Buffer, never decoded text, so a Unicode space cannot hide at the end of a line.
+ * A .yml file is normalised first: CRLF becomes LF, and trailing ASCII spaces and tabs are cut from each line. Any non-ASCII byte,
+ * any lone CR, and any other control byte is refused, because the workflow is plain ASCII. Any other file is hashed as raw bytes.
+ * Returns { hash } or { problem } with the byte offset.
+ */
+export function pinHash(path, bytes) {
+  const raw = Buffer.from(bytes);
+  if (!path.endsWith(".yml")) return { hash: createHash("sha256").update(raw).digest("hex") };
+  for (let offset = 0; offset < raw.length; offset += 1) {
+    const byte = raw[offset];
+    if (byte >= 0x80) return { problem: `holds a non-ASCII byte at offset ${offset}, so it cannot be pinned` };
+    if (byte === 0x0d && raw[offset + 1] !== 0x0a) return { problem: `holds a lone CR at offset ${offset}, so it cannot be pinned` };
+    if ((byte < 0x20 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0d) || byte === 0x7f) return { problem: `holds a control byte at offset ${offset}, so it cannot be pinned` };
+  }
+  const text = raw.toString("latin1").replace(/\r\n/g, "\n").split("\n").map((line) => line.replace(/[ \t]+$/, "")).join("\n");
+  return { hash: createHash("sha256").update(text, "latin1").digest("hex") };
 }
 
 const indentOf = (line) => line.length - line.trimStart().length;
@@ -205,7 +214,7 @@ const ALWAYS_FALSE = new Set(["false", "${{ false }}", "${{false}}"]);
 
 /**
  * Extracts the gate commands of the verify job and compares them with the lists below. The other checks in here are best effort and prove
- * nothing about YAML forms the line reader does not know. The safety control is the content pin on the whole file (workflowHash).
+ * nothing about YAML forms the line reader does not know. The safety control is the content pin on the whole file (pinHash).
  * `gates` and `ciOnly` are lists of command forms: each item is a list of accepted spellings of one command. The verify job may run
  * only the gates, the CI-only commands, and the extra commands in `alsoAllowed`, and it must run every one of the first two.
  * `justified` maps a step command to the step keys (working-directory, shell) that the config allows on it.

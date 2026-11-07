@@ -12,7 +12,8 @@
 //
 // This repository already publishes through .github/workflows/publish.yml. A pushed tag that matches the workflow filters starts a
 // real publish, so the script never pushes a tag and never runs npm publish. It reads the workflow and checks that it agrees with
-// release.config.json. The usual order is: preflight, gates, dry-run, tag (a person), publish (a person approves the run), verify, claims.
+// release.config.json. workflow.pins in that file pins the content of the workflow and of the two scripts that run with publish
+// rights; preflight, gates, dry-run, tag, and status fail when a pinned file differs, until a person reviews it and updates the pin. The usual order is: preflight, gates, dry-run, tag (a person), publish (a person approves the run), verify, claims.
 //
 // Every value about the release comes from release.config.json, which is checked against a strict schema. The version rules come from
 // scripts/release-channel.mjs and scripts/verify-release.mjs, which the script runs in child processes with a short allowlist environment.
@@ -44,7 +45,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { gitEnv, isMain, makeHome, removeHome, toolEnv } from "../tools/lib/env.mjs";
 import { deepRedact, failingLine, printable, redact, show } from "../tools/lib/text.mjs";
-import { gateProblem, matchingFilters, pushTagFilters, workflowHash } from "../tools/lib/workflow.mjs";
+import { gateProblem, matchingFilters, pinHash, pushTagFilters } from "../tools/lib/workflow.mjs";
 import { runSupervised } from "../tools/lib/run.mjs";
 import { readZip, zipEntryData } from "../tools/lib/zip.mjs";
 
@@ -100,7 +101,7 @@ const PATTERNS = {
   message: /^[A-Za-z0-9 .,_-]{1,200}$/,
   viewWord: /^[A-Za-z0-9.@_-]+$/,
 };
-const PINNED = { workflowFile: ".github/workflows/publish.yml", verifier: "scripts/verify-release.mjs", docsModule: "docs-site/lib/versions.mjs", tagName: "v{version}", tagMessage: "{version}" };
+const PINNED = { workflowFile: ".github/workflows/publish.yml", verifier: "scripts/verify-release.mjs", designPublisher: "scripts/publish-design-release.mjs", docsModule: "docs-site/lib/versions.mjs", tagName: "v{version}", tagMessage: "{version}" };
 const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const isText = (value) => typeof value === "string" && value !== "";
 const isCount = (value) => Number.isSafeInteger(value) && value >= 0;
@@ -133,9 +134,10 @@ export function configProblem(config) {
   if (!isCount(config.expectedFileCount) || !isCount(config.maxPackageBytes)) return "expectedFileCount and maxPackageBytes must be whole numbers";
 
   const w = config.workflow;
-  if (isPlainObject(w) && !("sha256" in w)) return "workflow.sha256 is missing from release.config.json. It pins the content of the publish workflow, so a person must add it after reviewing the file";
-  if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified", "publishEnvironment", "publishUses", "sha256"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified, publishEnvironment, publishUses, sha256";
-  if (!isText(w.sha256) || !/^[0-9a-f]{64}$/.test(w.sha256)) return "workflow.sha256 must be 64 lowercase hex digits";
+  if (isPlainObject(w) && !("pins" in w)) return "workflow.pins is missing from release.config.json. It pins the content of the publish workflow and of the scripts that publish, so a person must add it after reviewing the files";
+  if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified", "publishEnvironment", "publishUses", "pins"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified, publishEnvironment, publishUses, pins";
+  const pinned = [PINNED.workflowFile, PINNED.verifier, PINNED.designPublisher];
+  if (!Array.isArray(w.pins) || w.pins.length !== pinned.length || !w.pins.every((pin, index) => hasKeys(pin, ["path", "sha256"]) && pin.path === pinned[index] && isText(pin.sha256) && /^[0-9a-f]{64}$/.test(pin.sha256))) return `workflow.pins must hold exactly these paths in this order: ${pinned.join(", ")}, each with a sha256 of 64 lowercase hex digits`;
   if (!isText(w.publishEnvironment) || !/^[A-Za-z0-9_-]+$/.test(w.publishEnvironment)) return "workflow.publishEnvironment is not valid";
   if (!Array.isArray(w.publishUses) || !w.publishUses.every((use) => isText(use) && /^[A-Za-z0-9_.\/-]+@[A-Za-z0-9._-]+$/.test(use))) return "workflow.publishUses must be a list of action@reference texts";
   if (!isPlainObject(w.justified) || !Object.values(w.justified).every((keys) => Array.isArray(keys) && keys.every((key) => key === "working-directory" || key === "shell"))) return "workflow.justified must map a step command to a list of working-directory or shell";
@@ -594,14 +596,25 @@ function warnCiOnly(ctx) {
 }
 
 /**
- * The content pin, and the safety control for the publish workflow: the hash of the file (CRLF as LF, no trailing whitespace)
- * must equal workflow.sha256. Returns a problem text, or null. The reader in tools/lib/workflow.mjs does not replace this check.
+ * The content pins, the safety control for everything that publishes: the publish workflow, and the two scripts that run with
+ * publish rights. Each file is read as bytes and its hash must equal its entry in workflow.pins. Returns a problem text, or null.
+ * The reader in tools/lib/workflow.mjs does not replace this check.
  */
 function workflowPinProblem(root, config) {
-  const resolved = safePath(root, config.workflow.file);
-  if (resolved.problem !== undefined) return resolved.problem;
-  if (workflowHash(readFileSync(resolved.path, "utf8")) === config.workflow.sha256) return null;
-  return `${config.workflow.file} changed since the script was last checked: review the change by hand, then update workflow.sha256 in release.config.json (a person does this)`;
+  for (const pin of config.workflow.pins) {
+    const resolved = safePath(root, pin.path);
+    if (resolved.problem !== undefined) return resolved.problem;
+    let bytes;
+    try {
+      bytes = readFileSync(resolved.path);
+    } catch {
+      return `${pin.path} cannot be read, so it cannot be pinned`;
+    }
+    const found = pinHash(pin.path, bytes);
+    if (found.problem !== undefined) return `${pin.path} ${found.problem}`;
+    if (found.hash !== pin.sha256) return `${pin.path} changed since the script was last checked: review the change by hand, then update the pin for ${pin.path} in workflow.pins of release.config.json (a person does this)`;
+  }
+  return null;
 }
 
 /** The publish workflow must match its pin, must start for this tag, must run every gate the script runs, and must not let a gate be skipped. */
@@ -1125,14 +1138,21 @@ const STEPS = {
     add("retire", retireState(ctx), config.retire.commands.length === 0 ? "nothing to retire" : view.ok ? "" : verdict.note);
     const claims = runClaims(run, root, config);
     add("claims", claims.ok, claims.ok === true ? "" : claims.first);
+    // A pinned file that differs blocks every release step. This is not a failed read, so the phase is blocked and not unknown.
+    const pin = workflowPinProblem(root, config);
+    phases.push({ name: "workflow-pin", state: pin === null ? "done" : "blocked", note: pin ?? "" });
     const left = phases.filter((phase) => phase.state !== "done").map((phase) => phase.name);
     const unknown = phases.filter((phase) => phase.state === "unknown").map((phase) => phase.name);
+    const blocked = phases.filter((phase) => phase.state === "blocked").map((phase) => phase.name);
     run.say(`${config.package}@${config.version} on the ${config.npmTag} tag`);
     for (const phase of phases) run.say(`  ${phase.state.padEnd(7)} ${phase.name}${phase.note ? ` (${phase.note})` : ""}`);
     run.say(left.length === 0 ? "Nothing is left to do." : `Left to do: ${left.join(", ")}`);
-    const base = { package: config.package, version: config.version, phases, left, unknown };
+    const base = { package: config.package, version: config.version, phases, left, unknown, blocked };
     if (unknown.length > 0) {
       return finish(ctx, { command: "status", status: "unknown", exit: 1, message: `status could not read: ${unknown.join(", ")}`, extra: base });
+    }
+    if (blocked.length > 0) {
+      return finish(ctx, { command: "status", status: "blocked", exit: 1, message: `status is blocked: ${phases.find((phase) => phase.state === "blocked").note}`, extra: base });
     }
     return finish(ctx, { command: "status", status: "pass", exit: 0, message: "", extra: base });
   },

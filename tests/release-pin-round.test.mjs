@@ -4,13 +4,13 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { configProblem } from '../scripts/release.mjs';
 import { deepRedact, redact } from '../tools/lib/text.mjs';
-import { workflowHash } from '../tools/lib/workflow.mjs';
+import { pinHash } from '../tools/lib/workflow.mjs';
 import { cleanup, filtersFor, git, makeReleaseRepo, makeRepoWithRemote, repoRoot, runNode, scrubbed, workflowText } from './helpers/tools-support.mjs';
 
 afterEach(cleanup);
 
 const WORKFLOW = '.github/workflows/publish.yml';
-const PIN_MESSAGE = /publish\.yml changed since the script was last checked: review the change by hand, then update workflow\.sha256 in release\.config\.json \(a person does this\)/;
+const PIN_MESSAGE = /publish\.yml changed since the script was last checked: review the change by hand, then update the pin for \.github\/workflows\/publish\.yml in workflow\.pins of release\.config\.json \(a person does this\)/;
 const parse = (text) => JSON.parse(text);
 
 /** Commits a workflow text WITHOUT moving the pin, as an unreviewed change would. */
@@ -22,20 +22,22 @@ function commitUnpinned(repo, text) {
 }
 
 describe('the content pin on the publish workflow', () => {
-  it('matches the committed workflow of this repository', () => {
+  it('matches the committed workflow and the two scripts of this repository', () => {
     const config = parse(readFileSync(join(repoRoot, 'release.config.json'), 'utf8'));
-    assert.match(config.workflow.sha256, /^[0-9a-f]{64}$/);
-    assert.equal(workflowHash(readFileSync(join(repoRoot, WORKFLOW), 'utf8')), config.workflow.sha256);
+    assert.deepEqual(config.workflow.pins.map((pin) => pin.path), [WORKFLOW, 'scripts/verify-release.mjs', 'scripts/publish-design-release.mjs']);
+    for (const pin of config.workflow.pins) {
+      assert.match(pin.sha256, /^[0-9a-f]{64}$/);
+      assert.deepEqual(pinHash(pin.path, readFileSync(join(repoRoot, pin.path))), { hash: pin.sha256 }, pin.path);
+    }
   });
 
-  it('hashes CRLF text and trailing whitespace like the plain text, and a one-character change differently', () => {
+  it('hashes CRLF text and trailing spaces and tabs like the plain text, and any other change differently', () => {
     const text = workflowText(filtersFor('1.0.0'));
-    const crlf = text.replace(/\n/g, '\r\n');
-    const spaced = text.replace(/\n/g, '  \t\n');
-    assert.equal(workflowHash(crlf), workflowHash(text));
-    assert.equal(workflowHash(spaced), workflowHash(text));
-    assert.notEqual(workflowHash(`${text}#`), workflowHash(text));
-    assert.notEqual(workflowHash(text.replace('npm-publish', 'npm-publisH')), workflowHash(text));
+    const hash = (value) => pinHash(WORKFLOW, Buffer.from(value)).hash;
+    assert.equal(hash(text.replace(/\n/g, '\r\n')), hash(text));
+    assert.equal(hash(text.replace(/\n/g, ' \t \n')), hash(text));
+    assert.notEqual(hash(`${text}#`), hash(text));
+    assert.notEqual(hash(text.replace('npm-publish', 'npm-publisH')), hash(text));
   });
 
   it('passes preflight with a CRLF copy of the pinned workflow', async () => {
@@ -84,19 +86,19 @@ describe('the content pin on the publish workflow', () => {
     }
   });
 
-  it('fails every step when the config has no hash, or a hash that is not 64 hex digits', async () => {
-    for (const edit of [(workflow) => { delete workflow.sha256; }, (workflow) => { workflow.sha256 = 'abc'; }]) {
+  it('fails every step when the config has no pins, a pin for the wrong file, or a hash that is not 64 hex digits', async () => {
+    for (const edit of [(workflow) => { delete workflow.pins; }, (workflow) => { workflow.pins[0].sha256 = 'abc'; }, (workflow) => { workflow.pins.pop(); }, (workflow) => { workflow.pins[1].path = 'scripts/other.mjs'; }]) {
       const repo = await makeReleaseRepo({ configEdit: (config) => edit(config.workflow) });
       const result = repo.run(['preflight']);
       assert.equal(result.status, 1);
-      assert.match(result.stdout, /workflow\.sha256/);
+      assert.match(result.stdout, /workflow\.pins/);
     }
   });
 
   it('says in the reader, the audit, and the README that the pin is the safety control', () => {
     assert.match(readFileSync(join(repoRoot, 'tools/lib/workflow.mjs'), 'utf8'), /is NOT a safety control/);
-    assert.match(readFileSync(join(repoRoot, 'docs/workflow-audit.md'), 'utf8'), /workflow\.sha256/);
-    assert.match(readFileSync(join(repoRoot, 'README.md'), 'utf8'), /workflow\.sha256/);
+    assert.match(readFileSync(join(repoRoot, 'docs/workflow-audit.md'), 'utf8'), /workflow\.pins/);
+    assert.match(readFileSync(join(repoRoot, 'README.md'), 'utf8'), /workflow\.pins/);
   });
 });
 

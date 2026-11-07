@@ -177,7 +177,7 @@
           "agent_settable": true
         }
       ],
-      "output": "{ ok, command, status (\"pass\" | \"unknown\" | \"fail\" | \"usage\"), exit, message, steps: [{ command, exit }], warnings? } plus { package, version, phases: [{ name, state (\"done\" | \"todo\" | \"unknown\"), note }], left: [...], unknown: [...] }. Exit 0 pass, 1 when any phase is unknown or a read fails, 2 wrong use.",
+      "output": "{ ok, command, status (\"pass\" | \"unknown\" | \"blocked\" | \"fail\" | \"usage\"), exit, message, steps: [{ command, exit }], warnings? } plus { package, version, phases: [{ name, state (\"done\" | \"todo\" | \"unknown\" | \"blocked\"), note }], left: [...], unknown: [...], blocked: [...] }. Exit 0 pass, 1 when any phase is unknown or blocked (a pinned file differs from workflow.pins) or a read fails, 2 wrong use.",
       "safety_class": "read-only",
       "destructive": false,
       "mcp_exposure": "expose",

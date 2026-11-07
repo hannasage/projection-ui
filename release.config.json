@@ -19,7 +19,20 @@
       "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
       "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093"
     ],
-    "sha256": "5c94d1edea78ba92efe3eb846dd7e1fcf0c3886502de9fc5df58ec55cfa852da"
+    "pins": [
+      {
+        "path": ".github/workflows/publish.yml",
+        "sha256": "5c94d1edea78ba92efe3eb846dd7e1fcf0c3886502de9fc5df58ec55cfa852da"
+      },
+      {
+        "path": "scripts/verify-release.mjs",
+        "sha256": "180c939bdcde520bc364a557c21b0e4a7a680e2903bd14bf9717f0dc1b33cc40"
+      },
+      {
+        "path": "scripts/publish-design-release.mjs",
+        "sha256": "877307233987ed91f2724515ce441af9eba4bd5d1f0c6cb1b29c32df768782f3"
+      }
+    ]
   },
   "gitTag": {
     "name": "v{version}",

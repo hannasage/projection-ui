@@ -7,7 +7,7 @@ import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirS
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { workflowHash } from '../../tools/lib/workflow.mjs';
+import { pinHash } from '../../tools/lib/workflow.mjs';
 
 export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const temps = [];
@@ -310,7 +310,12 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
   const real = JSON.parse(readFileSync(join(repoRoot, 'release.config.json'), 'utf8'));
   const line = await currentLine();
   const config = { ...real, version: line.version, npmTag: line.npmTag, expectedFileCount: 7, maxPackageBytes: 200000 };
-  config.workflow = { ...config.workflow, sha256: workflowHash(workflowText(filtersFor(config.version))) };
+  // The fixture copies the two pinned scripts byte for byte, so their pins are the pins of the real files.
+  const pinOf = (path, bytes) => ({ path, sha256: pinHash(path, bytes).hash });
+  config.workflow = { ...config.workflow, pins: [
+    pinOf('.github/workflows/publish.yml', Buffer.from(workflowText(filtersFor(config.version)))),
+    ...['scripts/verify-release.mjs', 'scripts/publish-design-release.mjs'].map((path) => pinOf(path, readFileSync(join(repoRoot, path)))),
+  ] };
   if (configEdit) configEdit(config);
   const branch = config.releaseBranch;
   git(origin, 'init', '-q', '--bare', '-b', branch);
@@ -325,7 +330,7 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
   put('package.json', JSON.stringify({ name: config.package, version: config.version, type: 'module', exports: exportsMap, files: ['dist'] }, null, 2));
   put('package-lock.json', JSON.stringify({ lockfileVersion: 3, packages: { 'node_modules/react': { version: '19.2.5' }, 'node_modules/react-dom': { version: '19.2.5' } } }) + '\n');
   put('release.config.json', `${JSON.stringify(config, null, 2)}\n`);
-  for (const file of ['scripts/release.mjs', 'scripts/release-channel.mjs', 'scripts/verify-release.mjs', 'tools/lib/text.mjs', 'tools/lib/env.mjs', 'tools/lib/workflow.mjs', 'tools/lib/zip.mjs', 'tools/lib/run.mjs', 'tools/lib/supervise.mjs', 'docs-site/lib/versions.mjs']) {
+  for (const file of ['scripts/release.mjs', 'scripts/release-channel.mjs', 'scripts/verify-release.mjs', 'scripts/publish-design-release.mjs', 'tools/lib/text.mjs', 'tools/lib/env.mjs', 'tools/lib/workflow.mjs', 'tools/lib/zip.mjs', 'tools/lib/run.mjs', 'tools/lib/supervise.mjs', 'docs-site/lib/versions.mjs']) {
     mkdirSync(dirname(join(work, file)), { recursive: true });
     copyFileSync(join(repoRoot, file), join(work, file));
   }
@@ -390,7 +395,7 @@ function writeFlags(fake, extraEnv) {
 export function pinWorkflow(work, text) {
   const file = join(work, 'release.config.json');
   const config = JSON.parse(readFileSync(file, 'utf8'));
-  config.workflow.sha256 = workflowHash(text);
+  config.workflow.pins.find((pin) => pin.path === '.github/workflows/publish.yml').sha256 = pinHash('.github/workflows/publish.yml', Buffer.from(text)).hash;
   writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`);
 }
 
