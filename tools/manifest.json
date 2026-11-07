@@ -1,6 +1,17 @@
 {
   "schema": 1,
   "description": "Every script in this repository that an agent or a person may run. The safety class is one of read-only, local-write, remote-write, or human-only. An agent never runs a human-only entry. A later MCP server lists only the tools whose mcp_exposure is expose.",
+  "safety_classes": {
+    "read-only": "Reads files, git, or the network. Changes nothing.",
+    "local-write": "Changes files in the working tree, a clone tree, or the factory records on this machine.",
+    "remote-write": "Pushes, comments, labels, or opens a pull request.",
+    "human-only": "Publish, deploy, spend, login, or secrets. An agent never runs it."
+  },
+  "exit_codes": {
+    "0": "pass",
+    "1": "a check failed, a read failed, or a phase is unknown",
+    "2": "wrong use of the script (a human-only step run without a terminal also exits 2)"
+  },
   "exposure_default": "hidden",
   "mcp_exposure": {
     "expose": "The MCP server lists the tool.",
@@ -17,25 +28,29 @@
           "name": "--ci",
           "type": "flag",
           "required": false,
-          "description": "Run npm ci first."
+          "description": "Run npm ci first.",
+          "agent_settable": true
         },
         {
           "name": "--bail",
           "type": "flag",
           "required": false,
-          "description": "Stop at the first failing gate."
+          "description": "Stop at the first failing gate.",
+          "agent_settable": true
         },
         {
           "name": "--cwd",
           "type": "path",
           "required": false,
-          "description": "The top folder of a work tree of this package. Default: the current folder."
+          "description": "The top folder of a work tree of this package. Default: the current folder.",
+          "agent_settable": false
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, status, exit, path, gates: [{ name, command, exit, signal, ok, firstFailingLine? }] }. Exit 0 all passed, 1 a gate failed or git is missing, 2 wrong use.",
@@ -67,43 +82,50 @@
           "name": "--title",
           "type": "string",
           "required": true,
-          "description": "One line, at most 256 characters."
+          "description": "One line, at most 256 characters.",
+          "agent_settable": false
         },
         {
           "name": "--body-file",
           "type": "path",
           "required": true,
-          "description": "A regular file of at most 64 KB, inside the repository or the temporary folder."
+          "description": "A regular file of at most 64 KB, inside the repository or the temporary folder.",
+          "agent_settable": false
         },
         {
           "name": "--base",
           "type": "string",
           "required": true,
-          "description": "The branch to merge into."
+          "description": "The branch to merge into.",
+          "agent_settable": false
         },
         {
           "name": "--dir",
           "type": "path",
           "required": false,
-          "description": "The top folder of a work tree of this package. Default: the current folder."
+          "description": "The top folder of a work tree of this package. Default: the current folder.",
+          "agent_settable": false
         },
         {
           "name": "--expect-identity",
           "type": "string",
           "required": false,
-          "description": "The gh login that must be signed in. The tool stops if gh reports another one or cannot read it."
+          "description": "The gh login that must be signed in. The tool stops if gh reports another one or cannot read it.",
+          "agent_settable": false
         },
         {
           "name": "--dry-run",
           "type": "flag",
           "required": false,
-          "description": "Check the text and print the command. Do not call gh."
+          "description": "Check the text and print the command. Do not call gh.",
+          "agent_settable": true
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, status, exit, draft, command, url } or { ok, status: 'invalid-body', exit, problems }. Exit 0 opened, 1 the text or gh failed, 2 wrong use.",
@@ -123,13 +145,15 @@
           "name": "<tree>",
           "type": "path",
           "required": true,
-          "description": "The top folder of a clone tree of this package."
+          "description": "The top folder of a clone tree of this package.",
+          "agent_settable": false
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, status, exit, path, removes: 'nothing', checks: [{ name, ok, detail }] }. Exit 0 all three pass, 1 a check failed, 2 wrong use.",
@@ -149,7 +173,8 @@
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status (\"pass\" | \"unknown\" | \"fail\" | \"usage\"), exit, message, steps: [{ command, exit }], warnings? } plus { package, version, phases: [{ name, state (\"done\" | \"todo\" | \"unknown\"), note }], left: [...], unknown: [...] }. Exit 0 pass, 1 when any phase is unknown or a read fails, 2 wrong use.",
@@ -169,13 +194,15 @@
           "name": "--force",
           "type": "flag",
           "required": false,
-          "description": "Run the step again even if it is recorded as done."
+          "description": "Run the step again even if it is recorded as done.",
+          "agent_settable": true
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit.",
@@ -199,13 +226,15 @@
           "name": "--force",
           "type": "flag",
           "required": false,
-          "description": "Run the step again even if it is recorded as done."
+          "description": "Run the step again even if it is recorded as done.",
+          "agent_settable": true
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit.",
@@ -238,13 +267,15 @@
           "name": "--force",
           "type": "flag",
           "required": false,
-          "description": "Run the step again even if it is recorded as done."
+          "description": "Run the step again even if it is recorded as done.",
+          "agent_settable": true
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit.",
@@ -266,7 +297,8 @@
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps, commands, blockers }. Always prints and never runs the commands. Exit 2 without a terminal, 1 with a terminal when not ready, 0 with a terminal when ready.",
@@ -283,16 +315,25 @@
       "description": "Read the registry, install the package into a clean temporary project, and load every entry. Check the design kit and the built docs.",
       "arguments": [
         {
+          "name": "--allow-unsandboxed",
+          "type": "flag",
+          "required": false,
+          "description": "Accept a Node without the permission model: the import of the registry package then runs without a file read limit, and a warning says so.",
+          "agent_settable": false
+        },
+        {
           "name": "--force",
           "type": "flag",
           "required": false,
-          "description": "Run the step again even if it is recorded as done."
+          "description": "Run the step again even if it is recorded as done.",
+          "agent_settable": true
         },
         {
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit, exports, recorded.",
@@ -314,7 +355,8 @@
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps, commands, blockers }. Always prints and never runs the commands. Exit 2 without a terminal, 1 with a terminal when not ready, 0 with a terminal when ready.",
@@ -334,7 +376,8 @@
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps, commands, blockers }. Always prints and never runs the commands. Exit 2 without a terminal, 1 with a terminal when not ready, 0 with a terminal when ready.",
@@ -354,7 +397,8 @@
           "name": "--json",
           "type": "flag",
           "required": false,
-          "description": "Print one JSON object instead of text."
+          "description": "Print one JSON object instead of text.",
+          "agent_settable": true
         }
       ],
       "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use.",
