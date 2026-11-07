@@ -8,7 +8,7 @@ import { createZip } from '../scripts/build-design-package.mjs';
 import { deepRedact, redact } from '../tools/lib/text.mjs';
 import { privateContentProblems } from '../tools/lib/pr-body.mjs';
 import { resolveWorkTree } from '../tools/lib/paths.mjs';
-import { cleanup, filtersFor, git, makeReleaseRepo, makeRepo, makeRepoWithRemote, repoRoot, runNode, scrubbed, tempDir, withEnv, workflowText } from './helpers/tools-support.mjs';
+import { cleanup, filtersFor, git, makeReleaseRepo, makeRepo, makeRepoWithRemote, pinWorkflow, repoRoot, runNode, scrubbed, tempDir, withEnv, workflowText } from './helpers/tools-support.mjs';
 
 afterEach(cleanup);
 
@@ -17,6 +17,8 @@ const parse = (text) => JSON.parse(text);
 function commitFile(repo, path, text) {
   mkdirSync(join(repo.work, path, '..'), { recursive: true });
   writeFileSync(join(repo.work, path), text);
+  // A changed publish workflow is a reviewed change here: the pin in the config follows it, so the other checks can be tested alone.
+  if (path === '.github/workflows/publish.yml') pinWorkflow(repo.work, text);
   git(repo.work, 'add', '-A');
   git(repo.work, 'commit', '-q', '--allow-empty', '-m', `change ${path}`);
   git(repo.work, 'push', '-q', 'origin', repo.config.releaseBranch);
