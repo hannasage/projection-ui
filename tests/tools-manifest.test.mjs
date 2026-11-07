@@ -136,6 +136,10 @@ function exposureProblems(candidate, root = repoRoot) {
       if (safety !== 'read-only') problems.push(`${name}: an exposed tool must be read-only`);
       if (!Array.isArray(tool.writesPaths) || tool.writesPaths.length !== 0) problems.push(`${name}: an exposed tool must have writesPaths: []`);
       if (!isRegularFileInside(root, tool.script)) problems.push(`${name}: an exposed tool needs a script file that exists as a regular file inside the repository`);
+      for (const argument of Array.isArray(tool.arguments) ? tool.arguments : []) {
+        const pathLike = argument?.type === 'path' || /^<.*(tree|dir|path|file).*>$/i.test(String(argument?.name)) || /^--(dir|path|file|tree|out)\b/.test(String(argument?.name));
+        if (pathLike && argument.agent_settable !== false && argument.validated !== true) problems.push(`${name}: an exposed tool's path argument ${argument.name} must be agent_settable false or validated`);
+      }
     }
     if (heldNames.includes(name) && exposed) problems.push(`${name}: a held-back tool must be hidden`);
   }
@@ -183,6 +187,17 @@ describe('MCP exposure', () => {
   it('marks gates destructive, like release gates, because npm ci replaces node_modules', () => {
     assert.equal(entry('gates').destructive, true);
     assert.equal(entry('release gates').destructive, true);
+  });
+
+  it('fails an exposed tool whose path argument an agent can set', () => {
+    const open = make(['a', 'read-only', 'expose']);
+    open.tools[0].arguments = [{ name: '<tree>', type: 'path', agent_settable: true }];
+    assert.match(exposureProblems(open).join(), /a: an exposed tool's path argument <tree> must be agent_settable false or validated/);
+    assert.deepEqual(exposedTools(open), []);
+    open.tools[0].arguments = [{ name: '--dir', type: 'string' }];
+    assert.match(exposureProblems(open).join(), /path argument --dir/);
+    open.tools[0].arguments = [{ name: '--dir', type: 'string', agent_settable: false }, { name: '<tree>', type: 'path', agent_settable: true, validated: true }];
+    assert.deepEqual(exposureProblems(open), []);
   });
 
   it('fails a manifest that exposes a human-only tool, and then exposes nothing', () => {
