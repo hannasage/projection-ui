@@ -15,9 +15,9 @@ const HOME_PATHS = [/\/Users\/[^\s/]+/i, /\/home\/[^\s/]+/i, /(?:^|[^\w.-])\/roo
 const SESSION_LINKS = [/claude\.ai\/(?:code|chat|share|artifact|local_sessions|s|project|projects)\b/i, /\bsession_[A-Za-z0-9]{8,}/];
 
 /** Decodes the ways a slash or a path can be written in text: HTML entities, percent codes, and look-alike slashes. A bad code is left as it is. */
-function decoded(text) {
-  let out = text.replace(/&#(?:x([0-9a-f]{1,6})|(\d{1,7}));|&(sol|bsol|apos|quot);/gi, (whole, hex, dec, name) => {
-    if (name !== undefined) return { sol: "/", bsol: "\\", apos: "'", quot: '"' }[name.toLowerCase()];
+function decodeOnce(text) {
+  let out = text.replace(/&#(?:x([0-9a-f]{1,6})|(\d{1,7}));|&(sol|bsol|apos|quot|amp);/gi, (whole, hex, dec, name) => {
+    if (name !== undefined) return { sol: "/", bsol: "\\", apos: "'", quot: '"', amp: "&" }[name.toLowerCase()];
     const code = hex !== undefined ? parseInt(hex, 16) : Number(dec);
     return code <= 0x10ffff ? String.fromCodePoint(code) : whole;
   });
@@ -31,6 +31,17 @@ function decoded(text) {
   });
   // Division slash, fraction slash, big solidus, and the set-minus look-alikes of the backslash.
   return out.replace(/[∕⁄⧸]/g, "/").replace(/[∖⧵]/g, "\\");
+}
+
+/** Decodes up to four times, so a double encoding (`&amp;#47;`, `%252F`) is undone too. */
+function decoded(text) {
+  let out = text;
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = decodeOnce(out);
+    if (next === out) break;
+    out = next;
+  }
+  return out;
 }
 
 /** The text in the forms a check must look at: the raw text, the cleaned text, and the cleaned text with codes decoded. */

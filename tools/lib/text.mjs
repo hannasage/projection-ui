@@ -17,6 +17,8 @@ const SECRET_PATTERNS = [
   [/-----BEGIN [A-Z ]{0,30}PRIVATE KEY-----[\s\S]{0,10000}?(?:-----END [A-Z ]{0,30}PRIVATE KEY-----|$)/g, "[redacted]"],
   // A key and a value in JSON, with escaped quotes, in double or single quotes, also when the closing quote is missing.
   [new RegExp(String.raw`("(?:${KEY_NAMES})"\s*:\s*")(?:[^"\\]|\\.){0,2000}("?)`, "gi"), "$1[redacted]$2"],
+  // A number as the value of a secret key in JSON ("password": 12345) becomes a string, so the JSON stays valid.
+  [new RegExp(String.raw`("(?:${KEY_NAMES})"\s*:\s*)-?\d[\d.eE+-]{0,60}`, "gi"), '$1"[redacted]"'],
   [new RegExp(String.raw`('(?:${KEY_NAMES})'\s*:\s*')(?:[^'\\]|\\.){0,2000}('?)`, "gi"), "$1[redacted]$2"],
   // A password inside a URL: after the first colon of the user part, up to the @ that comes before the host. The password may hold
   // spaces and a second @. It may not hold a slash, so a URL with a port and a path stays readable. A bare token as the user name.
@@ -76,7 +78,7 @@ export function deepRedact(value) {
   if (typeof value === "string") return redact(value);
   if (Array.isArray(value)) return value.map(deepRedact);
   // A field with a secret name is redacted whatever its value looks like.
-  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, typeof inner === "string" && SECRET_KEY.test(key) ? "[redacted]" : deepRedact(inner)]));
+  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, (typeof inner === "string" || typeof inner === "number") && SECRET_KEY.test(key) ? "[redacted]" : deepRedact(inner)]));
   return value;
 }
 

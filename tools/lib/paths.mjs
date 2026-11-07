@@ -7,6 +7,7 @@ import { homedir, tmpdir } from "node:os";
 import { dirname, join, parse, resolve, sep } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { gitEnv } from "./env.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -21,7 +22,8 @@ function checkText(input) {
   return null;
 }
 
-const gitEnv = () => ({ ...process.env, GIT_TERMINAL_PROMPT: "0" });
+// git gets the short allowlisted environment, never a copy of the whole one.
+const gitEnvFor = (path) => gitEnv(process.env, {}, path);
 
 /** Resolves a folder that is inside a git work tree. On success it returns `{ ok: true, path, top }`. */
 export function resolveWorkTree(input) {
@@ -34,10 +36,10 @@ export function resolveWorkTree(input) {
   } catch {
     return { ok: false, kind: "usage", error: `${resolve(input)} does not exist` };
   }
-  const inside = spawnSync("git", ["-C", path, "rev-parse", "--is-inside-work-tree"], { encoding: "utf8", env: gitEnv() });
+  const inside = spawnSync("git", ["-C", path, "rev-parse", "--is-inside-work-tree"], { encoding: "utf8", env: gitEnvFor(path) });
   if (inside.error !== undefined) return { ok: false, kind: "env", error: `git could not run: ${inside.error.message}` };
   if (inside.status !== 0 || inside.stdout.trim() !== "true") return { ok: false, kind: "usage", error: `${path} is not inside a git work tree` };
-  const top = spawnSync("git", ["-C", path, "rev-parse", "--show-toplevel"], { encoding: "utf8", env: gitEnv() });
+  const top = spawnSync("git", ["-C", path, "rev-parse", "--show-toplevel"], { encoding: "utf8", env: gitEnvFor(path) });
   if (top.error !== undefined) return { ok: false, kind: "env", error: `git could not run: ${top.error.message}` };
   // The folder was found to be inside a work tree, so a failing second question is a git failure and not a wrong use.
   if (top.status !== 0) return { ok: false, kind: "env", error: `git could not name the top of the work tree of ${path}: ${(top.stderr ?? "").trim().split("\n")[0]}` };

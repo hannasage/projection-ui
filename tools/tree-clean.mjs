@@ -117,7 +117,9 @@ function firstUnrecreatable(tree, folder) {
 // or that pulls in more config. The tool does not chase flags to switch each one off. If the tree has any of these, it refuses the tree.
 const RISKY_KEYS = [
   /^filter\./i,
-  /^core\.(fsmonitor|sshcommand|askpass|gitproxy|attributesfile)$/i,
+  /^core\.(fsmonitor|sshcommand|askpass|gitproxy|attributesfile|alternaterefscommand)$/i,
+  /^remote\..*\.(uploadpack|receivepack)$/i,
+  /^gpg\.program$/i,
   /^diff\.external$/i,
   /^diff\.ignoresubmodules$/i,
   /^submodule\..*\.ignore$/i,
