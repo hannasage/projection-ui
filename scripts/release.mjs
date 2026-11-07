@@ -123,7 +123,7 @@ function allStrings(value, found = []) {
 
 /** Returns the first problem with the config, or null. Unknown keys are problems, so a typo cannot hide. */
 export function configProblem(config) {
-  const top = ["package", "version", "npmTag", "access", "expectedFileCount", "maxPackageBytes", "releaseBranch", "remote", "workflow", "gitTag", "gates", "designKit", "docsEdition", "retire", "claims"];
+  const top = ["package", "version", "npmTag", "access", "expectedFileCount", "maxPackageBytes", "releaseBranch", "remote", "workflow", "gitTag", "gates", "ciOnlyGates", "designKit", "docsEdition", "retire", "claims"];
   if (!hasKeys(config, top)) return `release.config.json must hold exactly these keys: ${top.join(", ")}`;
   if (allStrings(config).some((text) => printable(text) !== text)) return "release.config.json holds a control character or an escape sequence";
   for (const [name, pattern] of [["package", PATTERNS.package], ["version", PATTERNS.version], ["npmTag", PATTERNS.npmTag], ["access", PATTERNS.access], ["releaseBranch", PATTERNS.branch], ["remote", PATTERNS.remote]]) {
@@ -133,12 +133,15 @@ export function configProblem(config) {
   if (!isCount(config.expectedFileCount) || !isCount(config.maxPackageBytes)) return "expectedFileCount and maxPackageBytes must be whole numbers";
 
   const w = config.workflow;
-  if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified";
+  if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified", "publishEnvironment", "publishUses"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified, publishEnvironment, publishUses";
+  if (!isText(w.publishEnvironment) || !/^[A-Za-z0-9_-]+$/.test(w.publishEnvironment)) return "workflow.publishEnvironment is not valid";
+  if (!Array.isArray(w.publishUses) || !w.publishUses.every((use) => isText(use) && /^[A-Za-z0-9_.\/-]+@[A-Za-z0-9._-]+$/.test(use))) return "workflow.publishUses must be a list of action@reference texts";
   if (!isPlainObject(w.justified) || !Object.values(w.justified).every((keys) => Array.isArray(keys) && keys.every((key) => key === "working-directory" || key === "shell"))) return "workflow.justified must map a step command to a list of working-directory or shell";
   if (w.file !== PINNED.workflowFile) return `workflow.file must be ${PINNED.workflowFile}`;
   if (w.verifier !== PINNED.verifier) return `workflow.verifier must be ${PINNED.verifier}`;
   for (const name of ["verifyJob", "publishJob"]) if (!isText(w[name]) || !/^[A-Za-z0-9_-]+$/.test(w[name])) return `workflow.${name} is not valid`;
 
+  if (!Array.isArray(config.ciOnlyGates) || !config.ciOnlyGates.every(ciOnlyOk)) return "ciOnlyGates must be a list of { name, reason } or { name, command, reason } with plain text";
   if (!hasKeys(config.gitTag, ["name", "message"]) || config.gitTag.name !== PINNED.tagName || config.gitTag.message !== PINNED.tagMessage) return `gitTag must be exactly name ${PINNED.tagName} and message ${PINNED.tagMessage}`;
   if (!Array.isArray(config.gates) || config.gates.length === 0 || !config.gates.every((name) => isText(name) && PATTERNS.scriptName.test(name))) return "gates must be a list of npm script names";
 
@@ -181,6 +184,14 @@ export function configProblem(config) {
   return null;
 }
 
+/** One entry of ciOnlyGates: an npm script name (or a name with its own command) and a one-line reason. */
+function ciOnlyOk(entry) {
+  if (!hasKeys(entry, ["name", "reason"]) && !hasKeys(entry, ["name", "command", "reason"])) return false;
+  if (!isText(entry.name) || !PATTERNS.scriptName.test(entry.name)) return false;
+  if ("command" in entry && !(isText(entry.command) && /^[A-Za-z0-9 .:_/=@-]{1,200}$/.test(entry.command))) return false;
+  return isText(entry.reason) && entry.reason.length <= 200 && !entry.reason.includes("\n");
+}
+
 /** The only commands retire may hold: npm deprecate of an older version of this package, and npm dist-tag rm of another tag. */
 function retireCommandProblem(command, config) {
   if (!Array.isArray(command) || !command.every((part) => typeof part === "string")) return "each command must be a list of text";
@@ -188,7 +199,7 @@ function retireCommandProblem(command, config) {
     const match = /^(@[^@]+)@(.+)$/.exec(command[2] ?? "");
     if (command.length !== 4 || match === null || match[1] !== config.package) return `npm deprecate must be exactly: npm deprecate ${config.package}@<version> "<message>"`;
     if (!PATTERNS.version.test(match[2]) || match[2] === config.version) return "npm deprecate must name an older version than the release";
-    if (!PATTERNS.message.test(command[3])) return "the npm deprecate message may hold only letters, digits, spaces, and . , _ -";
+    if (!PATTERNS.message.test(command[3]) || command[3].startsWith("-")) return "the npm deprecate message may hold only letters, digits, spaces, and . , _ -, and may not start with -";
     return null;
   }
   if (command[0] === "npm" && command[1] === "dist-tag" && command[2] === "rm") {
@@ -377,10 +388,19 @@ function head(run) {
   return result.ok ? result.stdout.trim() : null;
 }
 
+/**
+ * True only when git shows nothing at all. Every untracked file is shown whatever the person's git config says
+ * (status.showUntrackedFiles=no would hide them), submodules are not skipped, and a file marked assume-unchanged or skip-worktree
+ * (which hides its changes from status) counts as a change.
+ */
 function treeIsClean(run) {
-  const result = run.exec(["git", "status", "--short"]);
+  const result = run.exec(["git", "-c", "status.showUntrackedFiles=all", "status", "--short", "--untracked-files=all", "--ignore-submodules=none"]);
   const first = result.stdout.split("\n").find((line) => line.trim() !== "");
-  return { ok: result.ok && first === undefined, first: first ?? failingLine(result.stdout, result.stderr) };
+  if (!result.ok || first !== undefined) return { ok: false, first: first ?? failingLine(result.stdout, result.stderr) };
+  const flagged = run.exec(["git", "ls-files", "-v"]);
+  if (!flagged.ok) return { ok: false, first: failingLine(flagged.stdout, flagged.stderr) };
+  const hidden = flagged.stdout.split("\n").find((line) => /^[a-zS] /.test(line));
+  return hidden === undefined ? { ok: true, first: "" } : { ok: false, first: `${hidden.slice(2)} is marked assume-unchanged or skip-worktree, so git status may hide a change` };
 }
 
 /** The sentence for a registry that is not the public one. No read from such a registry is trusted. */
@@ -549,6 +569,17 @@ function versionRuleProblem(ctx) {
   return null;
 }
 
+/** The spellings of one CI-only command: its own command text, or `npm run <name>` (and `npm test` for the script test). */
+const ciOnlyForms = (entry) => ("command" in entry ? [entry.command] : entry.name === "test" ? ["npm run test", "npm test"] : [`npm run ${entry.name}`]);
+
+/** The warning that says which checks CI runs and the release script does not. Printed by gates, dry-run, and status. */
+function warnCiOnly(ctx) {
+  const { config, run } = ctx;
+  if (config.ciOnlyGates.length === 0) return;
+  const list = config.ciOnlyGates.map((entry) => ciOnlyForms(entry)[0].replace(/^npm run /, "")).join(", ");
+  run.warn(`CI also runs: ${list}. Run them before you push a tag, because a tag cannot be moved`);
+}
+
 /** The publish workflow must start for this tag, must run every gate the script runs, and must not let a gate be skipped. */
 function workflowProblem(root, config) {
   const resolved = safePath(root, config.workflow.file);
@@ -566,7 +597,8 @@ function workflowProblem(root, config) {
   if (matches.length === 0) return `${config.workflow.file} would not start for the tag ${tag}. Its filters are: ${filters.tags.join(", ")}`;
   // `npm test` and `npm run test` are the same command, so either form counts.
   const gates = [["npm ci"], ...config.gates.map((name) => (name === "test" ? ["npm run test", "npm test"] : [`npm run ${name}`])), [`node ${config.workflow.verifier}`]];
-  const problem = gateProblem(text, { verifyJob: config.workflow.verifyJob, publishJob: config.workflow.publishJob, gates, publishCommand: `node ${config.workflow.verifier} --publish`, justified: config.workflow.justified });
+  const ciOnly = config.ciOnlyGates.map(ciOnlyForms);
+  const problem = gateProblem(text, { verifyJob: config.workflow.verifyJob, publishJob: config.workflow.publishJob, gates, ciOnly, publishCommand: `node ${config.workflow.verifier} --publish`, justified: config.workflow.justified, publishEnvironment: config.workflow.publishEnvironment, publishUses: config.workflow.publishUses });
   return problem === null ? null : `${config.workflow.file}: ${problem}`;
 }
 
@@ -600,7 +632,9 @@ export function docsBuiltProblem(root, config) {
     if (resolved.problem !== undefined) return `${resolved.problem}. Run: npm run release -- gates`;
     let value;
     try {
-      value = JSON.parse(readFileSync(resolved.path, "utf8"))[field];
+      const parsed = JSON.parse(readFileSync(resolved.path, "utf8"));
+      if (parsed === null || typeof parsed !== "object") return `${config.docsEdition[key]} is not a JSON object`;
+      value = parsed[field];
     } catch {
       return `${config.docsEdition[key]} cannot be read as JSON`;
     }
@@ -636,6 +670,7 @@ export function designKitProblem(root, config) {
   } catch {
     return `${config.designKit.metadata} cannot be read as JSON`;
   }
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) return `${config.designKit.metadata} is not a JSON object`;
   if (metadata.version !== config.version) return `${config.designKit.metadata} says version ${metadata.version}, the release is ${config.version}`;
   if (metadata.filename !== name) return `${config.designKit.metadata} says the file is ${metadata.filename}, expected ${name}`;
   const bytes = readFileSync(zipFile.path);
@@ -656,17 +691,34 @@ export function designKitProblem(root, config) {
   } catch {
     return `design-manifest.json inside ${name} is not JSON`;
   }
+  if (manifest === null || typeof manifest !== "object" || Array.isArray(manifest)) return `design-manifest.json inside ${name} is not a JSON object`;
   if (manifest.version !== config.version) return `design-manifest.json inside ${name} says version ${manifest.version}, the release is ${config.version}`;
   const scene = regularFile(root, config.designKit.scene);
   if (scene.problem !== undefined) return scene.problem;
   let sceneHash;
+  let sceneObject;
   try {
-    sceneHash = sha256(JSON.stringify(JSON.parse(readFileSync(scene.path, "utf8"))));
+    sceneObject = JSON.parse(readFileSync(scene.path, "utf8"));
+    sceneHash = sha256(JSON.stringify(sceneObject));
   } catch {
     return `${config.designKit.scene} cannot be read as JSON`;
   }
   if (manifest.design?.sceneSha256 !== sceneHash) return `the kit was built from another scene than ${config.designKit.scene}`;
   if (metadata.sceneSha256 !== sceneHash) return `${config.designKit.metadata} names another scene hash than ${config.designKit.scene}`;
+  // tokens.json and plugin/code.js must agree with the manifest and the source scene, byte for byte (compared by SHA-256).
+  const text = (entryName) => {
+    const found = zip.entries.find((entry) => entry.name === entryName);
+    const data = found === undefined ? null : zipEntryData(bytes, found);
+    return data === null ? null : data.toString("utf8");
+  };
+  const tokensText = text("tokens.json");
+  const codeText = text("plugin/code.js");
+  if (tokensText === null || codeText === null) return `tokens.json or plugin/code.js inside ${name} cannot be read`;
+  if (manifest.tokens === undefined) return `design-manifest.json inside ${name} has no tokens`;
+  const expectedTokens = JSON.stringify(manifest.tokens, null, 2);
+  if (sha256(tokensText) !== sha256(expectedTokens)) return `tokens.json inside ${name} (SHA-256 ${sha256(tokensText).slice(0, 12)}) differs from the tokens in design-manifest.json (${sha256(expectedTokens).slice(0, 12)})`;
+  const embedded = `const scene = ${JSON.stringify(sceneObject)};\nconst tokens = ${JSON.stringify(manifest.tokens)};\nimportProjectionDesign(figma, scene, tokens, ${JSON.stringify(config.version)})`;
+  if (!codeText.includes(embedded)) return `plugin/code.js inside ${name} does not embed the source scene, the manifest tokens, and the version ${config.version}`;
   return null;
 }
 
@@ -782,6 +834,7 @@ const STEPS = {
 
   async gates(ctx) {
     const { run, root, config, flags } = ctx;
+    warnCiOnly(ctx);
     const commit = head(run);
     const lock = lockHash(root);
     const state = readState(ctx);
@@ -805,6 +858,7 @@ const STEPS = {
 
   async "dry-run"(ctx) {
     const { run, root, config, flags } = ctx;
+    warnCiOnly(ctx);
     const commit = head(run);
     const lock = lockHash(root);
     const state = readState(ctx);
@@ -1008,6 +1062,7 @@ const STEPS = {
 
   status(ctx) {
     const { run, root, config } = ctx;
+    warnCiOnly(ctx);
     const state = readState(ctx);
     const commit = head(run);
     const lock = lockHash(root);
@@ -1038,7 +1093,8 @@ const STEPS = {
     add("publish", view.ok ? view.tags[config.npmTag] === config.version : verdict.accepted ? false : null, view.ok ? "" : verdict.note);
     add("verify", known(view.ok ? recorded(state.verify, commit, lock) && view.tags[config.npmTag] === config.version : verdict.accepted ? false : null), commit === null ? headNote : view.ok ? "" : verdict.note);
     add("retire", retireState(ctx), config.retire.commands.length === 0 ? "nothing to retire" : view.ok ? "" : verdict.note);
-    add("claims", runClaims(run, root, config).ok);
+    const claims = runClaims(run, root, config);
+    add("claims", claims.ok, claims.ok ? "" : claims.first);
     const left = phases.filter((phase) => phase.state !== "done").map((phase) => phase.name);
     const unknown = phases.filter((phase) => phase.state === "unknown").map((phase) => phase.name);
     run.say(`${config.package}@${config.version} on the ${config.npmTag} tag`);

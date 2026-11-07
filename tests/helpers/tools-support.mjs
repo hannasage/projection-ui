@@ -248,16 +248,22 @@ const GATE_NAMES = ['tokens:check', 'typecheck', 'lint', 'test', 'build', 'build
  * The text of a publish workflow whose push trigger lists the given tag filters and whose verify job runs the gates.
  * Options switch single steps off or change the jobs, so a test can break one promise at a time.
  */
-export function workflowText(filters, { skip = [], stepIf = {}, stepContinue = {}, verifyIf = null, verifyContinue = null, publishNeeds = 'verify' } = {}) {
+export function workflowText(filters, { skip = [], stepIf = {}, stepContinue = {}, verifyIf = null, verifyContinue = null, publishNeeds = 'verify', publishEnvironment = 'npm-publish', publishIf = null, publishStepEnv = false, publishExtraUses = null, oddIf = null, skipCiOnly = false } = {}) {
   const step = (command, name = command) => {
     let text = `      - run: ${command}`;
     if (stepIf[name] !== undefined) text += `\n        if: ${stepIf[name]}`;
     if (stepContinue[name] !== undefined) text += `\n        continue-on-error: ${stepContinue[name]}`;
+    if (oddIf !== null && oddIf === name) text = `      -   run: ${command}\n            if: false`;
     return text;
   };
   const gates = GATE_NAMES.filter((name) => !skip.includes(name)).map((name) => step(`npm run ${name}`, name)).join('\n');
+  const ciOnly = skipCiOnly ? '' : `\n${['npx playwright install --with-deps chromium', 'npm run test:storybook', 'npm run test:storybook-tools', 'npm run test:docs-themes'].map((command) => step(command)).join('\n')}`;
   const verifyHead = ['  verify:', '    runs-on: ubuntu-latest', ...(verifyIf !== null ? [`    if: ${verifyIf}`] : []), ...(verifyContinue !== null ? [`    continue-on-error: ${verifyContinue}`] : [])].join('\n');
   const needs = publishNeeds === null ? '' : `    needs: ${publishNeeds}\n`;
+  const environment = publishEnvironment === null ? '' : `    environment: ${publishEnvironment}\n`;
+  const publishIfLine = publishIf === null ? '' : `    if: ${publishIf}\n`;
+  const extraUses = publishExtraUses === null ? '' : `      - uses: ${publishExtraUses}\n`;
+  const stepEnv = publishStepEnv ? '        env:\n          X: y\n' : '';
   return `name: publish
 on:
   push:
@@ -271,11 +277,11 @@ ${verifyHead}
       - uses: actions/checkout@abc # v4
 ${step('npm ci', 'ci')}
 ${step('node scripts/verify-release.mjs', 'verifier')}
-${gates}
+${gates}${ciOnly}
   publish:
-${needs}    steps:
-      - run: node scripts/verify-release.mjs --publish
-`;
+${needs}${environment}${publishIfLine}    steps:
+${extraUses}      - run: node scripts/verify-release.mjs --publish
+${stepEnv}`;
 }
 
 export function snapshot(root) {
@@ -340,7 +346,10 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
   const { createZip } = await import(pathToFileURL(join(repoRoot, 'scripts/build-design-package.mjs')).href);
   const kitName = config.designKit.name.replace('{version}', config.version);
   const sceneHash = createHash('sha256').update(JSON.stringify(scene)).digest('hex');
-  const zip = createZip(config.designKit.entries.map((name) => ({ name, data: name === 'design-manifest.json' ? JSON.stringify({ version: config.version, design: { sceneSha256: sceneHash } }) : `file ${name}` })));
+  const tokens = { themes: { dark: { bg: '#000' } } };
+  const codeText = `// importer\nconst scene = ${JSON.stringify(scene)};\nconst tokens = ${JSON.stringify(tokens)};\nimportProjectionDesign(figma, scene, tokens, ${JSON.stringify(config.version)}).then(() => {});\n`;
+  const kitData = (name) => (name === 'design-manifest.json' ? JSON.stringify({ version: config.version, design: { sceneSha256: sceneHash }, tokens }) : name === 'tokens.json' ? JSON.stringify(tokens, null, 2) : name === 'plugin/code.js' ? codeText : `file ${name}`);
+  const zip = createZip(config.designKit.entries.map((name) => ({ name, data: kitData(name) })));
   put(`${config.designKit.dir}/${kitName}`, '');
   writeFileSync(join(work, config.designKit.dir, kitName), zip);
   put(`${config.designKit.dir}/${config.designKit.metadata}`, JSON.stringify({ version: config.version, filename: kitName, bytes: zip.length, sha256: createHash('sha256').update(zip).digest('hex'), sceneSha256: sceneHash }));
@@ -352,7 +361,7 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
   const script = join(work, 'scripts', 'release.mjs');
   const env = (extra = {}) => fake.env(extra);
   return {
-    work, origin, fake, script, config, kitName, line, zip,
+    work, origin, fake, script, config, kitName, line, zip, kitData,
     env,
     setRegistry(tags) { writeFileSync(join(fake.fixtures, 'dist-tags.json'), JSON.stringify(tags)); },
     publishedTags() { return { latest: '0.1.5', [config.npmTag]: config.version }; },

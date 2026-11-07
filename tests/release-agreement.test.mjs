@@ -54,7 +54,9 @@ describe('release.config.json', () => {
 describe('publish.yml stays in charge', () => {
   it('keeps every gate un-skippable and makes the publish job need the verify job', () => {
     const gates = [['npm ci'], ...config.gates.map((name) => (name === 'test' ? ['npm run test', 'npm test'] : [`npm run ${name}`])), [`node ${config.workflow.verifier}`]];
-    assert.equal(gateProblem(workflow, { verifyJob: config.workflow.verifyJob, publishJob: config.workflow.publishJob, gates, publishCommand: `node ${config.workflow.verifier} --publish` }), null);
+    const ciOnly = config.ciOnlyGates.map((entry) => ('command' in entry ? [entry.command] : [`npm run ${entry.name}`]));
+    const { verifyJob, publishJob, justified, publishEnvironment, publishUses } = config.workflow;
+    assert.equal(gateProblem(workflow, { verifyJob, publishJob, gates, ciOnly, justified, publishEnvironment, publishUses, publishCommand: `node ${config.workflow.verifier} --publish` }), null);
   });
 
   it('still publishes through the protected environment and the verifier, and the script does not replace it', () => {

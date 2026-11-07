@@ -110,7 +110,7 @@ describe('preflight', () => {
     const first = repo.run(['preflight']);
     assert.equal(first.status, 0, first.stdout);
     assert.match(first.stdout, /\$ git fetch -- origin/);
-    assert.match(first.stdout, /\$ git status --short/);
+    assert.match(first.stdout, /\$ git -c status\.showUntrackedFiles=all status --short --untracked-files=all --ignore-submodules=none/);
     const second = repo.run(['preflight']);
     assert.equal(second.status, 0);
     assert.match(second.stdout, /already done/);

@@ -231,7 +231,7 @@ describe('workflow jobs', () => {
 
   it('judges a workflow with gateProblem', () => {
     const base = workflowText(['v1']);
-    const options = { verifyJob: 'verify', publishJob: 'publish', gates: [['npm ci'], ['npm run lint']], publishCommand: 'node scripts/verify-release.mjs --publish' };
+    const options = { verifyJob: 'verify', publishJob: 'publish', gates: [['npm ci'], ...['tokens:check', 'typecheck', 'lint', 'test', 'build', 'build:docs', 'test:docs', 'test:artifact'].map((name) => [`npm run ${name}`]), ['node scripts/verify-release.mjs']], ciOnly: [['npx playwright install --with-deps chromium'], ['npm run test:storybook'], ['npm run test:storybook-tools'], ['npm run test:docs-themes']], publishEnvironment: 'npm-publish', publishUses: [], publishCommand: 'node scripts/verify-release.mjs --publish' };
     assert.equal(gateProblem(base, options), null);
     assert.match(gateProblem(workflowText(['v1'], { stepIf: { lint: 'false' } }), options), /lint/);
     assert.match(gateProblem(workflowText(['v1'], { publishNeeds: null }), options), /does not need/);
