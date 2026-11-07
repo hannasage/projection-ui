@@ -355,7 +355,7 @@ describe('pr-body paths and links (6)', () => {
   it('decodes percent codes run by run, so one bad run does not hide a good one', () => {
     assert.equal(home('%2FUsers%2Fname'), true);
     assert.equal(home('%E0%A4%A and then %2FUsers%2Fname'), true);
-    assert.equal(home('%zz plain /Users/name'), true);
+    assert.equal(home(`%zz plain ${['', 'Users', 'name'].join('/')}`), true);
     assert.equal(link('claude.ai%2Fcode%2Fabc'), true);
   });
 

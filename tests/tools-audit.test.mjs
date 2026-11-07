@@ -37,7 +37,7 @@ describe('docs/workflow-audit.md', () => {
   it('names the required candidates with the required decisions', () => {
     for (const name of ['Full gate run', 'PR open', 'Tree cleanliness', 'Release preflight', 'Release gates and dry run', 'Design kit zip', 'Docs edition', 'Version move']) assert.match(decision(name), /^script/, name);
     for (const name of ['Docs-site three-viewport', 'Release-publish-path', 'Release tag and publish', 'Retire the old alpha']) assert.match(decision(name), /^keep as agent task/, name);
-    assert.match(decision('Release-publish-path'), /not for a script|investigation/);
+    assert.match(decision('Release-publish-path'), /closed local port with no retries/);
   });
 
   it('labels the token figures as estimates', () => {
