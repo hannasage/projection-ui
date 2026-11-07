@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { GradientText, LinkButton } from '@hannasage/projection-ui/core';
 import { ArmatureShell } from '@/components/ArmatureShell';
+import { InstallCommand } from '@/components/InstallCommand';
 import { SpringLab } from '@/components/SpringLab';
 
 export const metadata: Metadata = {
@@ -8,6 +9,8 @@ export const metadata: Metadata = {
   description: 'A physics motion engine for the web. Play with a live spring and see how flavors give each product its own way of moving.',
   alternates: { canonical: 'https://projectionui.dev/armature/' },
 };
+
+const installCommand = 'npm install @hannasage/armature@beta';
 
 const example = `import { createSpring, retarget, stepSpring } from "@hannasage/armature";
 
@@ -21,7 +24,7 @@ function frame(seconds: number): number {
 export default function ArmaturePage() {
   return <ArmatureShell>
     <header className="armature-hero" aria-labelledby="armature-title">
-      <span className="armature-pill"><i aria-hidden="true" />Pre-release. Not published yet.</span>
+      <span className="armature-pill"><i aria-hidden="true" />Pre-release. On npm as 1.0.0-beta.0.</span>
       <GradientText as="h1" id="armature-title">Armature</GradientText>
       <p className="armature-lede">A physics motion engine for the web. Springs that behave the same at any frame rate, scroll reveals that read how fast you scroll, and named flavors that give each product its own way of moving.</p>
       <div className="landing-actions">
@@ -48,13 +51,14 @@ export default function ArmaturePage() {
 
     <section className="armature-section" aria-labelledby="armature-use-title">
       <h2 id="armature-use-title">Use the engine alone</h2>
-      <p className="armature-sub">The engine needs no flavor. This steps a spring toward 1.</p>
+      <p className="armature-sub">The engine needs no flavor. Install it, then step a spring toward 1.</p>
+      <InstallCommand command={installCommand} />
       <pre className="armature-code" role="region" aria-label="Engine-only example" tabIndex={0}><code>{example}</code></pre>
       <ul className="armature-facts">
         <li><span>License</span>MIT</li>
         <li><span>Runtime dependencies</span>None in the engine. React is optional.</li>
         <li><span>Entries</span>Engine, dom, react, glass, and glass for React. ESM only.</li>
-        <li><span>Status</span>Pre-release. The API can still change.</li>
+        <li><span>Status</span>Pre-release. On the npm beta tag. The API can still change.</li>
       </ul>
     </section>
   </ArmatureShell>;
