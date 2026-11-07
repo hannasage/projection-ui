@@ -394,9 +394,14 @@ function writeFlags(fake, extraEnv) {
 /** The tag filters a publish workflow needs for a version. */
 /** Writes the pin of a workflow text into release.config.json of a work tree, as a person would after reviewing the file. */
 export function pinWorkflow(work, text) {
+  pinFile(work, '.github/workflows/publish.yml', text);
+}
+
+/** Moves the pin of one pinned file to the given content, as a person would after reviewing the file. */
+export function pinFile(work, path, text) {
   const file = join(work, 'release.config.json');
   const config = JSON.parse(readFileSync(file, 'utf8'));
-  config.workflow.pins.find((pin) => pin.path === '.github/workflows/publish.yml').sha256 = pinHash('.github/workflows/publish.yml', Buffer.from(text)).hash;
+  config.workflow.pins.find((pin) => pin.path === path).sha256 = pinHash(path, Buffer.from(text)).hash;
   writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`);
 }
 
