@@ -22,9 +22,9 @@ function commitUnpinned(repo, text) {
 }
 
 describe('the content pin on the publish workflow', () => {
-  it('matches the committed workflow and the two scripts of this repository', () => {
+  it('matches the committed workflow and the three scripts of this repository', () => {
     const config = parse(readFileSync(join(repoRoot, 'release.config.json'), 'utf8'));
-    assert.deepEqual(config.workflow.pins.map((pin) => pin.path), [WORKFLOW, 'scripts/verify-release.mjs', 'scripts/publish-design-release.mjs']);
+    assert.deepEqual(config.workflow.pins.map((pin) => pin.path), [WORKFLOW, 'scripts/verify-release.mjs', 'scripts/publish-design-release.mjs', 'scripts/release-channel.mjs']);
     for (const pin of config.workflow.pins) {
       assert.match(pin.sha256, /^[0-9a-f]{64}$/);
       assert.deepEqual(pinHash(pin.path, readFileSync(join(repoRoot, pin.path))), { hash: pin.sha256 }, pin.path);
@@ -87,7 +87,7 @@ describe('the content pin on the publish workflow', () => {
   });
 
   it('fails every step when the config has no pins, a pin for the wrong file, or a hash that is not 64 hex digits', async () => {
-    for (const edit of [(workflow) => { delete workflow.pins; }, (workflow) => { workflow.pins[0].sha256 = 'abc'; }, (workflow) => { workflow.pins.pop(); }, (workflow) => { workflow.pins[1].path = 'scripts/other.mjs'; }]) {
+    for (const edit of [(workflow) => { delete workflow.pins; }, (workflow) => { workflow.pins[0].sha256 = 'abc'; }, (workflow) => { workflow.pins.pop(); }, (workflow) => { workflow.pins.push({ ...workflow.pins[0] }); }, (workflow) => { workflow.pins[1].path = 'scripts/other.mjs'; }]) {
       const repo = await makeReleaseRepo({ configEdit: (config) => edit(config.workflow) });
       const result = repo.run(['preflight']);
       assert.equal(result.status, 1);

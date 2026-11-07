@@ -310,11 +310,11 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
   const real = JSON.parse(readFileSync(join(repoRoot, 'release.config.json'), 'utf8'));
   const line = await currentLine();
   const config = { ...real, version: line.version, npmTag: line.npmTag, expectedFileCount: 7, maxPackageBytes: 200000 };
-  // The fixture copies the two pinned scripts byte for byte, so their pins are the pins of the real files.
+  // The fixture copies the three pinned scripts byte for byte, so their pins are the pins of the real files.
   const pinOf = (path, bytes) => ({ path, sha256: pinHash(path, bytes).hash });
   config.workflow = { ...config.workflow, pins: [
     pinOf('.github/workflows/publish.yml', Buffer.from(workflowText(filtersFor(config.version)))),
-    ...['scripts/verify-release.mjs', 'scripts/publish-design-release.mjs'].map((path) => pinOf(path, readFileSync(join(repoRoot, path)))),
+    ...['scripts/verify-release.mjs', 'scripts/publish-design-release.mjs', 'scripts/release-channel.mjs'].map((path) => pinOf(path, readFileSync(join(repoRoot, path)))),
   ] };
   if (configEdit) configEdit(config);
   const branch = config.releaseBranch;

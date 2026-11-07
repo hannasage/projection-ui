@@ -12,7 +12,7 @@
 //
 // This repository already publishes through .github/workflows/publish.yml. A pushed tag that matches the workflow filters starts a
 // real publish, so the script never pushes a tag and never runs npm publish. It reads the workflow and checks that it agrees with
-// release.config.json. workflow.pins in that file pins the content of the workflow and of the two scripts that run with publish
+// release.config.json. workflow.pins in that file pins the content of the workflow and of the three scripts that run with publish
 // rights; preflight, gates, dry-run, tag, and status fail when a pinned file differs, until a person reviews it and updates the pin. The usual order is: preflight, gates, dry-run, tag (a person), publish (a person approves the run), verify, claims.
 //
 // Every value about the release comes from release.config.json, which is checked against a strict schema. The version rules come from
@@ -101,7 +101,7 @@ const PATTERNS = {
   message: /^[A-Za-z0-9 .,_-]{1,200}$/,
   viewWord: /^[A-Za-z0-9.@_-]+$/,
 };
-const PINNED = { workflowFile: ".github/workflows/publish.yml", verifier: "scripts/verify-release.mjs", designPublisher: "scripts/publish-design-release.mjs", docsModule: "docs-site/lib/versions.mjs", tagName: "v{version}", tagMessage: "{version}" };
+const PINNED = { workflowFile: ".github/workflows/publish.yml", verifier: "scripts/verify-release.mjs", designPublisher: "scripts/publish-design-release.mjs", channel: "scripts/release-channel.mjs", docsModule: "docs-site/lib/versions.mjs", tagName: "v{version}", tagMessage: "{version}" };
 const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const isText = (value) => typeof value === "string" && value !== "";
 const isCount = (value) => Number.isSafeInteger(value) && value >= 0;
@@ -136,7 +136,7 @@ export function configProblem(config) {
   const w = config.workflow;
   if (isPlainObject(w) && !("pins" in w)) return "workflow.pins is missing from release.config.json. It pins the content of the publish workflow and of the scripts that publish, so a person must add it after reviewing the files";
   if (!hasKeys(w, ["file", "verifyJob", "publishJob", "verifier", "justified", "publishEnvironment", "publishUses", "pins"])) return "workflow must hold exactly: file, verifyJob, publishJob, verifier, justified, publishEnvironment, publishUses, pins";
-  const pinned = [PINNED.workflowFile, PINNED.verifier, PINNED.designPublisher];
+  const pinned = [PINNED.workflowFile, PINNED.verifier, PINNED.designPublisher, PINNED.channel];
   if (!Array.isArray(w.pins) || w.pins.length !== pinned.length || !w.pins.every((pin, index) => hasKeys(pin, ["path", "sha256"]) && pin.path === pinned[index] && isText(pin.sha256) && /^[0-9a-f]{64}$/.test(pin.sha256))) return `workflow.pins must hold exactly these paths in this order: ${pinned.join(", ")}, each with a sha256 of 64 lowercase hex digits`;
   if (!isText(w.publishEnvironment) || !/^[A-Za-z0-9_-]+$/.test(w.publishEnvironment)) return "workflow.publishEnvironment is not valid";
   if (!Array.isArray(w.publishUses) || !w.publishUses.every((use) => isText(use) && /^[A-Za-z0-9_.\/-]+@[A-Za-z0-9._-]+$/.test(use))) return "workflow.publishUses must be a list of action@reference texts";
@@ -602,8 +602,8 @@ function warnCiOnly(ctx) {
 }
 
 /**
- * The content pins, the safety control for everything that publishes: the publish workflow, and the two scripts that run with
- * publish rights. Each file is read as bytes and its hash must equal its entry in workflow.pins. Returns a problem text, or null.
+ * The content pins, the safety control for everything that publishes: the publish workflow, and the three scripts that run with
+ * publish rights (the verifier, the design kit publisher, and the channel rule that picks the npm tag). Each file is read as bytes and its hash must equal its entry in workflow.pins. Returns a problem text, or null.
  * The reader in tools/lib/workflow.mjs does not replace this check.
  */
 function workflowPinProblem(root, config) {

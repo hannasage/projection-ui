@@ -3,7 +3,8 @@
 // Key names whose value is a secret. Used inside text ("token: x") and, in deepRedact, as the name of a field.
 // Any name that ends in _key, _secret, _token, _password, or _passwd counts too (AWS_SECRET_ACCESS_KEY, MY_SERVICE_KEY).
 const FIXED_NAMES = "_authToken|_auth|_password|passwd|passphrase|otp|pwd|npm_config__auth(?:token|password)?|private_?key|access_token|authToken|client_secret|secret|token|password|api[-_]?key|AccountKey";
-const SUFFIX_NAMES = "[A-Za-z][A-Za-z0-9_]{0,60}(?:_key|_secret|_token|_password|_passwd)";
+// camelCase names count too (accessToken, clientSecret, npmToken, credentials), and the match is case-insensitive.
+const SUFFIX_NAMES = "[A-Za-z][A-Za-z0-9_]{0,60}(?:_key|_secret|_token|_password|_passwd|token|secret|password|passwd|credentials?|apikey)";
 const KEY_NAMES = `${FIXED_NAMES}|${SUFFIX_NAMES}`;
 // A value after a key: a double-quoted string (with escapes), a single-quoted string, or a run of non-space characters.
 // Every repeat is bounded, so no input can make the matcher slow.
@@ -62,9 +63,9 @@ const SECRET_PATTERNS = [
   [/\beyJ[A-Za-z0-9_-]{5,500}\.[A-Za-z0-9_-]{5,500}\.[A-Za-z0-9_-]{0,500}/g, "[redacted]"],
 ];
 
-const LIST_START = new RegExp(String.raw`(["'])(?:${KEY_NAMES})\1\s*:\s*\[`, "gi");
+const LIST_START = new RegExp(String.raw`(["'])(?:${KEY_NAMES})\1\s*:\s*[\[{]`, "gi");
 
-/** The index after the bracket that closes the list opened at `open`. It skips brackets inside quoted text. An unclosed list runs to the end. */
+/** The index after the bracket that closes the list or object opened at `open`. It skips brackets inside quoted text. An unclosed list runs to the end. */
 function listEnd(text, open) {
   let depth = 0;
   let quote = null;
@@ -74,13 +75,13 @@ function listEnd(text, open) {
       if (char === "\\") index += 1;
       else if (char === quote) quote = null;
     } else if (char === '"' || char === "'") quote = char;
-    else if (char === "[") depth += 1;
-    else if (char === "]" && (depth -= 1) === 0) return index + 1;
+    else if (char === "[" || char === "{") depth += 1;
+    else if ((char === "]" || char === "}") && (depth -= 1) === 0) return index + 1;
   }
   return text.length;
 }
 
-/** Replaces the whole list under a secret key with a quoted "[redacted]", so the text around it stays valid JSON. */
+/** Replaces the whole list or object under a secret key with a quoted "[redacted]", so the text around it stays valid JSON. */
 function redactLists(text) {
   let out = "";
   let last = 0;
@@ -102,6 +103,15 @@ export function redact(text) {
 }
 
 const SECRET_KEY = new RegExp(String.raw`^(?:${KEY_NAMES}|authorization|cookie|set-cookie|x-api-key)$`, "i");
+// A field name is cut into words at camelCase, underscores, and dashes (accessToken -> access, token). One of these words, or one of
+// these pairs, makes the name a secret name. A whole word is needed, so "author" and "tokens" stay readable.
+const SECRET_WORDS = new Set(["token", "secret", "password", "passwd", "passphrase", "credential", "credentials", "apikey", "auth", "authorization", "session", "sessionid", "cookie", "otp", "pwd", "privatekey"]);
+const SECRET_PAIRS = new Set(["api key", "private key", "access key", "secret key", "client secret", "session id"]);
+function secretName(key) {
+  if (SECRET_KEY.test(key)) return true;
+  const words = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().split(/[^a-z0-9]+/).filter((word) => word !== "");
+  return words.some((word, index) => SECRET_WORDS.has(word) || SECRET_PAIRS.has(`${word} ${words[index + 1] ?? ""}`));
+}
 
 /**
  * Redacts every string inside a value, one string at a time, and keeps the shape. Use it before JSON.stringify.
@@ -112,7 +122,7 @@ export function deepRedact(value) {
   if (typeof value === "string") return redact(value);
   if (Array.isArray(value)) return value.map(deepRedact);
   // A field with a secret name is redacted as a whole, whatever its value is (text, number, list, or object). Booleans and null stay readable.
-  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, SECRET_KEY.test(key) && inner !== null && typeof inner !== "boolean" && inner !== undefined ? "[redacted]" : deepRedact(inner)]));
+  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, secretName(key) && inner !== null && typeof inner !== "boolean" && inner !== undefined ? "[redacted]" : deepRedact(inner)]));
   return value;
 }
 

@@ -36,6 +36,25 @@ describe('secret lists are redacted without breaking the JSON (1)', () => {
   });
 });
 
+describe('redaction of camelCase keys and of objects under a secret key', () => {
+  it('redacts the value of camelCase and snake_case secret keys in data', () => {
+    const keys = ['accessToken', 'clientSecret', 'npmToken', 'githubToken', 'apiToken', 'credentials', 'sessionId', 'api_key', 'db_password', 'AuthToken', 'x-api-key', 'refreshToken', 'userPassword'];
+    for (const key of keys) assert.deepEqual(deepRedact({ [key]: 'value-1' }), { [key]: '[redacted]' }, key);
+    for (const key of ['author', 'tokens', 'status', 'authority', 'keyboard', 'count']) assert.deepEqual(deepRedact({ [key]: 'plain' }), { [key]: 'plain' }, key);
+    assert.deepEqual(deepRedact({ credentials: { a: 1 }, sessionId: [1, 2], keep: { author: 'x' } }), { credentials: '[redacted]', sessionId: '[redacted]', keep: { author: 'x' } });
+  });
+
+  it('redacts an object or a list under a secret key in text, and keeps the JSON valid', () => {
+    for (const input of ['{"api_key": {"a":1},"x":2}', '{"secret": {"a":{"b":"}"},"c":[1]},"x":2}', '{"accessToken": {"a":1},"x":2}', '{"clientSecret":["a","b"],"x":2}']) {
+      const out = redact(input);
+      assert.doesNotThrow(() => JSON.parse(out), `${input} -> ${out}`);
+      assert.equal(JSON.parse(out).x, 2);
+      assert.doesNotMatch(out, /"a"|\bb\b|"c"/, out);
+    }
+    assert.doesNotMatch(redact('{"password": {"a":1'), /"a"/);
+  });
+});
+
 describe('the tag step checks the pins first (3, 4)', () => {
   async function tagged() {
     const repo = await makeReleaseRepo();

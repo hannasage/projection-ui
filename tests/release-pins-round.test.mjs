@@ -8,7 +8,7 @@ import { cleanup, filtersFor, git, makeReleaseRepo, repoRoot, workflowText } fro
 afterEach(cleanup);
 
 const WORKFLOW = '.github/workflows/publish.yml';
-const MJS = ['scripts/verify-release.mjs', 'scripts/publish-design-release.mjs'];
+const MJS = ['scripts/verify-release.mjs', 'scripts/publish-design-release.mjs', 'scripts/release-channel.mjs'];
 const parse = (text) => JSON.parse(text);
 
 /** Commits a file WITHOUT moving its pin, as an unreviewed change would. */
@@ -65,7 +65,7 @@ describe('the pin reads bytes and refuses what a text reader hides (1)', () => {
 });
 
 describe('the pin list covers the scripts that publish (3)', () => {
-  it('fails preflight, gates, dry-run, and the tag step when any pinned script changes by one byte', async () => {
+  it('fails preflight, gates, dry-run, and the tag step when any of the three pinned scripts changes by one byte', async () => {
     for (const path of MJS) {
       const repo = await makeReleaseRepo();
       commitUnpinned(repo, path, `${readFileSync(join(repo.work, path), 'utf8')}\n// x\n`);
@@ -79,7 +79,7 @@ describe('the pin list covers the scripts that publish (3)', () => {
     }
   });
 
-  it('keeps the three pinned paths in release.config.json and refuses a config that drops one', async () => {
+  it('keeps the four pinned paths in release.config.json and refuses a config that drops one', async () => {
     const repo = await makeReleaseRepo();
     assert.deepEqual(repo.config.workflow.pins.map((pin) => pin.path), [WORKFLOW, ...MJS]);
   });
