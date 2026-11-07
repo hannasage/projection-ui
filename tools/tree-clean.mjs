@@ -118,7 +118,7 @@ function firstUnrecreatable(tree, folder) {
 const RISKY_KEYS = [
   /^filter\./i,
   /^core\.(fsmonitor|sshcommand|askpass|gitproxy|attributesfile|alternaterefscommand)$/i,
-  /^remote\..*\.(uploadpack|receivepack)$/i,
+  /^remote\..*\.(uploadpack|receivepack|vcs)$/i,
   /^gpg\.program$/i,
   /^diff\.external$/i,
   /^diff\.ignoresubmodules$/i,

@@ -9,7 +9,7 @@
   },
   "exit_codes": {
     "0": "pass",
-    "1": "a check failed, a read failed, or a phase is unknown",
+    "1": "a check failed, a read failed, or a phase is unknown (a gate that times out is killed with its process group and reports exit 124 in the message, and the script exits 1)",
     "2": "wrong use of the script (a human-only step run without a terminal also exits 2)"
   },
   "exposure_default": "hidden",

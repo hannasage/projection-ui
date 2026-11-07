@@ -31,12 +31,21 @@ describe('separate empty npm config files (1)', () => {
     const home = makeHome();
     try {
       const env = toolEnv({ PATH: process.env.PATH }, home);
-      for (const [args, pattern] of [[['--version'], /^\d+\.\d+\.\d+/], [['config', 'get', 'userconfig'], /npmrc-user$/], [['config', 'get', 'globalconfig'], /npmrc-global$/]]) {
-        const result = spawnSync('npm', args, { env, cwd: home, encoding: 'utf8' });
-        assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`);
-        assert.match(result.stdout.trim(), pattern);
-        assert.doesNotMatch(result.stderr, /double-loading|refusing to load/i);
-      }
+      // `npm config get userconfig` is refused as "protected" by some npm versions, so this reads the same facts from commands that work on all of them.
+      const version = spawnSync('npm', ['--version'], { env, cwd: home, encoding: 'utf8' });
+      assert.equal(version.status, 0, version.stderr);
+      assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+/);
+      const list = spawnSync('npm', ['config', 'list', '--json'], { env, cwd: home, encoding: 'utf8' });
+      assert.equal(list.status, 0, list.stderr);
+      assert.doesNotMatch(list.stderr, /double-loading|refusing to load/i);
+      const settings = JSON.parse(list.stdout);
+      assert.match(settings.userconfig, /npmrc-user$/);
+      assert.match(settings.globalconfig, /npmrc-global$/);
+      // A read against a closed local port must fail on the connection and on nothing about config files.
+      const view = spawnSync('npm', ['view', 'projection-ui-nothing', 'version', '--registry', 'http://127.0.0.1:9/', '--fetch-retries=0'], { env, cwd: home, encoding: 'utf8' });
+      assert.notEqual(view.status, 0);
+      assert.match(view.stderr, /ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|fetch failed/i);
+      assert.doesNotMatch(view.stderr, /double-loading|refusing to load/i);
     } finally {
       removeHome(home);
     }

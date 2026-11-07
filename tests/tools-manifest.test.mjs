@@ -137,8 +137,7 @@ function exposureProblems(candidate, root = repoRoot) {
       if (!Array.isArray(tool.writesPaths) || tool.writesPaths.length !== 0) problems.push(`${name}: an exposed tool must have writesPaths: []`);
       if (!isRegularFileInside(root, tool.script)) problems.push(`${name}: an exposed tool needs a script file that exists as a regular file inside the repository`);
       for (const argument of Array.isArray(tool.arguments) ? tool.arguments : []) {
-        const pathLike = argument?.type === 'path' || /^<.*(tree|dir|path|file).*>$/i.test(String(argument?.name)) || /^--(dir|path|file|tree|out)\b/.test(String(argument?.name));
-        if (pathLike && argument.agent_settable !== false && argument.validated !== true) problems.push(`${name}: an exposed tool's path argument ${argument.name} must be agent_settable false or validated`);
+        if (/file|path|dir|cwd|root|tree|body/i.test(String(argument?.name)) && argument.agent_settable !== false) problems.push(`${name}: an exposed tool's argument ${argument?.name} looks like a path or a body, so it must be agent_settable false`);
       }
     }
     if (heldNames.includes(name) && exposed) problems.push(`${name}: a held-back tool must be hidden`);
@@ -189,14 +188,18 @@ describe('MCP exposure', () => {
     assert.equal(entry('release gates').destructive, true);
   });
 
-  it('fails an exposed tool whose path argument an agent can set', () => {
+  it('fails an exposed tool whose path-like argument an agent can set, whatever its type', () => {
     const open = make(['a', 'read-only', 'expose']);
     open.tools[0].arguments = [{ name: '<tree>', type: 'path', agent_settable: true }];
-    assert.match(exposureProblems(open).join(), /a: an exposed tool's path argument <tree> must be agent_settable false or validated/);
+    assert.match(exposureProblems(open).join(), /a: an exposed tool's argument <tree> looks like a path or a body/);
     assert.deepEqual(exposedTools(open), []);
-    open.tools[0].arguments = [{ name: '--dir', type: 'string' }];
-    assert.match(exposureProblems(open).join(), /path argument --dir/);
-    open.tools[0].arguments = [{ name: '--dir', type: 'string', agent_settable: false }, { name: '<tree>', type: 'path', agent_settable: true, validated: true }];
+    for (const name of ['--dir', '--cwd', '--root', '--body', '<file>', '--out-path']) {
+      open.tools[0].arguments = [{ name, type: 'string' }];
+      assert.match(exposureProblems(open).join(), /agent_settable false/, name);
+      open.tools[0].arguments = [{ name, type: 'string', agent_settable: true, validated: true }];
+      assert.match(exposureProblems(open).join(), /agent_settable false/, `${name} has no escape hatch`);
+    }
+    open.tools[0].arguments = [{ name: '--dir', type: 'string', agent_settable: false }, { name: '--json', type: 'flag', agent_settable: true }];
     assert.deepEqual(exposureProblems(open), []);
   });
 
