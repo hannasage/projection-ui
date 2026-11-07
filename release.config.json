@@ -1,0 +1,114 @@
+{
+  "package": "@hannasage/projection-ui",
+  "version": "1.0.0-beta.0",
+  "npmTag": "beta",
+  "access": "public",
+  "expectedFileCount": 71,
+  "maxPackageBytes": 160000,
+  "releaseBranch": "release/1.0.0",
+  "remote": "origin",
+  "workflow": {
+    "file": ".github/workflows/publish.yml",
+    "verifyJob": "verify",
+    "publishJob": "publish",
+    "verifier": "scripts/verify-release.mjs",
+    "justified": {}
+  },
+  "gitTag": {
+    "name": "v{version}",
+    "message": "{version}"
+  },
+  "gates": [
+    "tokens:check",
+    "typecheck",
+    "lint",
+    "test",
+    "build",
+    "build:docs",
+    "test:docs",
+    "test:artifact"
+  ],
+  "designKit": {
+    "dir": "docs-site/out/downloads",
+    "name": "projection-ui-design-{version}.zip",
+    "metadata": "design-package.json",
+    "entries": [
+      "LICENSE",
+      "README.md",
+      "design-manifest.json",
+      "plugin/code.js",
+      "plugin/manifest.template.json",
+      "source/figma-scene.json",
+      "tokens.json"
+    ],
+    "scene": "design-package/figma-scene.json"
+  },
+  "docsEdition": {
+    "module": "docs-site/lib/versions.mjs",
+    "builtRelease": "docs-site/out/release.json",
+    "builtVersions": "docs-site/out/docs-versions.json",
+    "builtChangelog": "docs-site/out/changelog.md",
+    "changelog": "CHANGELOG.md"
+  },
+  "retire": {
+    "note": "This is a decision for the package owner and it is not made yet. The commands run only after verify passes. They retire the alpha 0.2.0-next.2 that is still on the next tag. They do not touch latest, which stays on 0.1.5. Moving latest is a separate choice.",
+    "commands": [
+      [
+        "npm",
+        "deprecate",
+        "@hannasage/projection-ui@0.2.0-next.2",
+        "Renamed to the beta tag. Use 1.0.0-beta.0."
+      ],
+      [
+        "npm",
+        "dist-tag",
+        "rm",
+        "@hannasage/projection-ui",
+        "next"
+      ]
+    ],
+    "checks": [
+      [
+        "npm",
+        "view",
+        "@hannasage/projection-ui",
+        "dist-tags",
+        "--json"
+      ],
+      [
+        "npm",
+        "view",
+        "@hannasage/projection-ui@0.2.0-next.2",
+        "deprecated"
+      ]
+    ]
+  },
+  "claims": {
+    "patterns": [
+      "unpublished candidate",
+      "unpublished `",
+      "which is unpublished",
+      "Not published yet",
+      "Nothing is published",
+      "projection-ui@next",
+      "has only 0.1.x releases"
+    ],
+    "paths": [
+      "README.md",
+      "docs",
+      "docs-site/app",
+      "docs-site/components",
+      "docs-site/lib"
+    ],
+    "skipFileNames": [
+      "workflow-audit.md"
+    ],
+    "skipDirs": [
+      "archive",
+      "node_modules",
+      ".next",
+      "out"
+    ],
+    "skipDirsReason": "node_modules, .next, and out are build output and not source. archive holds the preserved 0.1.5 documentation, whose statements describe that old release and stay as they were."
+  }
+}

@@ -249,6 +249,8 @@ The [text index](https://projectionui.dev/llms.txt) links all guides and compone
 Read [the component reference](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md), [theme guide](https://projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/development.md).
 Read [the release contract](https://projectionui.dev/docs/releases/) before publication.
 
+Scripts: `npm run release -- <status|preflight|gates|dry-run|publish|verify|tag|retire|claims>` checks one step of a release. `publish`, `tag`, and `retire` only print commands for a person, because a pushed tag starts the publish workflow. `npm run gates`, `npm run pr-open -- --title ... --body-file ... --base ...`, and `npm run tree-clean -- <tree>` run the tools in `tools/`. `tools/manifest.json` lists them and `docs/workflow-audit.md` says why. The manifest field `mcp_exposure` says whether a later MCP server may list a tool, and only the read-only tools `release status`, `release claims`, and `tree-clean` are marked `expose`.
+
 Download the [matching Figma design kit](https://projectionui.dev/downloads/projection-ui-design-1.0.0-beta.0.zip) for editable mockups.
 Its local importer creates native components, text, variables, and Modern/Flat theme variants.
 The kit includes its source inventory and the React contracts without a matching design category.

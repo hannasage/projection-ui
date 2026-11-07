@@ -1,0 +1,368 @@
+{
+  "schema": 1,
+  "description": "Every script in this repository that an agent or a person may run. The safety class is one of read-only, local-write, remote-write, or human-only. An agent never runs a human-only entry. A later MCP server lists only the tools whose mcp_exposure is expose.",
+  "exposure_default": "hidden",
+  "mcp_exposure": {
+    "expose": "The MCP server lists the tool.",
+    "hidden": "The MCP server never lists the tool. This is the default when the field is missing, so a new tool stays out of the server until someone marks it. A human-only tool must be hidden."
+  },
+  "tools": [
+    {
+      "name": "gates",
+      "script": "tools/gates.mjs",
+      "subcommand": null,
+      "description": "Run the gates listed in release.config.json (the same list as release gates) in order. Record the real exit code of each. Print one line per gate.",
+      "arguments": [
+        {
+          "name": "--ci",
+          "type": "flag",
+          "required": false,
+          "description": "Run npm ci first."
+        },
+        {
+          "name": "--bail",
+          "type": "flag",
+          "required": false,
+          "description": "Stop at the first failing gate."
+        },
+        {
+          "name": "--cwd",
+          "type": "path",
+          "required": false,
+          "description": "The top folder of a work tree of this package. Default: the current folder."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, status, exit, path, gates: [{ name, command, exit, signal, ok, firstFailingLine? }] }. Exit 0 all passed, 1 a gate failed or git is missing, 2 wrong use.",
+      "safety_class": "local-write",
+      "destructive": true,
+      "mcp_exposure": "hidden",
+      "writes": "node_modules (with --ci), dist, storybook-static, release-artifacts, and the docs-site build output, all inside the folder. The commands get an allowlist environment and a throwaway HOME.",
+      "writesPaths": [
+        "node_modules/",
+        "dist/",
+        "storybook-static/",
+        "release-artifacts/",
+        "docs-site/node_modules/",
+        "docs-site/out/",
+        "docs-site/.next/",
+        "docs-site/.source/",
+        "docs-site/.generated/",
+        "docs-site/content/",
+        "docs-site/public/"
+      ]
+    },
+    {
+      "name": "pr-open",
+      "script": "tools/pr-open.mjs",
+      "subcommand": null,
+      "description": "Check the pull request title and body, then open a DRAFT pull request with gh. It never opens a ready pull request.",
+      "arguments": [
+        {
+          "name": "--title",
+          "type": "string",
+          "required": true,
+          "description": "One line, at most 256 characters."
+        },
+        {
+          "name": "--body-file",
+          "type": "path",
+          "required": true,
+          "description": "A regular file of at most 64 KB, inside the repository or the temporary folder."
+        },
+        {
+          "name": "--base",
+          "type": "string",
+          "required": true,
+          "description": "The branch to merge into."
+        },
+        {
+          "name": "--dir",
+          "type": "path",
+          "required": false,
+          "description": "The top folder of a work tree of this package. Default: the current folder."
+        },
+        {
+          "name": "--expect-identity",
+          "type": "string",
+          "required": false,
+          "description": "The gh login that must be signed in. The tool stops if gh reports another one or cannot read it."
+        },
+        {
+          "name": "--dry-run",
+          "type": "flag",
+          "required": false,
+          "description": "Check the text and print the command. Do not call gh."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, status, exit, draft, command, url } or { ok, status: 'invalid-body', exit, problems }. Exit 0 opened, 1 the text or gh failed, 2 wrong use.",
+      "safety_class": "remote-write",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Opens one draft pull request on GitHub through gh, as the identity it prints first. Writes no local file.",
+      "writesPaths": []
+    },
+    {
+      "name": "tree-clean",
+      "script": "tools/tree-clean.mjs",
+      "subcommand": null,
+      "description": "Check that a clone tree is clean, pushed, and idle. It refuses a tree whose own git config has a key that can make git run a program. It removes nothing.",
+      "arguments": [
+        {
+          "name": "<tree>",
+          "type": "path",
+          "required": true,
+          "description": "The top folder of a clone tree of this package."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, status, exit, path, removes: 'nothing', checks: [{ name, ok, detail }] }. Exit 0 all three pass, 1 a check failed, 2 wrong use.",
+      "safety_class": "read-only",
+      "destructive": false,
+      "mcp_exposure": "expose",
+      "writes": "Nothing is written. It runs git status, git stash list, git rev-list, and lsof on the machine, and git ls-remote, which is a network read of the remote tags.",
+      "writesPaths": []
+    },
+    {
+      "name": "release status",
+      "script": "scripts/release.mjs",
+      "subcommand": "status",
+      "description": "Read the version, the tags, and the registry, and list what is left.",
+      "arguments": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status (\"pass\" | \"unknown\" | \"fail\" | \"usage\"), exit, message, steps: [{ command, exit }], warnings? } plus { package, version, phases: [{ name, state (\"done\" | \"todo\" | \"unknown\"), note }], left: [...], unknown: [...] }. Exit 0 pass, 1 when any phase is unknown or a read fails, 2 wrong use.",
+      "safety_class": "read-only",
+      "destructive": false,
+      "mcp_exposure": "expose",
+      "writes": "Network reads only (npm view and git ls-remote). It writes no file: npm gets a throwaway HOME, cache, and log folder that are removed at the end, and git never takes an optional lock.",
+      "writesPaths": []
+    },
+    {
+      "name": "release preflight",
+      "script": "scripts/release.mjs",
+      "subcommand": "preflight",
+      "description": "Check the config, the version rules, the publish workflow, the docs edition, the branch, and the clean tree.",
+      "arguments": [
+        {
+          "name": "--force",
+          "type": "flag",
+          "required": false,
+          "description": "Run the step again even if it is recorded as done."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit.",
+      "safety_class": "local-write",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Runs git fetch, which updates FETCH_HEAD and the remote-tracking refs inside .git. Writes release-state.json inside .git.",
+      "writesPaths": [
+        ".git/release-state.json",
+        ".git/FETCH_HEAD",
+        ".git/refs/remotes/"
+      ]
+    },
+    {
+      "name": "release gates",
+      "script": "scripts/release.mjs",
+      "subcommand": "gates",
+      "description": "Run npm ci and every gate in release.config.json, then check the design kit and the built docs.",
+      "arguments": [
+        {
+          "name": "--force",
+          "type": "flag",
+          "required": false,
+          "description": "Run the step again even if it is recorded as done."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit.",
+      "safety_class": "local-write",
+      "destructive": true,
+      "mcp_exposure": "hidden",
+      "writes": "Runs npm ci, which replaces node_modules, then the gates, which write dist, storybook-static, release-artifacts, and the docs-site build output. Writes release-state.json inside .git only when the tree is clean before and after.",
+      "writesPaths": [
+        "node_modules/",
+        "dist/",
+        "storybook-static/",
+        "release-artifacts/",
+        "docs-site/node_modules/",
+        "docs-site/out/",
+        "docs-site/.next/",
+        "docs-site/.source/",
+        "docs-site/.generated/",
+        "docs-site/content/",
+        "docs-site/public/",
+        ".git/release-state.json"
+      ]
+    },
+    {
+      "name": "release dry-run",
+      "script": "scripts/release.mjs",
+      "subcommand": "dry-run",
+      "description": "Run npm publish --dry-run, then check the package facts, the design kit zip, and the built docs.",
+      "arguments": [
+        {
+          "name": "--force",
+          "type": "flag",
+          "required": false,
+          "description": "Run the step again even if it is recorded as done."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit.",
+      "safety_class": "local-write",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Uploads nothing. Writes release-state.json inside .git only when the tree is clean after.",
+      "writesPaths": [
+        ".git/release-state.json"
+      ]
+    },
+    {
+      "name": "release publish",
+      "script": "scripts/release.mjs",
+      "subcommand": "publish",
+      "description": "Print what a person does to publish. The tag starts .github/workflows/publish.yml. The script never runs npm publish.",
+      "arguments": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps, commands, blockers }. Always prints and never runs the commands. Exit 2 without a terminal, 1 with a terminal when not ready, 0 with a terminal when ready.",
+      "safety_class": "human-only",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Nothing. It runs npm view (a read) and prints. It runs no write command.",
+      "writesPaths": []
+    },
+    {
+      "name": "release verify",
+      "script": "scripts/release.mjs",
+      "subcommand": "verify",
+      "description": "Read the registry, install the package into a clean temporary project, and load every entry. Check the design kit and the built docs.",
+      "arguments": [
+        {
+          "name": "--force",
+          "type": "flag",
+          "required": false,
+          "description": "Run the step again even if it is recorded as done."
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use. Adds commit, exports, recorded.",
+      "safety_class": "local-write",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Creates and removes a temporary project outside the repository. Writes release-state.json inside .git only when the tree is clean.",
+      "writesPaths": [
+        ".git/release-state.json"
+      ]
+    },
+    {
+      "name": "release tag",
+      "script": "scripts/release.mjs",
+      "subcommand": "tag",
+      "description": "Print the exact git tag and git push commands for a person. The script never runs them, because a pushed tag starts a real publish.",
+      "arguments": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps, commands, blockers }. Always prints and never runs the commands. Exit 2 without a terminal, 1 with a terminal when not ready, 0 with a terminal when ready.",
+      "safety_class": "human-only",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Nothing. It runs git ls-remote and other reads, and prints. It runs no write command.",
+      "writesPaths": []
+    },
+    {
+      "name": "release retire",
+      "script": "scripts/release.mjs",
+      "subcommand": "retire",
+      "description": "Print the commands in release.config.json that retire the old alpha (deprecate it, remove the next tag), after a note that this is the owner's decision. The script never runs them.",
+      "arguments": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps, commands, blockers }. Always prints and never runs the commands. Exit 2 without a terminal, 1 with a terminal when not ready, 0 with a terminal when ready.",
+      "safety_class": "human-only",
+      "destructive": false,
+      "mcp_exposure": "hidden",
+      "writes": "Nothing. It runs git rev-parse and npm view (reads) and prints. It runs no write command.",
+      "writesPaths": []
+    },
+    {
+      "name": "release claims",
+      "script": "scripts/release.mjs",
+      "subcommand": "claims",
+      "description": "Find text that says the package is not published. Fail when a configured path is missing.",
+      "arguments": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "description": "Print one JSON object instead of text."
+        }
+      ],
+      "output": "{ ok, command, status, exit, message, steps: [{ command, exit }], ... }. Exit 0 pass, 1 a check failed, 2 wrong use.",
+      "safety_class": "read-only",
+      "destructive": false,
+      "mcp_exposure": "expose",
+      "writes": "Nothing. It runs grep on files in the repository.",
+      "writesPaths": []
+    }
+  ]
+}
