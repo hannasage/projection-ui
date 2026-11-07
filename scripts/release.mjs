@@ -146,6 +146,7 @@ export function configProblem(config) {
   for (const name of ["verifyJob", "publishJob"]) if (!isText(w[name]) || !/^[A-Za-z0-9_-]+$/.test(w[name])) return `workflow.${name} is not valid`;
 
   if (!Array.isArray(config.ciOnlyGates) || !config.ciOnlyGates.every(ciOnlyOk)) return "ciOnlyGates must be a list of { name, reason } or { name, command, reason } with plain text, and a command must be npm run <script> or npx playwright install";
+  if (new Set(config.ciOnlyGates.map((entry) => entry.name)).size !== config.ciOnlyGates.length) return "ciOnlyGates names must be unique";
   if (Array.isArray(config.gates) && config.ciOnlyGates.some((entry) => config.gates.includes(entry.name))) return "a name in ciOnlyGates is also in gates, so the script would both run it and call it CI-only";
   if (!hasKeys(config.gitTag, ["name", "message"]) || config.gitTag.name !== PINNED.tagName || config.gitTag.message !== PINNED.tagMessage) return `gitTag must be exactly name ${PINNED.tagName} and message ${PINNED.tagMessage}`;
   if (!Array.isArray(config.gates) || config.gates.length === 0 || !config.gates.every((name) => isText(name) && PATTERNS.scriptName.test(name))) return "gates must be a list of npm script names";
@@ -547,6 +548,11 @@ function configDisagreement(root, config) {
   const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
   if (pkg.name !== config.package) return `package.json name is ${pkg.name}, release.config.json says ${config.package}`;
   if (pkg.version !== config.version) return `package.json version is ${pkg.version}, release.config.json says ${config.version}`;
+  // Each CI-only entry must run a script that exists, so a typo cannot hide a check. The Playwright install is the one command that is not a script.
+  for (const entry of config.ciOnlyGates) {
+    const script = "command" in entry ? /^npm run (\S+)$/.exec(entry.command)?.[1] : entry.name;
+    if (script !== undefined && !Object.hasOwn(pkg.scripts ?? {}, script)) return `ciOnlyGates entry ${entry.name} is not a script in package.json`;
+  }
   return null;
 }
 
@@ -1070,11 +1076,14 @@ const STEPS = {
     const name = gitTagName(config);
     const existing = localTagCommit(run, config);
     const onRemote = remoteTagCommit(run, config);
-    if (existing !== null && onRemote.hash === existing && existing === head(run)) return done(ctx, { tag: name });
+    const pinned = workflowPinProblem(root, config);
+    const alreadyTagged = existing !== null && onRemote.hash === existing && existing === head(run);
+    // "Already done" counts only while every pin still matches. A changed pinned file is a blocker even for a tag that exists.
+    if (alreadyTagged && pinned === null) return done(ctx, { tag: name });
     // Live checks only. The note is shown as evidence and never counts as permission.
     const blockers = [];
     if (!onRemote.ok) blockers.push(`could not read the remote tags, so it is not known whether ${name} exists: ${onRemote.error}`);
-    else if (existing !== null || onRemote.hash !== null) blockers.push(`the tag ${name} already exists (local ${existing ?? "missing"}, remote ${onRemote.hash ?? "missing"}) and does not match HEAD on both sides. Do not move a published tag`);
+    else if (!alreadyTagged && (existing !== null || onRemote.hash !== null)) blockers.push(`the tag ${name} already exists (local ${existing ?? "missing"}, remote ${onRemote.hash ?? "missing"}) and does not match HEAD on both sides. Do not move a published tag`);
     const branch = branchProblem(run, config, { fetch: false });
     if (branch.problem !== null) blockers.push(branch.problem);
     const rule = workflowProblem(root, config);

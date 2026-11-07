@@ -327,7 +327,8 @@ export async function makeReleaseRepo({ configEdit = null } = {}) {
     './tokens': './dist/tokens/theme.css',
     './styles': { types: './dist/styles.d.ts', default: './dist/tokens/scoped.css' },
   };
-  put('package.json', JSON.stringify({ name: config.package, version: config.version, type: 'module', exports: exportsMap, files: ['dist'] }, null, 2));
+  const scripts = Object.fromEntries([...config.gates, ...config.ciOnlyGates.filter((entry) => !('command' in entry)).map((entry) => entry.name)].map((name) => [name, 'node -e 0']));
+  put('package.json', JSON.stringify({ name: config.package, version: config.version, type: 'module', scripts, exports: exportsMap, files: ['dist'] }, null, 2));
   put('package-lock.json', JSON.stringify({ lockfileVersion: 3, packages: { 'node_modules/react': { version: '19.2.5' }, 'node_modules/react-dom': { version: '19.2.5' } } }) + '\n');
   put('release.config.json', `${JSON.stringify(config, null, 2)}\n`);
   for (const file of ['scripts/release.mjs', 'scripts/release-channel.mjs', 'scripts/verify-release.mjs', 'scripts/publish-design-release.mjs', 'tools/lib/text.mjs', 'tools/lib/env.mjs', 'tools/lib/workflow.mjs', 'tools/lib/zip.mjs', 'tools/lib/run.mjs', 'tools/lib/supervise.mjs', 'docs-site/lib/versions.mjs']) {

@@ -20,9 +20,8 @@ const SECRET_PATTERNS = [
   // A number as the value of a secret key in JSON ("password": 12345) becomes a string, so the JSON stays valid.
   [new RegExp(String.raw`("(?:${KEY_NAMES})"\s*:\s*)-?\d[\d.eE+-]{0,60}`, "gi"), '$1"[redacted]"'],
   [new RegExp(String.raw`('(?:${KEY_NAMES})'\s*:\s*')(?:[^'\\]|\\.){0,2000}('?)`, "gi"), "$1[redacted]$2"],
-  // A number under a single-quoted secret key, and a list (of numbers or text) under a secret key in either quote style.
+  // A number under a single-quoted secret key. A list under a secret key is handled by redactLists, which counts brackets.
   [new RegExp(String.raw`('(?:${KEY_NAMES})'\s*:\s*)-?\d[\d.eE+-]{0,60}`, "gi"), "$1'[redacted]'"],
-  [new RegExp(String.raw`((["'])(?:${KEY_NAMES})\2\s*:\s*)\[[^\]]{0,2000}\]?`, "gi"), (whole, head, quote) => `${head}${quote}[redacted]${quote}`],
   // A password inside a URL: after the first colon of the user part, up to the @ that comes before the host. The password may hold
   // spaces and a second @. It may not hold a slash, so a URL with a port and a path stays readable. A bare token as the user name.
   [/(\/\/[^\s/:@[]{1,128}:)([^\s]{1,512})@(?=[A-Za-z0-9[])/g, (whole, head, password) => (/^\d+\//.test(password) ? whole : `${head}[redacted]@`)],
@@ -63,9 +62,41 @@ const SECRET_PATTERNS = [
   [/\beyJ[A-Za-z0-9_-]{5,500}\.[A-Za-z0-9_-]{5,500}\.[A-Za-z0-9_-]{0,500}/g, "[redacted]"],
 ];
 
+const LIST_START = new RegExp(String.raw`(["'])(?:${KEY_NAMES})\1\s*:\s*\[`, "gi");
+
+/** The index after the bracket that closes the list opened at `open`. It skips brackets inside quoted text. An unclosed list runs to the end. */
+function listEnd(text, open) {
+  let depth = 0;
+  let quote = null;
+  for (let index = open; index < text.length; index += 1) {
+    const char = text[index];
+    if (quote !== null) {
+      if (char === "\\") index += 1;
+      else if (char === quote) quote = null;
+    } else if (char === '"' || char === "'") quote = char;
+    else if (char === "[") depth += 1;
+    else if (char === "]" && (depth -= 1) === 0) return index + 1;
+  }
+  return text.length;
+}
+
+/** Replaces the whole list under a secret key with a quoted "[redacted]", so the text around it stays valid JSON. */
+function redactLists(text) {
+  let out = "";
+  let last = 0;
+  LIST_START.lastIndex = 0;
+  for (let match = LIST_START.exec(text); match !== null; match = LIST_START.exec(text)) {
+    const end = listEnd(text, match.index + match[0].length - 1);
+    out += `${text.slice(last, match.index)}${match[0].slice(0, -1)}${match[1]}[redacted]${match[1]}`;
+    last = end;
+    LIST_START.lastIndex = end;
+  }
+  return out + text.slice(last);
+}
+
 /** Removes anything shaped like a token, a bearer header, a cookie, a private key, a password in a URL, or a one-time-code flag from text that is about to be shown. */
 export function redact(text) {
-  let out = String(text);
+  let out = redactLists(String(text));
   for (const [pattern, replacement] of SECRET_PATTERNS) out = out.replace(pattern, replacement);
   return out;
 }
@@ -80,8 +111,8 @@ const SECRET_KEY = new RegExp(String.raw`^(?:${KEY_NAMES}|authorization|cookie|s
 export function deepRedact(value) {
   if (typeof value === "string") return redact(value);
   if (Array.isArray(value)) return value.map(deepRedact);
-  // A field with a secret name is redacted whatever its value looks like.
-  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, (typeof inner === "string" || typeof inner === "number" || Array.isArray(inner)) && SECRET_KEY.test(key) ? "[redacted]" : deepRedact(inner)]));
+  // A field with a secret name is redacted as a whole, whatever its value is (text, number, list, or object). Booleans and null stay readable.
+  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, SECRET_KEY.test(key) && inner !== null && typeof inner !== "boolean" && inner !== undefined ? "[redacted]" : deepRedact(inner)]));
   return value;
 }
 

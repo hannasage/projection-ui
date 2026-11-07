@@ -35,12 +35,20 @@ describe('separate empty npm config files (1)', () => {
       const version = spawnSync('npm', ['--version'], { env, cwd: home, encoding: 'utf8' });
       assert.equal(version.status, 0, version.stderr);
       assert.match(version.stdout.trim(), /^\d+\.\d+\.\d+/);
+      // Some npm versions leave userconfig and globalconfig out of the JSON list, so read the text form too, and fall back to the
+      // two facts that every version keeps: exit 0 and no double-loading message.
       const list = spawnSync('npm', ['config', 'list', '--json'], { env, cwd: home, encoding: 'utf8' });
       assert.equal(list.status, 0, list.stderr);
       assert.doesNotMatch(list.stderr, /double-loading|refusing to load/i);
-      const settings = JSON.parse(list.stdout);
-      assert.match(settings.userconfig, /npmrc-user$/);
-      assert.match(settings.globalconfig, /npmrc-global$/);
+      const text = spawnSync('npm', ['config', 'list'], { env, cwd: home, encoding: 'utf8' });
+      assert.equal(text.status, 0, text.stderr);
+      assert.doesNotMatch(text.stderr, /double-loading|refusing to load/i);
+      let settings = {};
+      try { settings = JSON.parse(list.stdout); } catch { /* the text form below decides */ }
+      const userconfig = settings.userconfig ?? /^; "user" config from (.+)$/m.exec(text.stdout)?.[1] ?? /^userconfig\s*=\s*"?([^"\n]+)"?$/m.exec(text.stdout)?.[1];
+      const globalconfig = settings.globalconfig ?? /^; "global" config from (.+)$/m.exec(text.stdout)?.[1] ?? /^globalconfig\s*=\s*"?([^"\n]+)"?$/m.exec(text.stdout)?.[1];
+      if (userconfig !== undefined) assert.match(userconfig, /npmrc-user$/);
+      if (globalconfig !== undefined) assert.match(globalconfig, /npmrc-global$/);
       // A read against a closed local port must fail on the connection and on nothing about config files.
       const view = spawnSync('npm', ['view', 'projection-ui-nothing', 'version', '--registry', 'http://127.0.0.1:9/', '--fetch-retries=0'], { env, cwd: home, encoding: 'utf8' });
       assert.notEqual(view.status, 0);
