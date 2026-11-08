@@ -1,0 +1,7 @@
+# GitHub enforces this file only when branch protection requires review from code owners. The repository owner chooses that setting.
+# These paths decide what gets published, so a change to them needs a review by the owner. The pins in release.config.json (workflow.pins) follow the same rule.
+/.github/CODEOWNERS @hannasage
+/release.config.json @hannasage
+/.github/workflows/ @hannasage
+/scripts/ @hannasage
+/tools/ @hannasage
