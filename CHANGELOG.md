@@ -11,7 +11,7 @@ It moves the prerelease channel from `next` to `beta` and sets the version line 
 - Name the matching design kit `projection-ui-design-1.0.0-beta.0.zip`.
 - Label the current documentation edition `1.0.0`, marked Beta.
 - Keep the `0.1.x` line on the `legacy` channel.
-- The `0.2.0-next.*` entries below stay as history; none of them was published.
+- The `0.2.0-next.*` entries below stay as history. Only `0.2.0-next.2` reached npm, on 2026-10-09 under the `next` tag. It is now deprecated and the `next` tag is removed.
 
 ## 0.2.0-next.2 alpha candidate
 

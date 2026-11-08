@@ -94,7 +94,7 @@
     "changelog": "CHANGELOG.md"
   },
   "retire": {
-    "note": "This is a decision for the package owner and it is not made yet. The commands run only after verify passes. They retire the alpha 0.2.0-next.2 that is still on the next tag. They do not touch latest, which stays on 0.1.5. Moving latest is a separate choice.",
+    "note": "The package owner already retired the alpha 0.2.0-next.2. On 2026-11-08 npm showed it deprecated and the next tag removed. The commands stay as the record. A person runs them only after verify passes. They do not touch latest, which stays on 0.1.5. Moving latest is a separate choice.",
     "commands": [
       [
         "npm",
