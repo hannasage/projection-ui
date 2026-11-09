@@ -590,7 +590,7 @@ describe('retire (human only)', () => {
       ['npm', 'deprecate', '@hannasage/projection-ui@0.2.0-next.2', 'Renamed to the beta tag. Use 1.0.0-beta.0.'],
       ['npm', 'dist-tag', 'rm', '@hannasage/projection-ui', 'next'],
     ]);
-    assert.match(repo.config.retire.note, /decision for the package owner and it is not made yet/);
+    assert.match(repo.config.retire.note, /package owner already retired the alpha 0.2.0-next.2/);
     assert.match(repo.config.retire.note, /only after verify passes/);
     assert.ok(!repo.config.retire.commands.some((command) => command.includes('latest')));
   });
@@ -608,7 +608,7 @@ describe('retire (human only)', () => {
     assert.equal(result.status, 2);
     assert.match(result.stdout, /npm deprecate @hannasage\/projection-ui@0.2.0-next.2 'Renamed to the beta tag. Use 1.0.0-beta.0.'/);
     assert.match(result.stdout, /npm dist-tag rm @hannasage\/projection-ui next/);
-    assert.match(result.stdout, /Note: This is a decision for the package owner/);
+    assert.match(result.stdout, /Note: The package owner already retired the alpha/);
     expectNoRegistryWrites(repo);
   });
 
