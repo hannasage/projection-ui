@@ -56,8 +56,8 @@ The ZIP is an importer package, not a `.fig` file.
 
 ## Release cadence
 
-Each alpha minor visual release includes a matching kit.
-Each visual revision of an alpha release also includes a matching kit.
+Each beta minor visual release includes a matching kit.
+Each visual revision of a beta release also includes a matching kit.
 Each production major visual release includes a matching kit.
 A production minor visual release includes a kit when its release notes specify one.
 Keep former kits with their matching versions.

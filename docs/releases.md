@@ -2,15 +2,15 @@
 
 A release must give consumers a package whose exports, examples, and compatibility claims agree.
 The published baseline is `0.1.5`.
-This work prepares `0.2.0-next.2` before stable `0.2.0`.
+This work prepares `1.0.0-beta.0` before stable `1.0.0`.
 The [changelog](../CHANGELOG.md) describes the candidate.
 The repository includes packed-package contract tests.
 
 ## Version scope
 
-For new compatible foundations and components, prepare a `0.2.0` release candidate.
+For new compatible foundations and components, prepare a `1.0.0` release candidate.
 A release candidate is a package version that receives final consumer checks.
-Use a prerelease version such as `0.2.0-next.2` under the `next` distribution tag.
+Use a prerelease version such as `1.0.0-beta.0` under the `beta` distribution tag.
 A distribution tag is a name that selects a version on npm.
 Keep `latest` on the existing release until the final package passes its gates.
 
@@ -23,7 +23,7 @@ npm install --save '@hannasage/projection-ui@~0.1.5'
 ```
 
 `~0.1.5` accepts stable patches from `0.1.5` up to, but not including, `0.2.0`.
-It does not select the 0.2 alpha.
+It does not select the 1.0 beta.
 The lockfile records the installed version; an existing installation does not update itself.
 After a reviewed 0.1 patch appears in the registry, update within that range:
 
@@ -34,17 +34,17 @@ npm update @hannasage/projection-ui
 To hold one exact version instead, use `npm install --save-exact @hannasage/projection-ui@0.1.5`.
 An exact pin does not accept newer patches until the application changes it.
 
-After the preview is published, inspect the registry channels and install `next` explicitly:
+After the preview is published, inspect the registry channels and install `beta` explicitly:
 
 ```bash
 npm view @hannasage/projection-ui dist-tags
-npm install --save-exact @hannasage/projection-ui@next
+npm install --save-exact @hannasage/projection-ui@beta
 ```
 
-When the registry lists `next`, that label selects the published preview.
+When the registry lists `beta`, that label selects the published preview.
 Until then, the preview install command is not available.
 It does not select an unpublished source version.
-This source prepares `0.2.0-next.2`; its release still needs maintainer approval and publication.
+This source prepares `1.0.0-beta.0`; its release still needs maintainer approval and publication.
 Saving the preview exactly keeps later preview changes under the application's control.
 
 The channel policy is separate from permission to publish:
@@ -52,21 +52,21 @@ The channel policy is separate from permission to publish:
 | Package version | npm channel | Publishing path |
 | --- | --- | --- |
 | Stable `0.1.x` | `legacy` | Reviewed maintenance backport required |
-| `0.2.0-next.N` | `next` | Current approved release workflow |
-| Stable `0.2.x` | `latest` | Current workflow covers `0.2.0`; later patches need their release gates reviewed |
+| `1.0.0-beta.N` | `beta` | Current approved release workflow |
+| Stable `1.x.y` | `latest` | Current workflow covers `1.0.0`; later releases need their release gates reviewed |
 
 A channel is a movable registry label, not a version range.
-Future 0.1 patches use `legacy` and must never move `latest` back from 0.2.
+Future 0.1 patches use `legacy` and must never move `latest` back from 1.0.
 The bounded 0.1 range finds those patches by version even when `latest` points elsewhere.
-Existing `latest` stays on `0.1.5` until an approved stable 0.2 release changes it.
+Existing `latest` stays on `0.1.5` until an approved stable 1.0 release changes it.
 
-A complete 0.2 release does not establish a 1.0 stability promise.
+A stable 1.0 release is the first stability promise.
 Before a breaking change, agree on its version boundary and publish exact migration steps.
 Preserve existing exports, required theme fields, and CSS variable meanings for compatible changes.
 
 ## Maintenance branches
 
-Keep the 0.2 candidate on its feature branch through review.
+Keep the 1.0 candidate on its feature branch through review.
 After the reviewed release merges, `main` holds the current development line.
 Create a separate 0.1 maintenance branch when a patch is needed.
 A backport applies a current fix to an earlier version.
@@ -76,7 +76,7 @@ Keep new themes and components on the current line.
 The published `0.1.5` package identifies [this exact source commit](https://github.com/hannasage/projection-ui/commit/8362d8b36b8d4928525aac16ebf5cc382e862f2c).
 Start the maintenance branch from that commit, not the current candidate.
 Release a correction as a new `0.1.x` patch version.
-The current publishing workflow accepts only the reviewed `0.2.0` release line.
+The current publishing workflow accepts only the reviewed `1.0.0` release line.
 Its verifier rejects 0.1 packages before calling npm, even when the requested action is publication.
 The channel classifier recognizes legacy versions but does not authorize their release.
 
@@ -94,8 +94,8 @@ Do not bypass the current verifier to publish a renamed modern package as a lega
 These steps prepare a future backport; this change does not create a maintenance checkout or publish a 0.1 patch.
 
 Existing source tags stay unchanged.
-The older `v0.2.0-next.1` tag does not identify this candidate.
-The reviewed candidate needs a fresh `v0.2.0-next.2` tag after maintainer approval.
+The older `v0.2.0-next.*` tags do not identify this candidate.
+The reviewed candidate needs a fresh `v1.0.0-beta.0` tag after maintainer approval.
 This project does not promise a support deadline or release schedule.
 
 ## Release artifacts
@@ -134,7 +134,7 @@ If a gate fails, fix the candidate before publication.
 
 ## Publishing identity
 
-The [publish workflow](../.github/workflows/publish.yml) accepts `v0.2.0` and `v0.2.0-next.*` tags.
+The [publish workflow](../.github/workflows/publish.yml) accepts `v1.0.0` and `v1.0.0-beta.*` tags.
 The tag must match the package version and its changelog entry.
 Its verification job runs the package, consumer, browser, and docs gates before packing the candidate.
 The final artifact check compares its integrity with the documentation package, then repeats consumer tests without rebuilding the library.
@@ -150,7 +150,7 @@ The owner must also set the required environment reviewers on GitHub before any 
 
 The workflow publishes directly after environment approval.
 It records provenance, which links the package to its build.
-The shared channel classifier selects `next` for the accepted prerelease versions and `latest` for stable `0.2.0`.
+The shared channel classifier selects `beta` for the accepted prerelease versions and `latest` for stable `1.0.0`.
 Legacy publication remains blocked until its separate maintenance gates receive review.
 The workflow checks that exactly one tarball matches the approved package version.
 

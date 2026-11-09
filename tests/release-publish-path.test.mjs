@@ -8,7 +8,7 @@ import { repository } from './helpers/packed.mjs';
 
 test('the release script publishes a local archive through the real npm parser', () => {
   const temporary = mkdtempSync(join(tmpdir(), 'projection-publish-path-'));
-  const version = '0.2.0-next.73';
+  const version = '1.0.0-beta.73';
   try {
     mkdirSync(join(temporary, 'release'));
     mkdirSync(join(temporary, 'bin'));
@@ -22,7 +22,8 @@ test('the release script publishes a local archive through the real npm parser',
 import { spawnSync } from 'node:child_process';
 const args = process.argv.slice(2);
 if (args[0] !== 'publish') process.exit(90);
-const result = spawnSync('npm', [...args, '--dry-run'], {
+// The dry run still asks the registry once. It is pointed at a closed local port with no retries, so it never waits on the network.
+const result = spawnSync('npm', [...args, '--dry-run', '--fetch-retries=0', '--registry', 'http://127.0.0.1:9/'], {
   env: { ...process.env, PATH: process.env.RELEASE_TEST_ORIGINAL_PATH, GIT_SSH_COMMAND: 'false' },
   stdio: 'inherit', timeout: 30_000,
 });
@@ -38,7 +39,7 @@ process.exit(result.status ?? 91);
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     assert.match(result.stdout, new RegExp(`\\+ @hannasage/projection-ui@${version.replaceAll('.', '\\.')}\\b`));
     assert.match(result.stderr, /Publishing to .*\(dry-run\)/);
-    assert.match(result.stderr, /with tag next/);
+    assert.match(result.stderr, /with tag beta/);
     assert.doesNotMatch(result.stderr, /git --no-replace-objects ls-remote/);
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 });

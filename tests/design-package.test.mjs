@@ -5,10 +5,13 @@ import { createDesignManifest, requiresDesignPackage, createZip } from '../scrip
 import { importProjectionDesign, validateScene } from '../design-package/importer.mjs';
 import { THEME_PRESETS, PROJECTION_FLAT_THEME, COASTAL_DAY_FLAT_THEME } from '../src/foundations.ts';
 
-test('visual releases carry a design package under the agreed alpha and stable cadence', () => {
-  assert.equal(requiresDesignPackage('0.2.0-next.2', '0.1.5', true), true);
-  assert.equal(requiresDesignPackage('0.2.0-next.2', '0.2.0-next.1', true), true);
-  assert.equal(requiresDesignPackage('0.2.1-next.0', '0.2.0-next.2', true), false);
+test('visual releases carry a design package under the agreed beta and stable cadence', () => {
+  assert.equal(requiresDesignPackage('1.0.0-beta.0', '0.2.0-next.2', true), true);
+  assert.equal(requiresDesignPackage('1.0.0-beta.0', '0.1.5', true), true);
+  assert.equal(requiresDesignPackage('1.0.0-beta.2', '1.0.0-beta.1', true), true);
+  assert.equal(requiresDesignPackage('1.0.0-beta.2', '1.0.0-beta.1', false), false);
+  assert.equal(requiresDesignPackage('1.0.0', '1.0.0-beta.2', true), true);
+  assert.equal(requiresDesignPackage('1.0.1', '1.0.0', true), false);
   assert.equal(requiresDesignPackage('2.0.0', '1.4.0', true), true);
   assert.equal(requiresDesignPackage('1.5.0', '1.4.0', true), false);
   assert.equal(requiresDesignPackage('1.5.0', '1.4.0', true, true), true);
@@ -113,7 +116,7 @@ function smallScene() {
 
 test('native import preserves component sets, text properties, instances, and theme bindings', async () => {
   const figma = mockFigma();
-  const result = await importProjectionDesign(figma, smallScene(), { themes: { dark: THEME_PRESETS.projection, light: THEME_PRESETS['coastal-day'], darkFlat: PROJECTION_FLAT_THEME, lightFlat: COASTAL_DAY_FLAT_THEME } }, '0.2.0-next.2');
+  const result = await importProjectionDesign(figma, smallScene(), { themes: { dark: THEME_PRESETS.projection, light: THEME_PRESETS['coastal-day'], darkFlat: PROJECTION_FLAT_THEME, lightFlat: COASTAL_DAY_FLAT_THEME } }, '1.0.0-beta.0');
   const set = figma.currentPage.children.find(node => node.type === 'COMPONENT_SET');
   assert.equal(set.children.length, 4);
   assert.deepEqual(set.children.map(node => node.name), ['Theme=Dark, Appearance=Modern', 'Theme=Light, Appearance=Modern', 'Theme=Dark, Appearance=Flat', 'Theme=Light, Appearance=Flat']);
@@ -126,14 +129,14 @@ test('native import preserves component sets, text properties, instances, and th
   assert.equal(instance.mainComponent.parent, set, 'creating instances must not remove the main component from its set');
   assert.ok(Object.keys(instance.componentProperties).some(key => key.startsWith('Label#new:')));
   assert.ok(result.createdNodeIds.includes(instance.children[0].id));
-  await assert.rejects(() => importProjectionDesign(figma, smallScene(), { themes: {} }, '0.2.0-next.2'), /already exists/);
+  await assert.rejects(() => importProjectionDesign(figma, smallScene(), { themes: {} }, '1.0.0-beta.0'), /already exists/);
   assert.equal(figma.root.children.length, 1);
 });
 
 test('missing fonts stop native import before creating any page or variables', async () => {
   const figma = mockFigma();
   figma.listAvailableFontsAsync = async () => [];
-  await assert.rejects(() => importProjectionDesign(figma, smallScene(), { themes: {} }, '0.2.0-next.2'), /Install the IBM Plex Sans Regular font/);
+  await assert.rejects(() => importProjectionDesign(figma, smallScene(), { themes: {} }, '1.0.0-beta.0'), /Install the IBM Plex Sans Regular font/);
   assert.equal(figma.root.children.length, 0);
   assert.equal(figma.collections.length, 0);
 });

@@ -27,7 +27,7 @@ export function legacyDocuments(archiveDirectory) {
     { slug: 'theming', title: 'Theming', mdx: `## Quick start\n\n${take('Quick start')}\n\n## Dynamic theming\n\n${take('Dynamic theming')}` },
     { slug: 'components', title: 'Component reference', mdx: `${take('Component reference')}\n\n## Source reference\n\nRead the [original exports](${source}/src/components/index.ts) and [theme types](${source}/src/theme.ts).` },
     { slug: 'toasts', title: 'Toast usage', mdx: take('Toast usage') },
-    { slug: 'examples', title: 'Original examples', mdx: `These links open the original React examples. They do not run the current alpha components.\n\n${archive.files.filter(file => file.path.endsWith('.stories.tsx')).map(file => `- [${file.path.replace('stories/', '')}](${source}/${file.path})`).join('\n')}\n\nDownload the [archived source manifest](/archives/0.1.5/archive.json).` },
+    { slug: 'examples', title: 'Original examples', mdx: `These links open the original React examples. They do not run the current beta components.\n\n${archive.files.filter(file => file.path.endsWith('.stories.tsx')).map(file => `- [${file.path.replace('stories/', '')}](${source}/${file.path})`).join('\n')}\n\nDownload the [archived source manifest](/archives/0.1.5/archive.json).` },
   ];
   return records.map(record => ({ ...record, markdown: `# ${record.title}\n\n${record.mdx}\n` }));
 }

@@ -1,5 +1,5 @@
 export const docsVersions = [
-  { id: 'current', label: '0.2.0', status: 'Alpha', baseUrl: '/docs' },
+  { id: 'current', label: '1.0.0', status: 'Beta', baseUrl: '/docs' },
   { id: '0.1.5', label: '0.1.5', status: 'Stable', baseUrl: '/docs/0.1.5' },
 ];
 

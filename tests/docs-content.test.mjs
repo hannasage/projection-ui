@@ -23,7 +23,7 @@ test('component references retain all contracts and every published example rout
   assert.equal(documents.length, 1);
   assert.equal(documents[0].slug, 'components/button');
   assert.match(documents[0].mdx, /Native button attributes/);
-  assert.match(documents[0].mdx, /0\.2\.0 Alpha edition/);
+  assert.match(documents[0].mdx, /1\.0\.0 Beta edition/);
   assert.match(documents[0].mdx, /\[Installation\]\(\/docs\/installation\/\)/);
   assert.match(documents[0].mdx, /components-button--primary/);
   assert.match(documents[0].mdx, /react >=19.0.0/);
@@ -51,36 +51,36 @@ test('packed manifest roles produce automatic feature installation guidance', as
   assert.match(guide.markdown,/npm install \/path\/to\/packed-candidate\.tgz\n/);
   assert.doesNotMatch(guide.markdown,/Install `(?:recharts|zustand|@dnd-kit)|npm install [^\n]*(?:react@|recharts@|zustand@)/);
   assert.match(guide.markdown,/npm install @hannasage\/projection-ui@0\.1\n/);
-  assert.match(guide.markdown,/npm install --save-exact @hannasage\/projection-ui@next\n/);
-  assert.match(guide.markdown,/npm install --save-exact @hannasage\/projection-ui@0\.2\.0-next\.2\n/);
-  assert.match(guide.markdown,/`0\.2\.0-next\.2` is an unpublished candidate/);
+  assert.match(guide.markdown,/npm install --save-exact @hannasage\/projection-ui@beta\n/);
+  assert.match(guide.markdown,/npm install --save-exact @hannasage\/projection-ui@1\.0\.0-beta\.0\n/);
+  assert.match(guide.markdown,/`1\.0\.0-beta\.0` is an unpublished candidate/);
   assert.match(guide.markdown,/After that exact version appears on npm/);
   assert.match(guide.markdown,/0\.1\.5/);
-  assert.match(guide.markdown,/npm currently has only 0\.1\.x releases and no `next` tag/);
-  assert.match(guide.markdown,/After an alpha is published under `next`/);
-  assert.match(guide.markdown,/`--save-exact` keeps later alpha and stable updates manual/);
-  assert.doesNotMatch(guide.markdown,/earlier alpha than this preview|latest published alpha:/);
+  assert.match(guide.markdown,/npm currently has only 0\.1\.x releases and no `beta` tag/);
+  assert.match(guide.markdown,/After a beta is published under `beta`/);
+  assert.match(guide.markdown,/`--save-exact` keeps later beta and stable updates manual/);
+  assert.doesNotMatch(guide.markdown,/earlier beta than this preview|latest published beta:/);
 });
 
 test('the README presents registry installation before local candidate review', async () => {
   const { readFileSync } = await import('node:fs');
   const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
   assert.match(readme, /npm install @hannasage\/projection-ui@0\.1\n/);
-  assert.match(readme, /npm install --save-exact @hannasage\/projection-ui@next\n/);
-  assert.match(readme, /npm install --save-exact @hannasage\/projection-ui@0\.2\.0-next\.2\n/);
+  assert.match(readme, /npm install --save-exact @hannasage\/projection-ui@beta\n/);
+  assert.match(readme, /npm install --save-exact @hannasage\/projection-ui@1\.0\.0-beta\.0\n/);
   assert.ok(readme.indexOf('npm install @hannasage/projection-ui@0.1') < readme.indexOf('npm install /path/to/packed-candidate.tgz'));
-  assert.match(readme, /`0\.2\.0-next\.2` is an unpublished candidate/);
-  assert.match(readme, /one evolving `0\.2\.0` edition/);
-  assert.match(readme, /npm currently has only 0\.1\.x releases and no `next` tag/);
-  assert.match(readme, /After an alpha is published under `next`/);
-  assert.match(readme, /`--save-exact` keeps later alpha and stable updates manual/);
-  assert.doesNotMatch(readme, /earlier alpha than this preview|latest published alpha, use/);
+  assert.match(readme, /`1\.0\.0-beta\.0` is an unpublished candidate/);
+  assert.match(readme, /one evolving `1\.0\.0` edition/);
+  assert.match(readme, /npm currently has only 0\.1\.x releases and no `beta` tag/);
+  assert.match(readme, /After a beta is published under `beta`/);
+  assert.match(readme, /`--save-exact` keeps later beta and stable updates manual/);
+  assert.doesNotMatch(readme, /earlier beta than this preview|latest published beta, use/);
 });
 
 test('release guidance keeps exact package revisions separate from documentation editions', async () => {
   const { readFileSync } = await import('node:fs');
   const guide = transformGuide(readFileSync(new URL('../docs/pages/Releases.mdx', import.meta.url), 'utf8'), 'docs/pages/Releases.mdx', entries);
-  assert.match(guide.markdown, /one evolving `0\.2\.0` edition with an Alpha badge/);
+  assert.match(guide.markdown, /one evolving `1\.0\.0` edition with a Beta badge/);
   assert.match(guide.markdown, /Prerelease and patch updates revise the current edition instead of creating new documentation editions/);
   assert.doesNotMatch(guide.markdown, /Future releases need their own archives/);
   assert.match(guide.markdown, /preserved `0\.1\.5` documentation/);
@@ -117,7 +117,8 @@ test('landing has its own layout and keeps an explicit reader home', async () =>
   assert.match(landing,/href="\/docs\/"/);
   assert.match(landing,/gallery-components--paired/);
   assert.match(landing,/useState\('neon'\)/);
-  assert.match(landing,/COASTAL_DAY_THEME/);
+  const landingTheme = readFileSync(new URL('../docs-site/components/landing-theme.ts',import.meta.url),'utf8');
+  assert.match(landingTheme,/COASTAL_DAY_THEME/);
   assert.match(landing,/COASTAL_DAY_FLAT_THEME/);
   assert.match(reader,/VersionedLayout/);
   assert.doesNotMatch(readFileSync(new URL('../docs-site/app/(docs)/layout.tsx',import.meta.url),'utf8'),/DocsLayout/);

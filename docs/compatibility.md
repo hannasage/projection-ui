@@ -2,7 +2,7 @@
 
 ## Package entry points
 
-The 0.2 candidate declares these entry points:
+The 1.0 beta declares these entry points:
 
 | Import | Declared target |
 | --- | --- |

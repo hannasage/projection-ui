@@ -1,14 +1,14 @@
 # Projection UI
 
 <p>
-  <a href="https://github.com/hannasage/projection-ui/pull/7"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/status-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/status-dark.svg" alt="Release status: alpha candidate" height="28"></picture></a>
-  <a href="https://www.npmjs.com/package/@hannasage/projection-ui"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/npm-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/npm-dark.svg" alt="Published npm releases" height="28"></picture></a>
-  <a href="https://github.com/hannasage/projection-ui/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/build-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/build-dark.svg" alt="Open the current build status on GitHub Actions" height="28"></picture></a>
-  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/license-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/license-dark.svg" alt="License: MIT" height="28"></picture></a>
-  <a href="#install-from-npm"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/react-dark.svg" alt="Requirements: React and React DOM 19 or newer" height="28"></picture></a>
-  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/compatibility.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/types-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/types-dark.svg" alt="TypeScript declarations included" height="28"></picture></a>
-  <a href="#choose-an-entry"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/runtime-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/runtime-dark.svg" alt="The package manages chart, sorting, and toast dependencies" height="28"></picture></a>
-  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/FEEDBACK.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/support-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/929d22bffe434a3c56e15be20db2ec2e7ff227db/docs/readme-assets/badges/support-dark.svg" alt="Community support through GitHub Issues and Discussions" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/pull/7"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/status-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/status-dark.svg" alt="Release status: beta candidate" height="28"></picture></a>
+  <a href="https://www.npmjs.com/package/@hannasage/projection-ui"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/npm-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/npm-dark.svg" alt="Published npm releases" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/build-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/build-dark.svg" alt="Open the current build status on GitHub Actions" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/license-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/license-dark.svg" alt="License: MIT" height="28"></picture></a>
+  <a href="#install-from-npm"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/react-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/react-dark.svg" alt="Requirements: React and React DOM 19 or newer" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/compatibility.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/types-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/types-dark.svg" alt="TypeScript declarations included" height="28"></picture></a>
+  <a href="#choose-an-entry"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/runtime-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/runtime-dark.svg" alt="The package manages chart, sorting, and toast dependencies" height="28"></picture></a>
+  <a href="https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/FEEDBACK.md"><picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/support-light.svg"><img src="https://raw.githubusercontent.com/hannasage/projection-ui/a5ddf433cfe50fe831f1e7ba0d934dabee975119/docs/readme-assets/badges/support-dark.svg" alt="Community support through GitHub Issues and Discussions" height="28"></picture></a>
 </p>
 
 Yes. Another UI library.
@@ -19,12 +19,12 @@ You still have to build the app.
 
 ![Glass cards with real buttons: Coastal Day in pale blue on the left, and Projection in dark lime on the right.](https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/materials-paired.png)
 
-`0.2.0-next.2` is an unpublished candidate.
-The current documentation is one evolving `0.2.0` edition, marked Alpha.
-An alpha is a preview that can change before stable release.
+`1.0.0-beta.0` is an unpublished candidate.
+The current documentation is one evolving `1.0.0` edition, marked Beta.
+A beta is a preview that can change before stable release.
 The screenshots show real components from the packed library.
 The preview adds glass, edge light, underglow, gradients, and a shared chart palette.
-The component examples below describe 0.2, while the preserved documentation covers the published `0.1.5` package.
+The component examples below describe 1.0, while the preserved documentation covers the published `0.1.5` package.
 
 <img src="https://raw.githubusercontent.com/hannasage/projection-ui/d03bbaeb0321b95106207959e19c35e004438ff1/docs/readme-assets/theme-divider.svg" alt="" width="1200" height="12">
 
@@ -38,31 +38,31 @@ npm install @hannasage/projection-ui@0.1
 
 The current stable release is `0.1.5`.
 Use its root imports and [preserved documentation](https://projectionui.dev/docs/0.1.5/installation/) for feature dependency requirements.
-The 0.2 examples below require a 0.2 alpha package.
+The 1.0 examples below require a 1.0 beta package.
 
-npm currently has only 0.1.x releases and no `next` tag.
-The alpha commands below are post-publication steps and do not work today.
-After an alpha is published under `next`, opt in with:
+npm currently has only 0.1.x releases and no `beta` tag.
+The beta commands below are post-publication steps and do not work today.
+After a beta is published under `beta`, opt in with:
 
 ```bash
-npm install --save-exact @hannasage/projection-ui@next
+npm install --save-exact @hannasage/projection-ui@beta
 ```
 
-`--save-exact` keeps later alpha and stable updates manual.
+`--save-exact` keeps later beta and stable updates manual.
 It saves the resolved version instead of a version range.
 
-After `0.2.0-next.2` appears on npm, pin that exact version with:
+After `1.0.0-beta.0` appears on npm, pin that exact version with:
 
 ```bash
-npm install --save-exact @hannasage/projection-ui@0.2.0-next.2
+npm install --save-exact @hannasage/projection-ui@1.0.0-beta.0
 ```
 
-In an existing React 19 application, install one 0.2 Projection UI package.
+In an existing React 19 application, install one 1.0 Projection UI package.
 The library manages its chart, drag, and toast dependencies.
 npm downloads them automatically with the package.
 React 19 and React DOM 19 stay shared with your application.
 They are peer dependencies: packages that your application supplies.
-The alpha does not promise 1.0 API stability.
+The beta can still change before the stable 1.0.0 release.
 Read the [maintenance guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/releases.md#maintenance-branches) for the separate 0.1 patch path.
 
 ### Review the candidate locally
@@ -249,7 +249,9 @@ The [text index](https://projectionui.dev/llms.txt) links all guides and compone
 Read [the component reference](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/components.md), [theme guide](https://projectionui.dev/docs/theming/), and [development guide](https://github.com/hannasage/projection-ui/blob/d03bbaeb0321b95106207959e19c35e004438ff1/docs/development.md).
 Read [the release contract](https://projectionui.dev/docs/releases/) before publication.
 
-Download the [matching Figma design kit](https://projectionui.dev/downloads/projection-ui-design-0.2.0-next.2.zip) for editable mockups.
+Scripts: `npm run release -- <status|preflight|gates|dry-run|publish|verify|tag|retire|claims>` checks one step of a release. `publish`, `tag`, and `retire` only print commands for a person, because a pushed tag starts the publish workflow. `npm run gates`, `npm run pr-open -- --title ... --body-file ... --base ...`, and `npm run tree-clean -- <tree>` run the tools in `tools/`. `tools/manifest.json` lists them and `docs/workflow-audit.md` says why. The manifest field `mcp_exposure` says whether a later MCP server may list a tool, and only the read-only tools `release status`, `release claims`, and `tree-clean` are marked `expose`. The publish workflow also runs browser tests (the Playwright install, `test:storybook`, `test:storybook-tools`, and `test:docs-themes`) that the release script does not run, so run them before you push a tag, because a tag cannot be moved. `release.config.json` pins four files in `workflow.pins`: `.github/workflows/publish.yml`, `scripts/verify-release.mjs`, and `scripts/publish-design-release.mjs`, and `scripts/release-channel.mjs`. Together the pins cover the workflow and the three scripts that run with publish rights. Each pin is a SHA-256. The workflow is read as bytes with CRLF read as LF and no trailing spaces or tabs, and it must be plain ASCII with no lone CR. The three scripts are hashed byte for byte. The pins hash the 1.0.0 versions of these files, which came in with the 1.0.0-beta.0 channel change. `preflight`, `gates`, `dry-run`, `tag`, and `status` fail when a file differs from its pin. A person reviews the change by hand and then updates the pin. This pin is the safety control. The workflow reader only extracts the gate commands for the warning above. `.github/CODEOWNERS` names the owner for the config, the workflows, `scripts/`, and `tools/`. GitHub enforces that file only when the repository setting branch protection requires review from code owners, and the owner chooses that setting.
+
+Download the [matching Figma design kit](https://projectionui.dev/downloads/projection-ui-design-1.0.0-beta.0.zip) for editable mockups.
 Its local importer creates native components, text, variables, and Modern/Flat theme variants.
 The kit includes its source inventory and the React contracts without a matching design category.
 
