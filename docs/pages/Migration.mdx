@@ -49,7 +49,12 @@ Set `--ui-radius-lg` in your scope if you need the old value.
 
 ## Update the dialog heading id
 
-The dialog heading id was a fixed value.
+The dialog heading id was this fixed value:
+
+```text
+ui-modal-title
+```
+
 It now comes from `useId`, so each dialog has its own id.
 Update any selector, style, or test that targets the old fixed id.
 Query the dialog by its role and accessible name instead.
@@ -73,6 +78,7 @@ Update any test or selector that looks for the `group` role.
 The `role="switch"` and its label moved from the track element to the native input.
 The input now covers the whole control, so a click lands on it.
 The track is hidden from assistive technology with `aria-hidden`.
+The `aria-checked` attribute was dropped, and the checked state is now native to the input.
 Toggle accepts an `aria-label` prop. It falls back to `label`.
 When you pass a `hint`, the input gets `aria-describedby` that points at it.
 The thumb now moves with `transform` instead of `left`.
@@ -98,8 +104,8 @@ For scoped output without global rules, use `/styles`.
 
 ## Mind the client boundary
 
-The root entry now starts with `'use client'`.
-Import it from client components in a framework that reads that directive.
+Every entry except `/foundations` now starts with `'use client'`.
+Import those entries from client components in a framework that reads that directive.
 The `/foundations` entry has no `'use client'` line and is safe to import in a server module.
 
 ## Choose a core appearance

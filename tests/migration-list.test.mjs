@@ -21,6 +21,7 @@ for (const change of list.changes) {
     const rest = page.slice(start + change.heading.length + 3);
     const body = rest.slice(0, rest.search(/\n## |$/)).trim();
     assert.ok(body.length > 40, `${change.heading} needs a body`);
+    assert.ok(body.includes(change.keyword), `${change.heading} must mention ${change.keyword}`);
   });
 }
 

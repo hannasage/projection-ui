@@ -5,7 +5,7 @@
 - Add a Stability page that lists the frozen items, the items that are not frozen, the prerelease rule, and the change policy. The `./motion` entry is frozen by name and arrives with the motion milestone.
 - Complete the Migration page with a step for each change since 0.1.5: the soft panel radius, the Modal heading id and styling, the ButtonGroup role, Toggle accessibility, Toast announcements and timing, the larger `/tokens` output, and the client boundary.
 - Fix the Migration page wording to match the `1.0.0-beta` line.
-- Add an export snapshot test that compares each entry's named exports with the packed package.
+- Add an export snapshot test that compares each entry's named exports with the packed package. It also snapshots declaration exports, the required `UITheme` fields, and the `UIRadius` values.
 - Add a migration-list test that requires a Migration heading for each listed breaking change.
 - Add the Stability page to the docs navigation and the docs route checks.
 
