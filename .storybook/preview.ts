@@ -37,7 +37,7 @@ const preview: Preview = {
     backgrounds: { disable: true },
     a11y: { manual: true },
     options: {
-      storySort: { order: ['Guides', ['Introduction', 'Installation', 'Theming', 'Tokens', 'Accessibility', 'Migration', 'Releases', 'Community'], 'Foundations', 'Components', 'Forms', 'Charts'] },
+      storySort: { order: ['Guides', ['Introduction', 'Installation', 'Theming', 'Tokens', 'Accessibility', 'Migration', 'Stability', 'Releases', 'Community'], 'Foundations', 'Components', 'Forms', 'Charts'] },
     },
   },
 }

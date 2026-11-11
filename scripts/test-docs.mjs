@@ -8,7 +8,7 @@ import { socialPreview } from '../docs-site/lib/social-preview.ts';
 
 const root = resolve('docs-site/out');
 const contracts = JSON.parse(readFileSync('docs/component-contracts.json', 'utf8'));
-const routes = ['/', '/armature/', '/docs/', ...['installation','theming','tokens','accessibility','migration','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
+const routes = ['/', '/armature/', '/docs/', ...['installation','theming','tokens','accessibility','migration','stability','releases','community'].map(slug=>`/docs/${slug}/`), ...Object.keys(contracts).map(name=>`/docs/components/${name.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase()}/`)];
 routes.push(...['', 'installation', 'theming', 'components', 'toasts', 'examples'].map(slug => `/docs/0.1.5/${slug ? slug + '/' : ''}`));
 const mime = {'.zip':'application/zip','.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.txt':'text/plain','.md':'text/plain','.woff2':'font/woff2'};
 function staticServer(root) {

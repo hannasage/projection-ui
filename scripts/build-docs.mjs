@@ -29,7 +29,7 @@ try {
   assert.equal(installed.version, manifest.version);
   const entries = Object.values(JSON.parse(readFileSync(join(repository,'storybook-static/index.json'),'utf8')).entries);
   const guides = readdirSync(join(repository,'docs/pages')).filter(file => file.endsWith('.mdx')).map(file => transformGuide(readFileSync(join(repository,'docs/pages',file),'utf8'), `docs/pages/${file}`, entries));
-  assert.equal(guides.length, 8);
+  assert.equal(guides.length, 9);
   const contracts = JSON.parse(readFileSync(join(repository,'docs/component-contracts.json'),'utf8'));
   const components = componentDocuments(contracts,entries,manifest);
   assert.equal(components.length,Object.keys(contracts).length);
@@ -53,7 +53,7 @@ try {
     mkdirSync(join(markdown,'..'),{recursive:true});
     writeFileSync(markdown,record.markdown);
   }
-  writeFileSync(join(site,'content/docs/meta.json'),JSON.stringify({pages:['index','installation','theming','tokens','accessibility','migration','releases','community','components']},null,2));
+  writeFileSync(join(site,'content/docs/meta.json'),JSON.stringify({pages:['index','installation','theming','tokens','accessibility','migration','stability','releases','community','components']},null,2));
   writeFileSync(join(site,'content/docs/components/meta.json'),JSON.stringify({title:'Components',pages:components.map(page=>page.slug.split('/')[1])},null,2));
   const legacy = legacyDocuments(join(repository, 'docs/archive/0.1.5'));
   for (const record of legacy) {

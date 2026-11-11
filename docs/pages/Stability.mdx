@@ -1,0 +1,58 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Guides/Stability" />
+
+# Stability
+
+This page says what Projection UI promises to keep and what it can change.
+A frozen item changes only in a major release.
+Every other item can change in a minor release.
+`1.0.0-beta.N` releases are different. Read the prerelease rule below.
+
+## Frozen items
+
+A breaking change to a frozen item needs a major release.
+
+- Package entry names: `.`, `./core`, `./charts`, `./sortable`, `./toast`, `./foundations`, `./motion`, `./tokens`, `./styles`, and `./reset`.
+- The named exports of each entry. A test compares them with the packed package.
+- The required `UITheme` fields: `bg`, `surface`, `border`, `text`, `muted`, `primary`, `primaryFg`, `danger`, `font`, and `radius`. Their types stay the same.
+- The `UIRadius` values `sharp`, `soft`, and `rounded`.
+- The names and fallbacks of the optional theme fields: `appearance`, `mode`, `partner`, `fontMono`, `glow`, `fontBody`, `fontDisplay`, `success`, `warning`, `focus`, and `backdrop`.
+- The meaning of every CSS variable that exists in 0.1.5, from `--ui-bg` to `--ui-radius-*` and `--ui-font`.
+- The names of CSS variables added since 0.1.5. Their exact values are not frozen.
+- The peer ranges: `react` and `react-dom` at `>=19.0.0`.
+- The attributes `data-ui-theme`, `data-ui-radius`, `data-ui-appearance`, and `data-ui-mode`.
+- Motion: the flat token key names in `UI_FOUNDATIONS.motion`, the flavor name `projection`, the `pui` prefix, and the rule that reduced motion snaps to rest.
+
+The `./motion` entry does not exist yet.
+Its name is frozen now.
+It arrives with the motion milestone.
+The export snapshot test covers only the entries that `package.json` lists today.
+
+## Not frozen
+
+These items can change in a minor release.
+
+- Exact colors in theme presets.
+- Spacing and shadow values.
+- Glass and glow rendering.
+- Spring numbers. Their names stay.
+- `.ui-*` class names and the internal DOM structure.
+- Storybook and the docs site.
+- The contents of the design kit.
+- Versions of transitive dependencies.
+- Armature internals.
+
+## Prerelease rule
+
+A `1.0.0-beta.N` release can change anything.
+Each change gets a line in the [changelog](https://github.com/hannasage/projection-ui/blob/main/CHANGELOG.md).
+The frozen list takes full effect with the stable `1.0.0` release.
+Read [Migration](/docs/migration/) for the changes since 0.1.5.
+
+## Change policy
+
+- A patch release holds fixes.
+- A minor release holds additive changes and tuning.
+- A major release holds the removal of a frozen item or a change to its meaning.
+- Deprecations last one minor release, with a doc note and no console warning.

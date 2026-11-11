@@ -1,0 +1,65 @@
+{
+  "baseline": "0.1.5",
+  "changes": [
+    {
+      "id": "feature-subpaths",
+      "heading": "Isolate optional features",
+      "keyword": "@hannasage/projection-ui/core"
+    },
+    {
+      "id": "style-entries",
+      "heading": "Select styles deliberately",
+      "keyword": "`/reset`"
+    },
+    {
+      "id": "soft-radius",
+      "heading": "Review the soft panel radius",
+      "keyword": "16px"
+    },
+    {
+      "id": "table-sort-and-dialog-focus",
+      "heading": "Review changed interactions",
+      "keyword": "sortValue"
+    },
+    {
+      "id": "modal-heading-id",
+      "heading": "Update the dialog heading id",
+      "keyword": "ui-modal-title"
+    },
+    {
+      "id": "modal-styling",
+      "heading": "Review dialog styling",
+      "keyword": "--ui-backdrop"
+    },
+    {
+      "id": "buttongroup-role",
+      "heading": "Update the ButtonGroup role",
+      "keyword": "radiogroup"
+    },
+    {
+      "id": "toggle-aria",
+      "heading": "Review Toggle accessibility",
+      "keyword": "aria-checked"
+    },
+    {
+      "id": "toast-live-region-and-timer",
+      "heading": "Review Toast announcements and timing",
+      "keyword": "role=\"log\""
+    },
+    {
+      "id": "tokens-output",
+      "heading": "Review the larger `/tokens` output",
+      "keyword": "global rules"
+    },
+    {
+      "id": "client-boundary",
+      "heading": "Mind the client boundary",
+      "keyword": "use client"
+    },
+    {
+      "id": "card-default-material",
+      "heading": "Choose a core appearance",
+      "keyword": "material=\"solid\""
+    }
+  ]
+}

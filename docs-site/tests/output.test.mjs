@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const read = path => readFileSync(new URL('../out/' + path, import.meta.url), 'utf8');
-test('the static reader retains eight guides and all component contracts', () => {
+test('the static reader retains nine guides and all component contracts', () => {
   const contracts = JSON.parse(readFileSync(new URL('../../docs/component-contracts.json', import.meta.url), 'utf8'));
   assert.ok(Object.keys(contracts).length > 0);
   const entries = Object.values(JSON.parse(read('examples/index.json')).entries);
   for (const name of Object.keys(contracts)) assert.ok(entries.some(entry => entry.type === 'story' && entry.title.split('/').pop() === name), `${name} needs a packed story`);
   assert.match(read('index.html'), /Projection UI/);
-  for (const slug of ['','installation','theming','tokens','accessibility','migration','releases','community']) assert.match(read(`docs/${slug ? slug+'/' : ''}index.html`), /Projection UI/);
+  for (const slug of ['','installation','theming','tokens','accessibility','migration','stability','releases','community']) assert.match(read(`docs/${slug ? slug+'/' : ''}index.html`), /Projection UI/);
   for (const name of Object.keys(contracts)) {
     const slug = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
     assert.match(read(`docs/components/${slug}/index.html`), new RegExp(name));
