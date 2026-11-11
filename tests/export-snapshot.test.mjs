@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, rmSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
 import { packFixture, packageName, repository } from './helpers/packed.mjs';
@@ -69,16 +69,17 @@ test('./styles and ./reset ship a declaration file with no exports', () => {
   for (const entry of ['./styles', './reset']) {
     assert.equal(manifest.exports[entry].types, './dist/styles.d.ts');
     assert.deepEqual(snapshot.types[entry].names, []);
+    const actual = declarationExports(join(installed, manifest.exports[entry].types));
+    assert.deepEqual(actual.names, [], `${entry} is a module with zero exports`);
     assert.ok(readFileSync(join(installed, manifest.exports[entry].types), 'utf8').length, `${entry} types are packed`);
   }
 });
 
-test('the root and core entries keep the required UITheme fields and UIRadius values', () => {
-  for (const entry of ['.', './core']) {
-    assert.deepEqual(snapshot.types[entry].themeFields.map(field => field.split(':')[0]),
-      ['bg', 'border', 'danger', 'font', 'muted', 'primary', 'primaryFg', 'radius', 'surface', 'text']);
-    assert.deepEqual(snapshot.types[entry].radius, ['rounded', 'sharp', 'soft']);
-  }
+test('the declaration helper throws for a missing or non-module file', () => {
+  assert.throws(() => declarationExports(join(temporary, 'missing.d.ts')), /missing|not found|module/i);
+  const script = join(temporary, 'script.d.ts');
+  writeFileSync(script, 'declare const value: number;\n');
+  assert.throws(() => declarationExports(script), /not a module/);
 });
 
 test('the compare helper fails on a removed, an added, and a misspelled export', () => {

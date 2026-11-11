@@ -4,12 +4,12 @@
     {
       "id": "feature-subpaths",
       "heading": "Isolate optional features",
-      "keyword": "core"
+      "keyword": "@hannasage/projection-ui/core"
     },
     {
       "id": "style-entries",
       "heading": "Select styles deliberately",
-      "keyword": "reset"
+      "keyword": "`/reset`"
     },
     {
       "id": "soft-radius",
@@ -24,7 +24,7 @@
     {
       "id": "modal-heading-id",
       "heading": "Update the dialog heading id",
-      "keyword": "useId"
+      "keyword": "ui-modal-title"
     },
     {
       "id": "modal-styling",
@@ -59,7 +59,7 @@
     {
       "id": "card-default-material",
       "heading": "Choose a core appearance",
-      "keyword": "Card"
+      "keyword": "material=\"solid\""
     }
   ]
 }

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { repository } from './packed.mjs';
@@ -15,6 +16,7 @@ export function compareExports(actual, expected, label) {
 // Reads the declaration file a package entry ships and returns every export name (types included),
 // plus the required fields of UITheme and the literal members of UIRadius when the entry exports them.
 export function declarationExports(declarationFile) {
+  if (!existsSync(declarationFile)) throw new Error(`declaration file is missing: ${declarationFile}`);
   const program = ts.createProgram([declarationFile], {
     target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler,
     jsx: ts.JsxEmit.ReactJSX, skipLibCheck: true, noEmit: true, types: [],
@@ -22,7 +24,7 @@ export function declarationExports(declarationFile) {
   const checker = program.getTypeChecker();
   const source = program.getSourceFile(declarationFile);
   const symbol = checker.getSymbolAtLocation(source);
-  if (!symbol) return { names: [], themeFields: null, radius: null };
+  if (!source || !symbol) throw new Error(`declaration file is not a module: ${declarationFile}`);
   const exported = checker.getExportsOfModule(symbol);
   const names = exported.map(item => item.getName()).sort();
   const find = name => exported.find(item => item.getName() === name);
