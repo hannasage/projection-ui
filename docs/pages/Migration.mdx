@@ -8,7 +8,8 @@ The 1.0 beta retains root imports, existing required theme fields, and `/tokens`
 The soft panel radius changes from 10px to 16px. Control radii stay unchanged.
 Existing theme objects do not need new fields.
 Keep your current imports first, then make optional changes separately.
-Use [Installation](/docs/installation/) to opt into the published alpha or review the unpublished candidate locally.
+Use [Installation](/docs/installation/) to opt into the `1.0.0-beta` line once a beta is published, or review the unpublished candidate locally.
+Read [Stability](/docs/stability/) for what stays fixed after 1.0.
 The stable 0.1.x package uses its [preserved documentation](/docs/0.1.5/).
 
 ## Isolate optional features
@@ -39,6 +40,67 @@ Table sorting now orders rows.
 Supply `sortValue(row)` for a derived sortable value, or `compare(a, b)` for a custom comparison.
 Review dialog focus, radio arrow keys, switch activation, and sortable keyboard movement after your upgrade.
 Make sure that your application does not duplicate the library behavior.
+
+## Review the soft panel radius
+
+The soft theme panel radius `--ui-radius-lg` changed from 10px to 16px.
+Control radii stay unchanged.
+Set `--ui-radius-lg` in your scope if you need the old value.
+
+## Update the dialog heading id
+
+The dialog heading id was a fixed value.
+It now comes from `useId`, so each dialog has its own id.
+Update any selector, style, or test that targets the old fixed id.
+Query the dialog by its role and accessible name instead.
+
+## Review dialog styling
+
+The dialog now carries the `ui-surface` class and `data-material="glass"`.
+It has the glass look by default.
+The backdrop color now reads `var(--ui-backdrop)` and falls back to the old literal value.
+Set `backdrop` in your theme, or override `--ui-backdrop`, to change it.
+Review any CSS that styled the dialog box directly.
+
+## Update the ButtonGroup role
+
+ButtonGroup now renders `role="radiogroup"` instead of `role="group"`.
+It also accepts an `aria-label`, and arrow keys move the selection.
+Update any test or selector that looks for the `group` role.
+
+## Review Toggle accessibility
+
+The `role="switch"` and its label moved from the track element to the native input.
+The input now covers the whole control, so a click lands on it.
+The track is hidden from assistive technology with `aria-hidden`.
+Toggle accepts an `aria-label` prop. It falls back to `label`.
+When you pass a `hint`, the input gets `aria-describedby` that points at it.
+The thumb now moves with `transform` instead of `left`.
+Review any test or style that read the old Toggle markup.
+
+## Review Toast announcements and timing
+
+An individual toast no longer sets `role="status"` or `aria-live="polite"`.
+The `ToastContainer` keeps its live region, `role="log"` with `aria-live="polite"` and `aria-atomic="false"`, as in 0.1.5.
+Screen readers now hear a toast through that container only.
+Update any test that looked for `role="status"` on a toast.
+Auto-dismiss moved from a timer inside each toast component into the toast store, which clears the timer.
+`useToastStore().dismiss(id)` now clears the pending timer.
+Toast accent colors read `--ui-success` and `--ui-warning`, with the earlier colors as fallbacks.
+
+## Review the larger `/tokens` output
+
+The `/tokens` stylesheet is much larger than in 0.1.5.
+No `--ui-*` variable was removed, and new variables were added.
+It also carries global rules such as the focus ring and the scrollbar style.
+If you keep `/tokens`, check your page for changes from those rules.
+For scoped output without global rules, use `/styles`.
+
+## Mind the client boundary
+
+The root entry now starts with `'use client'`.
+Import it from client components in a framework that reads that directive.
+The `/foundations` entry has no `'use client'` line and is safe to import in a server module.
 
 ## Choose a core appearance
 

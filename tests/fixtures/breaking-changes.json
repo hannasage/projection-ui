@@ -1,0 +1,17 @@
+{
+  "baseline": "0.1.5",
+  "changes": [
+    { "id": "feature-subpaths", "heading": "Isolate optional features" },
+    { "id": "style-entries", "heading": "Select styles deliberately" },
+    { "id": "soft-radius", "heading": "Review the soft panel radius" },
+    { "id": "table-sort-and-dialog-focus", "heading": "Review changed interactions" },
+    { "id": "modal-heading-id", "heading": "Update the dialog heading id" },
+    { "id": "modal-styling", "heading": "Review dialog styling" },
+    { "id": "buttongroup-role", "heading": "Update the ButtonGroup role" },
+    { "id": "toggle-aria", "heading": "Review Toggle accessibility" },
+    { "id": "toast-live-region-and-timer", "heading": "Review Toast announcements and timing" },
+    { "id": "tokens-output", "heading": "Review the larger `/tokens` output" },
+    { "id": "client-boundary", "heading": "Mind the client boundary" },
+    { "id": "card-default-material", "heading": "Choose a core appearance" }
+  ]
+}
