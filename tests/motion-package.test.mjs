@@ -39,7 +39,7 @@ after(() => { if (packed) rmSync(packed.temporary, { recursive: true, force: tru
 const seconds = value => Number.parseFloat(value) * (String(value).endsWith('ms') ? 0.001 : 1);
 const flavors = () => ({ projection: motion.projection, projectionGlide: motion.projectionGlide });
 
-test('./motion is ESM only (D5): types and import, no require, a client boundary, and no CommonJS file', () => {
+test('./motion is ESM only: types and import, no require, a client boundary, and no CommonJS file', () => {
   assert.deepEqual(manifest.exports['./motion'], { types: './dist/src/motion.d.ts', import: './dist/motion.js' });
   assert.match(readFileSync(join(installed, 'dist/motion.js'), 'utf8'), /^['"]use client['"]/);
   assert.equal(existsSync(join(installed, 'dist/motion.cjs')), false, 'no CommonJS build of ./motion');
@@ -48,7 +48,7 @@ test('./motion is ESM only (D5): types and import, no require, a client boundary
   assert.equal(typeof require(`${packageName}/core`).Button, 'function', 'the rest of the package keeps CommonJS');
 });
 
-test('the public ./motion surface is small (D7): the flavors, MotionProvider, and useMotionFlavor', () => {
+test('the public ./motion surface is small: the flavors, MotionProvider, and useMotionFlavor', () => {
   assert.deepEqual(Object.keys(motion).sort(), ['MotionProvider', 'projection', 'projectionGlide', 'useMotionFlavor']);
 });
 
@@ -174,6 +174,19 @@ test('docs/motion.md prints the numbers the solver measures', t => {
       assert.ok(page.includes(line), `docs/motion.md is missing: ${line}`);
     }
   }
+});
+
+test('docs/motion.md gives the install command at the pinned version and the rules a consumer needs', () => {
+  const page = readFileSync(join(repository, 'docs/motion.md'), 'utf8');
+  assert.ok(page.includes(`npm install @hannasage/armature@${manifest.peerDependencies['@hannasage/armature']}`), 'the install command pins the peer version');
+  assert.match(page, /import `\.\/core` as ESM/);
+  assert.match(page, /read-only[^\n]*Setting them changes nothing/);
+  assert.match(page, /## Why clip-path/);
+  assert.match(page, /A value set from code jumps/);
+  assert.match(page, /per-component `flavor` prop/);
+  assert.match(page, /module scope/);
+  assert.match(page, /No provider turns motion off/);
+  assert.match(page, /Firefox and WebKit/);
 });
 
 function poisoned(render) {

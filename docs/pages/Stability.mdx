@@ -27,8 +27,11 @@ A breaking change to a frozen item needs a major release.
 `./motion` is ESM only.
 It has a `types` and an `import` condition and no `require` condition.
 Every other entry keeps its CommonJS build.
-Its named exports are `projection`, `projectionGlide`, `MotionProvider`, and `useMotionFlavor`.
+Its named exports are `projection`, `projectionGlide`, `MotionProvider`, and `useMotionFlavor`, and its type exports are `MotionFlavor` and `MotionProviderProps`.
 The export snapshot test covers every entry that `package.json` lists.
+`./motion` needs the motion engine, `@hannasage/armature`, which is an optional peer. Install it at the exact version that the package pins.
+
+The spring variables `--ui-motion-mechanical-stiffness`, `--ui-motion-mechanical-damping`, `--ui-motion-settle-stiffness`, and `--ui-motion-glide-settle` are informational and read-only. Setting them changes nothing: the springs are built from `UI_FOUNDATIONS.motion`.
 
 ## Not frozen
 
@@ -43,6 +46,7 @@ These items can change in a minor release.
 - The contents of the design kit.
 - Versions of transitive dependencies.
 - Armature internals.
+- The exact `@hannasage/armature` version that `./motion` needs. It is an optional peer, pinned to one version per release.
 - The `--pui-*` CSS variables and `data-pui-*` attributes. They are internal to the motion components.
 
 ## Prerelease rule

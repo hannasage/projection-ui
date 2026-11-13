@@ -34,3 +34,10 @@ test('the docs navigation lists the Stability page', () => {
   assert.match(read('../.storybook/preview.ts'), /'Migration', 'Stability', 'Releases'/);
   assert.match(read('../scripts/build-docs.mjs'), /'migration','stability','releases'/);
 });
+
+test('the stability page names MotionFlavor, the optional motion engine peer, and the read-only spring variables', () => {
+  assert.match(page, /`MotionFlavor`/);
+  assert.match(page, /`@hannasage\/armature`[^\n]*optional peer/);
+  for (const name of ['mechanical-stiffness', 'mechanical-damping', 'settle-stiffness', 'glide-settle']) assert.ok(page.includes('`--ui-motion-' + name + '`'), `names --ui-motion-${name}`);
+  assert.match(page, /read-only[^\n]*Setting them changes nothing/);
+});
