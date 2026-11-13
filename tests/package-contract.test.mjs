@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, realpathSync, lstatSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, realpathSync, lstatSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -175,6 +175,11 @@ for (const legacy of [false,true]) test(`archive-only npm install owns feature r
     assert.equal(realpathSync(runtimeRequire.resolve('react')),realpathSync(require.resolve('react')),`${name} resolves the host React`);
     assert.equal(runtimeRequire('react'),hostReact,`${name} uses one React identity`);
   }
+  // The motion engine is an optional peer: an install without it keeps every other entry working, and ./motion names what is missing.
+  assert.equal(existsSync(join(clean,'node_modules/@hannasage/armature')),false,'the optional motion engine is not installed with the package');
+  const motion=spawnSync(process.execPath,['--input-type=module','-e',`await import('${packageName}/motion')`],{cwd:clean,encoding:'utf8',timeout:60_000});
+  assert.notEqual(motion.status,0,'./motion needs the motion engine installed');
+  assert.match(motion.stderr,/ERR_MODULE_NOT_FOUND[\s\S]*@hannasage\/armature|@hannasage\/armature[\s\S]*ERR_MODULE_NOT_FOUND/,'the error names the missing package');
 });
 
 test('feature entries share component and store identities with the legacy root', async () => {

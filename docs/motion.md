@@ -1,8 +1,20 @@
 # Motion
 
 The `./motion` entry adds spring motion to Projection UI components.
-It uses the Armature motion engine, pinned to `@hannasage/armature` `1.0.0-beta.1`.
+It uses the Armature motion engine, `@hannasage/armature`.
 Without a `MotionProvider`, every component keeps its static CSS behaviour, and `./core` loads no Armature code.
+
+## Install
+
+The motion engine is an optional peer dependency.
+Installing Projection UI does not install it.
+To use `./motion`, install the exact version that Projection UI pins:
+
+```sh
+npm install @hannasage/armature@1.0.0-beta.1
+```
+
+Without it, every other entry works, and an import of `./motion` fails with a module-not-found error that names `@hannasage/armature`.
 
 ## Turn motion on
 

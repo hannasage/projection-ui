@@ -22,7 +22,7 @@ async function load(specifier) {
 }
 
 before(async () => {
-  packed = packFixture('motion-package');
+  packed = packFixture('motion-package', ['armature']);
   installed = packed.installed;
   motion = await load(`${packageName}/motion`);
   root = await load(packageName);

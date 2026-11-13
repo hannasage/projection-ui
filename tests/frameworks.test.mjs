@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { packFixture, repository, run } from './helpers/packed.mjs';
 
 let packed;
-before(() => { packed = packFixture('frameworks', ['react', 'react-dom', '@types', 'typescript', 'next']); });
+before(() => { packed = packFixture('frameworks', ['react', 'react-dom', '@types', 'typescript', 'next', 'armature']); });
 after(() => { if (packed) rmSync(packed.temporary, {recursive:true,force:true}); });
 
 test('core executes without loading managed feature runtimes', async () => {

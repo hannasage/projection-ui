@@ -11,7 +11,7 @@ import { repository, packFixture } from './helpers/packed.mjs';
 
 let packed, server, browser, url;
 before(async () => {
-  packed = packFixture('motion-rendered');
+  packed = packFixture('motion-rendered', ['armature']);
   writeFileSync(join(packed.fixture, 'index.html'), '<!doctype html><html lang="en"><title>Motion fixture</title><div id="root"></div><script type="module" src="/main.tsx"></script></html>');
   writeFileSync(join(packed.fixture, 'main.tsx'), readFileSync(join(repository, 'tests/fixtures/motion/main.tsx')));
   server = await createServer({ configFile: false, root: packed.fixture, logLevel: 'error', server: { port: 0, host: '127.0.0.1', fs: { allow: [packed.fixture, repository] } } });

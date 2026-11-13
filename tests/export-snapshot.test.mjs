@@ -21,7 +21,7 @@ function namedExports(specifier, format) {
 }
 
 before(() => {
-  ({ temporary, fixture, installed } = packFixture('export-snapshot'));
+  ({ temporary, fixture, installed } = packFixture('export-snapshot', ['armature']));
 });
 after(() => rmSync(temporary, { recursive: true, force: true }));
 
