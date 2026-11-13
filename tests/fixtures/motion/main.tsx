@@ -1,4 +1,4 @@
-import React, { StrictMode, useState } from 'react'
+import React, { StrictMode, useEffect, useRef, useState } from 'react'
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { Button, ButtonGroup, Slider, Tabs, ThemeProvider, Toggle } from '@hannasage/projection-ui/core'
@@ -17,6 +17,7 @@ declare global {
     __flipAt: number | null
     __unmount: () => void
     __mount: () => void
+    __pressRef: React.RefObject<HTMLButtonElement | null> | null
   }
 }
 
@@ -81,6 +82,18 @@ function FlavorName({ testId = 'flavor' }: { testId?: string }) {
   return <output data-testid={testId}>{useMotionFlavor().name}</output>
 }
 
+// An inner provider with Glide, and a button that swaps its flavor, which a provider warns about once outside production.
+function Nested() {
+  const [glide, setGlide] = useState(true)
+  return (
+    <MotionProvider flavor={glide ? projectionGlide : projection}>
+      <FlavorName testId="nested-flavor" />
+      <Button type="button" data-testid="nested-press">Nested press</Button>
+      <button type="button" data-testid="swap-flavor" onClick={() => setGlide(value => !value)}>Swap the inner flavor</button>
+    </MotionProvider>
+  )
+}
+
 function Fixture() {
   const [on, setOn] = useState(false)
   const [level, setLevel] = useState(40)
@@ -88,11 +101,13 @@ function Fixture() {
   const [segment, setSegment] = useState<string | null>('one')
   const [wrapped, setWrapped] = useState<string | null>('alpha')
   const [presses, setPresses] = useState(0)
+  const pressRef = useRef<HTMLButtonElement | null>(null)
+  useEffect(() => { window.__pressRef = pressRef }, [])
   return (
     <ThemeProvider theme={DEFAULT_THEME} style={{ padding: 24 }}>
       <h1>Motion fixture</h1>
       <FlavorName />
-      <p><Button type="button" data-testid="press" onClick={() => setPresses(count => count + 1)}>Press me</Button> <Button type="button" data-testid="disabled-press" disabled>Disabled press</Button> <output data-testid="presses">{presses}</output></p>
+      <p><Button type="button" data-testid="press" ref={pressRef} onClick={() => setPresses(count => count + 1)}>Press me</Button> <Button type="button" data-testid="disabled-press" disabled>Disabled press</Button> <output data-testid="presses">{presses}</output></p>
       <Toggle label="Notifications" checked={on} onChange={setOn} />
       <div data-testid="slider-box" style={{ width: 240 }}><Slider label="Level" value={level} onChange={setLevel} /></div>
       <div data-testid="mode-box"><ButtonGroup aria-label="Mode" deselectable value={mode} onChange={value => setMode(value || null)} options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'off', label: 'Off', disabled: true }, { value: 'month', label: 'Month' }]} /></div>
@@ -100,7 +115,7 @@ function Fixture() {
       <div style={{ width: 150 }}><ButtonGroup aria-label="Wrapped" value={wrapped} onChange={setWrapped} options={['alpha', 'beta', 'gamma', 'delta', 'epsilon'].map(value => ({ value, label: value }))} /></div>
       <Tabs label="Sections" items={[{ value: 'one', label: 'First', content: 'First panel' }, { value: 'two', label: 'Second', content: 'Second panel' }, { value: 'three', label: 'Third', content: 'Third panel' }, { value: 'four', label: 'Fourth', content: 'Fourth panel', disabled: true }]} />
       <p><button type="button" data-testid="set-week" onClick={() => setMode('week')}>Set week from outside</button></p>
-      {params.has('nested') && <MotionProvider flavor={projectionGlide}><FlavorName testId="nested-flavor" /><Button type="button" data-testid="nested-press">Nested press</Button></MotionProvider>}
+      {params.has('nested') && <Nested />}
     </ThemeProvider>
   )
 }

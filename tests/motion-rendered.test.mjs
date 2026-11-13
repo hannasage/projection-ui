@@ -443,4 +443,79 @@ describe('environments', () => {
       assert.deepEqual(page.errors, [], 'nothing logged an error');
     } finally { await page.close(); }
   });
+
+  test('without a MotionProvider: a checked Toggle thumb rests on the checked side, a hovered Slider thumb grows, and the Button ref is set', async () => {
+    const page = await open('mechanical', 'no-preference', '&provider=none');
+    try {
+      assert.equal(await page.locator('[data-pui-motion], .ui-lens').count(), 0, 'no motion markup');
+      await page.locator(`${TOGGLE} input`).click();
+      await page.waitForTimeout(400);
+      const thumb = await page.locator(THUMB).evaluate(node => [getComputedStyle(node).translate, getComputedStyle(node).transform]);
+      assert.deepEqual(thumb, ['16px', 'none'], 'the static thumb moved the md travel with translate');
+      const resting = await thumbHeight(page);
+      const input = await page.locator(SLIDER).boundingBox();
+      const fraction = await page.locator(SLIDER).evaluate(node => (Number(node.value) - Number(node.min)) / (Number(node.max) - Number(node.min)));
+      await page.mouse.move(input.x + 8 + (input.width - 16) * fraction, input.y + input.height / 2);
+      await page.waitForTimeout(300);
+      const hovered = await thumbHeight(page);
+      assert.ok(resting >= 12, `the resting thumb is drawn: ${resting} rows`);
+      assert.ok(hovered / resting > 1.07, `the hovered WebKit thumb grows: ${hovered} rows against ${resting}`);
+      assert.equal(await page.evaluate(selector => window.__pressRef?.current === document.querySelector(selector), BUTTON), true, 'the ref points at the button');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('React StrictMode: the double mount leaves one working controller each, and an unmount leaves no listener', async () => {
+    const page = await open('mechanical', 'no-preference', '&strict');
+    try {
+      const press = values(await sample(page, { read: { selector: BUTTON, property: 'scale', fallback: 1 }, ms: 500, actions: [{ at: 0, selector: BUTTON, type: 'pointerdown' }, { at: 200, selector: BUTTON, type: 'pointerup' }] }));
+      near(Math.min(...press), FLAVORS.mechanical.press, 0.006, 'the press reaches the flavor scale once, not twice');
+      near(press.at(-1), 1, 1e-3, 'the press returns to rest');
+      const thumb = values(await sample(page, { read: { selector: TOGGLE, property: '--pui-thumb' }, ms: 800, actions: [{ at: 0, selector: `${TOGGLE} input`, type: 'click' }] }));
+      assert.ok(strictlyBetween(thumb, 0, 1).length >= 3, 'the thumb is seen in flight');
+      near(thumb.at(-1), 1, 1e-3, 'the thumb rests on the checked side');
+      const start = await box(page, TABS, 'First');
+      const lens = values(await sample(page, { read: { selector: TABS, property: '--pui-lens-x' }, ms: 800, actions: [{ at: 0, selector: option(TABS, 3), type: 'click' }] }));
+      const end = await box(page, TABS, 'Third');
+      assert.ok(strictlyBetween(lens, start.x, end.x, PX).length >= 2, 'the lens travels');
+      near(lens.at(-1), end.x, 0.5, 'the lens lands');
+      assert.equal(await page.evaluate(selector => window.__pressRef?.current === document.querySelector(selector), BUTTON), true, 'the ref points at the button inside the provider');
+      await page.evaluate(() => window.__unmount());
+      assert.deepEqual(await leftListeners(page), ['change'], 'only the fixture\'s own reduced-motion listener is left');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('a nested provider sets the flavor of its subtree; swapping its flavor warns once', async () => {
+    const page = await open('mechanical', 'no-preference', '&nested');
+    const warnings = [];
+    page.on('console', message => { if (message.type() === 'warning') warnings.push(message.text()); });
+    try {
+      assert.equal(await page.getByTestId('flavor').textContent(), 'projection');
+      assert.equal(await page.getByTestId('nested-flavor').textContent(), 'projection-glide');
+      const read = selector => ({ selector, property: 'scale', fallback: 1 });
+      const pressAt = selector => [{ at: 0, selector, type: 'pointerdown' }, { at: 300, selector, type: 'pointerup' }];
+      const outer = values(await sample(page, { read: read(BUTTON), ms: 700, actions: pressAt(BUTTON) }));
+      const inner = values(await sample(page, { read: read('[data-testid=nested-press]'), ms: 700, actions: pressAt('[data-testid=nested-press]') }));
+      near(Math.min(...outer), FLAVORS.mechanical.press, 0.006, 'the outer button presses as Mechanical');
+      near(Math.min(...inner), FLAVORS.glide.press, 0.003, 'the inner button presses as Glide');
+      assert.deepEqual(warnings, [], 'no warning while the flavor keeps its identity');
+      await page.getByTestId('swap-flavor').click();
+      await page.getByTestId('swap-flavor').click();
+      await page.waitForTimeout(100);
+      assert.equal(warnings.length, 1, `one warning for the provider: ${warnings}`);
+      assert.match(warnings[0], /MotionProvider: the flavor changed between renders/);
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('hydration of the server markup logs no error, and motion runs after it', async () => {
+    const page = await open('mechanical', 'no-preference', '&hydrate');
+    try {
+      const thumb = values(await sample(page, { read: { selector: TOGGLE, property: '--pui-thumb' }, ms: 800, actions: [{ at: 0, selector: `${TOGGLE} input`, type: 'click' }] }));
+      assert.ok(strictlyBetween(thumb, 0, 1).length >= 3, 'the thumb is seen in flight after hydration');
+      assert.equal(await page.evaluate(() => document.querySelectorAll('style[data-href="pui-motion"]').length), 1, 'one motion stylesheet after hydration');
+      assert.deepEqual(page.errors, [], 'no hydration error');
+    } finally { await page.close(); }
+  });
 });
