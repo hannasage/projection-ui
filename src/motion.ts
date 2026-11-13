@@ -1,6 +1,7 @@
 'use client'
 
-// The motion entry. ESM only (D5). It exports the two flavors, MotionProvider, and useMotionFlavor (D7).
+// The motion entry. It is ESM only, because the motion engine ships ESM only. It exports the two flavors, the MotionFlavor type,
+// MotionProvider, and useMotionFlavor, and nothing more.
 // The component hooks and the --pui-* variable names stay internal.
 export { projection, projectionGlide } from './motion/flavors'
 export { MotionProvider, useMotionFlavor } from './motion/MotionProvider'

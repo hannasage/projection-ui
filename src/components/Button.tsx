@@ -80,7 +80,7 @@ export function Button({
   ref: passedRef,
   ...rest
 }: ButtonProps): React.ReactElement {
-  // With a MotionProvider, a pointer press springs the scale (D12 A: small and fast). Keyboard activation gets no motion.
+  // With a MotionProvider, a pointer press springs the scale: small and fast. Keyboard activation gets no motion.
   const runtime = useMotionRuntime()
   const own = useRef<HTMLButtonElement | null>(null)
   const ref = useMergedRef(own, passedRef)

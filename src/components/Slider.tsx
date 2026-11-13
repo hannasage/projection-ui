@@ -43,7 +43,7 @@ export function Slider({
 }: SliderProps): React.ReactElement {
   const id = useId()
   const pct = ((value - min) / (max - min)) * 100
-  // With a MotionProvider, a pointer grab springs the thumb scale. Keys and drag move the value at once (D10).
+  // With a MotionProvider, a pointer grab springs the thumb scale. Keys, drag, and a value set from code move the value at once, with no spring.
   const runtime = useMotionRuntime()
   const input = useRef<HTMLInputElement | null>(null)
   usePressMotion(input, runtime, !disabled, 'grab')

@@ -15,7 +15,7 @@ export default defineConfig({
       },
     },
     {
-      // ./motion is ESM only (D5): Armature ships import conditions only, and a second CommonJS copy could split engine state.
+      // ./motion is ESM only: Armature ships import conditions only, and a second CommonJS copy could split engine state.
       // The other entries keep both formats, so the CommonJS pass drops the motion entry and its map.
       name: 'projection-motion-esm-only',
       generateBundle(options, bundle) {

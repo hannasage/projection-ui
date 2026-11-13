@@ -31,7 +31,7 @@ export function Toggle({
   const thumbOff = size === 'sm' ? 3  : 3
   const travel   = trackW - thumbSz - 2 * thumbOff
   const at       = checked ? 1 : 0
-  // With a MotionProvider, the thumb follows a spring on every input, keyboard too (D10). The track fill fades with the same
+  // With a MotionProvider, the thumb follows a spring on every input, keyboard too. The track fill fades with the same
   // number, so a turn in flight keeps colour and position together. Without one, the static CSS transition stays.
   const runtime  = useMotionRuntime()
   const root     = useRef<HTMLDivElement | null>(null)

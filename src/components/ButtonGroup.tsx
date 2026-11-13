@@ -54,7 +54,7 @@ export function ButtonGroup<T extends string = string>({
   const enabled = options.map((option, index) => option.disabled ? -1 : index).filter(index => index >= 0)
   const active = options.findIndex(option => option.value === value && !option.disabled)
   const tabStop = active >= 0 ? active : enabled[0]
-  // With a MotionProvider, a lens travels to the option a pointer picks and jumps on a key (D15). It never targets a disabled option,
+  // With a MotionProvider, a lens travels to the option a pointer picks and jumps on a key, so keyboard selection never travels. It never targets a disabled option,
   // and with no selection it hides.
   const runtime = useMotionRuntime()
   const group = useRef<HTMLDivElement | null>(null)

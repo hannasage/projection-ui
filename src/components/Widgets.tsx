@@ -30,7 +30,7 @@ export function Tabs({ items, value, defaultValue, onValueChange, label = 'Tabs'
   const id = useId(); const [selected, select] = useValue(value, defaultValue ?? items.find(item => !item.disabled)?.value ?? '', onValueChange)
   const buttons = useRef<Array<HTMLButtonElement | null>>([])
   const active = items.find(item => item.value === selected && !item.disabled) ?? items.find(item => !item.disabled)
-  // With a MotionProvider, the underline travels to a clicked tab and jumps on Arrow, Home, and End (D15). The panels swap at once.
+  // With a MotionProvider, the underline travels to a clicked tab and jumps on a key (Arrow, Home, End, Enter, or Space), so keyboard selection never travels. The panels swap at once.
   const runtime = useMotionRuntime(); const list = useRef<HTMLDivElement | null>(null); const keyboard = useRef(false)
   const activeIndex = active ? items.indexOf(active) : -1
   useLensMotion(list, runtime, () => list.current ? boxWithin(list.current, buttons.current[activeIndex]) : null, activeIndex, keyboard)

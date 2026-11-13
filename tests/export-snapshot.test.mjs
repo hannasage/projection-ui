@@ -50,7 +50,7 @@ for (const [entry, names] of Object.entries(snapshot.modules)) {
   test(`${entry} ESM named exports match the snapshot`, () => {
     compareExports(namedExports(specifier, 'esm'), names, `${entry} ESM`);
   });
-  // ./motion is ESM only (D5). Its exports block has no require condition, so a CommonJS consumer gets a clear export error.
+  // ./motion is ESM only. Its exports block has no require condition, so a CommonJS consumer gets a clear export error.
   if (!('require' in manifest.exports[entry])) {
     test(`${entry} is ESM only: a require of it fails with an export error`, () => {
       assert.throws(() => namedExports(specifier, 'cjs'), /ERR_PACKAGE_PATH_NOT_EXPORTED/);

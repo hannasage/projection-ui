@@ -168,7 +168,7 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       const keyed = sample(page, { read: thumb, ms: 800 });
       await page.keyboard.press('Space');
       const back = values(await keyed);
-      assert.ok(strictlyBetween(back, 0, 1).length >= 3, 'Space animates the thumb (D10)');
+      assert.ok(strictlyBetween(back, 0, 1).length >= 3, 'Space animates the thumb: a key change of the Toggle moves on the spring');
       near(back.at(-1), 0, 1e-3, 'rests on the unchecked side');
     } finally { await page.close(); }
   });
@@ -204,7 +204,7 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       const before = Number(await page.locator(SLIDER).inputValue());
       const keyed = sample(page, { read: grab, ms: 300 });
       await page.keyboard.press('ArrowRight');
-      assert.ok(onlyRest(values(await keyed), [1]), 'arrow keys show no motion (D10)');
+      assert.ok(onlyRest(values(await keyed), [1]), 'arrow keys show no grab motion');
       assert.equal(Number(await page.locator(SLIDER).inputValue()), before + 1, 'the arrow key steps the value at once');
       const bounds = await page.locator(SLIDER).boundingBox();
       await page.mouse.click(bounds.x + bounds.width * 0.9, bounds.y + bounds.height / 2);
@@ -232,7 +232,7 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       } finally { await page.close(); }
     });
 
-    test(`Lens (${label}): arrow keys jump with no travel (D15)`, async () => {
+    test(`Lens (${label}): arrow keys jump with no travel`, async () => {
       const page = await open(key);
       try {
         const start = await box(page, group, await page.locator(option(group, 1)).textContent());

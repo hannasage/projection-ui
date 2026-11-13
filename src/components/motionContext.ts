@@ -11,7 +11,7 @@ export interface MotionStarted<H> { handle: H; stop(): void }
  * The motion engine as the components see it. `MotionProvider` from `./motion` supplies one.
  * Without a provider the components render their static markup, and this module imports no motion code, so `./core` never loads Armature.
  * Each method starts a controller on a mounted element. Nothing here runs on the server: the hooks below call it from effects only.
- * Internal: not exported from any entry (D7).
+ * Internal: no entry exports it, so the public motion surface stays small.
  */
 export interface MotionRuntime {
   /** A press scale on pointer down and a spring back on release. `grab` is the Slider thumb feel. Returns the stop function. */
