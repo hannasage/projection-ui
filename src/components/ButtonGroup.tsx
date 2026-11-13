@@ -78,6 +78,7 @@ export function ButtonGroup<T extends string = string>({
   const motionStyle = (isActive: boolean): React.CSSProperties => runtime
     ? { position: 'relative', background: 'var(--pui-static-fill, transparent)', transition: variant === 'segmented' ? 'color var(--ui-motion-fast, 0.12s)' : `color var(--ui-motion-fast, 0.12s), border-color var(--ui-motion-fast, 0.12s)` }
     : { background: isActive ? SOFT_FILL : 'transparent' }
+  const clearKeyboard = () => { keyboard.current = false }
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     const current = enabled.indexOf(index)
     let next: number | undefined
@@ -87,13 +88,16 @@ export function ButtonGroup<T extends string = string>({
     if (event.key === 'End') next = enabled[enabled.length - 1]
     if (next === undefined) return
     event.preventDefault()
-    keyboard.current = true
+    // Focus moves first: the blur it causes clears the keyboard flag, which is then set for this change.
     buttons.current[next]?.focus()
+    keyboard.current = true
     onChange(options[next].value)
   }
-  const handleClick = (opt: ButtonGroupOption<T>) => {
+  // A click with detail 0 came from Enter or Space, so the lens jumps. The flag clears on keyup and blur, so a key that changed
+  // nothing cannot make a later change jump.
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>, opt: ButtonGroupOption<T>) => {
     if (opt.disabled) return
-    keyboard.current = false
+    keyboard.current = event.detail === 0
     if (deselectable && opt.value === value) {
       onChange('' as T)
     } else if (opt.value !== value) {
@@ -137,7 +141,9 @@ export function ButtonGroup<T extends string = string>({
               aria-checked={isActive}
               title={opt.title}
               disabled={opt.disabled}
-              onClick={() => handleClick(opt)}
+              onClick={event => handleClick(event, opt)}
+              onKeyUp={clearKeyboard}
+              onBlur={clearKeyboard}
               style={{
                 ...SIZE[size],
                 flex:           block ? 1 : undefined,
@@ -205,7 +211,9 @@ export function ButtonGroup<T extends string = string>({
             aria-checked={isActive}
             title={opt.title}
             disabled={opt.disabled}
-            onClick={() => handleClick(opt)}
+            onClick={event => handleClick(event, opt)}
+            onKeyUp={clearKeyboard}
+            onBlur={clearKeyboard}
             style={{
               ...SIZE[size],
               flex:           block ? 1 : undefined,

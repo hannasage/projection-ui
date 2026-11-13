@@ -66,7 +66,8 @@ export function useFollowerMotion(ref: RefObject<HTMLElement | null>, runtime: M
 
 /**
  * A lens over the active option. It takes its first place at once, travels on a pointer change, and jumps when `keyboard.current`
- * says a key made the change (D15). The flag is cleared after each change.
+ * says a key made the change, so keyboard selection never animates across the row. The component sets the flag on a navigation key
+ * and on a click with `detail` 0 (Enter or Space), and clears it on keyup and blur. This hook clears it after each change.
  */
 export function useLensMotion(ref: RefObject<HTMLElement | null>, runtime: MotionRuntime | null, measure: () => MotionBox | null, active: unknown, keyboardRef: RefObject<boolean>): void {
   const lens = useRef<MotionLensHandle | null>(null)

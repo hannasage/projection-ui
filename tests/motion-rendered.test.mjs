@@ -213,7 +213,7 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
         // Measured after the change: the active option turns bold, so the options can shift.
         const end = await box(page, group, await page.locator(option(group, to)).textContent());
         near(run[0], start.x, 0.5, 'starts on the selected option');
-        assert.ok(strictlyBetween(run, start.x, end.x).length >= 2, 'the indicator is seen in flight');
+        assert.ok(strictlyBetween(run, start.x, end.x, PX).length >= 2, 'the indicator is seen in flight');
         near(run.at(-1), end.x, 0.5, 'lands on the new option');
         const width = await page.evaluate(selector => Number.parseFloat(getComputedStyle(document.querySelector(selector)).getPropertyValue('--pui-lens-w')), group);
         near(width, end.w, 0.5, 'the width lands on the new option');
@@ -238,6 +238,37 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       } finally { await page.close(); }
     });
   }
+
+  // Real key presses (keydown, then keyup) from the keyboard. Enter and Space activate the focused option; arrows and End move to another.
+  for (const [label, group, focus, pressed, to] of [['chip', MODE, 2, 'Enter', 2], ['segmented', SEGMENT, 3, 'Space', 3], ['tabs', TABS, 3, 'Enter', 3], ['tabs', TABS, 2, 'Space', 2], ['segmented', SEGMENT, 1, 'ArrowRight', 2], ['tabs', TABS, 1, 'End', 3]]) {
+    test(`Lens (${label}): ${pressed} from the keyboard jumps with no travel`, async () => {
+      const page = await open(key);
+      try {
+        const start = await box(page, group, await page.locator(option(group, 1)).textContent());
+        await page.locator(option(group, focus)).focus();
+        const running = sample(page, { read: { selector: group, property: '--pui-lens-x' }, ms: 400 });
+        await page.keyboard.press(pressed);
+        const run = values(await running);
+        const end = await box(page, group, await page.locator(option(group, to)).textContent());
+        assert.ok(end.x > start.x + 1, 'the selection moved');
+        assert.equal(strictlyBetween(run, start.x, end.x, PX).length, 0, `no value between the two options: ${run.slice(0, 6)}`);
+        near(run.at(-1), end.x, 0.5, 'lands on the activated option');
+      } finally { await page.close(); }
+    });
+  }
+
+  test('Lens: a key that changes nothing does not make the next change jump', async () => {
+    const page = await open(key);
+    try {
+      await page.locator(option(MODE, 1)).focus();
+      await page.keyboard.press('Home');
+      const start = await box(page, MODE, 'Day');
+      const run = values(await sample(page, { read: { selector: MODE, property: '--pui-lens-x' }, ms: 700, actions: [{ at: 0, selector: '[data-testid=set-week]', type: 'click' }] }));
+      const end = await box(page, MODE, 'Week');
+      assert.ok(strictlyBetween(run, start.x, end.x, PX).length >= 2, `a change from outside travels: ${run.slice(0, 6)}`);
+      near(run.at(-1), end.x, 0.5, 'lands on the new option');
+    } finally { await page.close(); }
+  });
 
   test('Lens: a second click mid-travel retargets with no jump, a disabled option is never a target, and no selection hides it', async () => {
     const page = await open(key);

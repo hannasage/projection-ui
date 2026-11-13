@@ -36,7 +36,8 @@ function read(spec: Read): number {
 function fire(action: Action): void {
   const element = document.querySelector<HTMLElement>(action.selector)
   if (!element) throw new Error(`no element for ${action.selector}`)
-  if (action.type === 'click') element.click()
+  // A pointer click: detail 1, as a mouse gives. element.click() would give detail 0, which is how Enter and Space activate a button.
+  if (action.type === 'click') element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1, button: 0 }))
   else if (action.type === 'width') element.style.width = action.value ?? ''
   else if (action.type === 'keydown') {
     element.focus()
