@@ -1,7 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useRef, type Ref, type RefObject } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type Ref, type RefObject } from 'react'
 
 /** A box in the coordinates of a container's padding box. */
 export interface MotionBox { x: number; y: number; w: number; h: number }
+
+/** The followers of the flavors: the Toggle thumb, the enter of a toast and a tooltip, and the dialog and backdrop of a Modal. */
+export type MotionFollowerName = 'thumb' | 'enter' | 'dialog' | 'backdrop'
 
 export interface MotionFollowerHandle { setTarget(target: number): void }
 export interface MotionLensHandle { update(change?: { keyboard?: boolean }): void; refit(): void }
@@ -17,7 +20,7 @@ export interface MotionRuntime {
   /** A press scale on pointer down and a spring back on release. `grab` is the Slider thumb feel. Returns the stop function. */
   press(element: HTMLElement, feel?: 'grab'): () => void
   /** One number that springs toward a target and is written as `--pui-<name>` on the element. */
-  follower(element: HTMLElement, name: 'thumb', initial: number): MotionStarted<MotionFollowerHandle>
+  follower(element: HTMLElement, name: MotionFollowerName, initial: number): MotionStarted<MotionFollowerHandle>
   /** A travelling indicator. It writes `--pui-lens-*` and `data-pui-lens` on the container. */
   lens(container: HTMLElement, measure: () => MotionBox | null): MotionStarted<MotionLensHandle>
 }
@@ -47,7 +50,7 @@ export function usePressMotion(ref: RefObject<HTMLElement | null>, runtime: Moti
 }
 
 /** A follower that starts on `target` with no motion, then springs to each new target and keeps its speed when a change comes in flight. */
-export function useFollowerMotion(ref: RefObject<HTMLElement | null>, runtime: MotionRuntime | null, name: 'thumb', target: number): void {
+export function useFollowerMotion(ref: RefObject<HTMLElement | null>, runtime: MotionRuntime | null, name: MotionFollowerName, target: number): void {
   const follower = useRef<MotionFollowerHandle | null>(null)
   const latest = useRef(target)
   useEffect(() => { latest.current = target })
@@ -62,6 +65,28 @@ export function useFollowerMotion(ref: RefObject<HTMLElement | null>, runtime: M
     }
   }, [ref, runtime, name])
   useEffect(() => { follower.current?.setTarget(target) }, [target])
+}
+
+const subscribeNothing = () => () => undefined
+
+/**
+ * An enter: while `active` is true and the element is mounted, a follower writes `--pui-<name>` from 0 to 1, so the element enters
+ * from its start pose and rests at 1. With `animate` false, or when React hydrates the element from server markup, it starts at 1 with
+ * no motion. It runs before paint, so the element is never drawn at rest before its enter. Leaving is not animated: the element
+ * leaves the page with `active`.
+ */
+export function useEnterMotion(ref: RefObject<HTMLElement | null>, runtime: MotionRuntime | null, name: MotionFollowerName, active: boolean, animate = true): void {
+  // False on the server and while React hydrates, true for a render on the client alone.
+  const client = useSyncExternalStore(subscribeNothing, () => true, () => false)
+  const moves = useRef(false)
+  useLayoutEffect(() => { moves.current = animate && client })
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!runtime || !active || !element) return
+    const started = runtime.follower(element, name, moves.current ? 0 : 1)
+    started.handle.setTarget(1)
+    return started.stop
+  }, [ref, runtime, name, active])
 }
 
 /**

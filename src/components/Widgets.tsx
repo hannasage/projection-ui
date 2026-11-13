@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { boxWithin, useLensMotion, useMotionRuntime } from './motionContext'
+import { boxWithin, useEnterMotion, useLensMotion, useMotionRuntime } from './motionContext'
 import { MotionStyle } from './motionStyle'
 
 const panel: React.CSSProperties = { border: '1px solid var(--ui-border)', borderRadius: 16, background: 'var(--ui-surface)', color: 'var(--ui-text)', fontFamily: 'var(--ui-font-body, var(--ui-font))', padding: 16 }
@@ -76,10 +76,14 @@ export function Spinner({ label = 'Loading', size = 24, style, ...rest }: Spinne
   return <span {...rest} className={`ui-spinner ${rest.className ?? ''}`} role="status" aria-label={label} style={{ display: 'inline-flex', width: size, height: size, borderRadius: '50%', border: '3px solid var(--ui-border)', borderTopColor: 'var(--ui-primary)', ...style }} />
 }
 export interface TooltipProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'content' | 'children'> { content: React.ReactNode; children: React.ReactElement<React.HTMLAttributes<HTMLElement>> }
+// With a MotionProvider, a tooltip that a pointer hover opens rises in on a spring. One that a focus opens shows at rest. Hiding is not animated.
+const TOOLTIP_ENTER: React.CSSProperties = { opacity: 'var(--pui-enter, 1)', translate: '-50% calc((1 - var(--pui-enter, 1)) * 4px)' }
 export function Tooltip({ content, children, style, ...rest }: TooltipProps) {
   const id = useId(); const [hover, setHover] = useState(false); const [focused, setFocused] = useState(false); const [dismissed, dismiss] = useState(false)
   const open = (hover || focused) && !dismissed
-  return <span {...rest} style={{ display: 'inline-flex', position: 'relative', ...style }} onMouseEnter={event => { setHover(true); dismiss(false); rest.onMouseEnter?.(event) }} onMouseLeave={event => { setHover(false); rest.onMouseLeave?.(event) }} onFocus={event => { setFocused(true); dismiss(false); rest.onFocus?.(event) }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); rest.onBlur?.(event) }} onKeyDown={event => { if (event.key === 'Escape') dismiss(true); rest.onKeyDown?.(event) }}>{React.cloneElement(children, { 'aria-describedby': [children.props['aria-describedby'], open ? id : undefined].filter(Boolean).join(' ') || undefined })}{open && <span id={id} role="tooltip" style={{ ...panel, position: 'absolute', zIndex: 10, bottom: '100%', left: '50%', transform: 'translateX(-50%)', padding: '8px 12px', marginBottom: 6, whiteSpace: 'normal', width: 'max-content', maxWidth: 'min(20rem, calc(100vw - 32px))', boxSizing: 'border-box' }}>{content}</span>}</span>
+  const runtime = useMotionRuntime(); const tip = useRef<HTMLSpanElement | null>(null)
+  useEnterMotion(tip, runtime, 'enter', open, hover)
+  return <span {...rest} style={{ display: 'inline-flex', position: 'relative', ...style }} onMouseEnter={event => { setHover(true); dismiss(false); rest.onMouseEnter?.(event) }} onMouseLeave={event => { setHover(false); rest.onMouseLeave?.(event) }} onFocus={event => { setFocused(true); dismiss(false); rest.onFocus?.(event) }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); rest.onBlur?.(event) }} onKeyDown={event => { if (event.key === 'Escape') dismiss(true); rest.onKeyDown?.(event) }}>{React.cloneElement(children, { 'aria-describedby': [children.props['aria-describedby'], open ? id : undefined].filter(Boolean).join(' ') || undefined })}{open && <span id={id} ref={tip} role="tooltip" style={{ ...panel, position: 'absolute', zIndex: 10, bottom: '100%', left: '50%', ...(runtime ? TOOLTIP_ENTER : { transform: 'translateX(-50%)' }), padding: '8px 12px', marginBottom: 6, whiteSpace: 'normal', width: 'max-content', maxWidth: 'min(20rem, calc(100vw - 32px))', boxSizing: 'border-box' }}>{content}</span>}</span>
 }
 export interface CarouselItem { id: string; content: React.ReactNode; label?: string }
 export interface CarouselProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> { items: CarouselItem[]; index?: number; defaultIndex?: number; onIndexChange?: (index: number) => void; autoAdvance?: boolean; interval?: number; label: string }

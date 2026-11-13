@@ -69,6 +69,11 @@ There is no per-component `flavor` prop. The provider is the only way to choose 
 - Toggle: the thumb springs to the new side on every input, keyboard included. The track fill fades with the thumb.
 - Slider: a pointer grab springs the thumb scale up, and the release springs it back. Arrow keys and a drag move the value at once. A value set from code jumps too: the thumb has no spring for its position.
 - ButtonGroup and Tabs: an indicator travels to the option a pointer picks. A key makes it jump: an arrow key, Home, End, or Enter or Space on a focused option. With no selection it hides. When an option changes size, or a web font loads, the indicator refits to the active option.
+- Toast: a new toast rises in and fades in. A second toast does not restart the first one's enter.
+- Modal: the dialog fades in, grows from 96 percent of its size, and rises into place, and its backdrop fades in. Focus moves into the dialog at once, before the motion ends. A nested Modal enters on its own, and the one under it stays still.
+- Tooltip: a pointer hover makes it rise in and fade in. A keyboard focus shows it at rest, with no motion.
+
+Leaving is not animated yet: a dismissed or expired toast, a closed Modal, and a hidden tooltip leave the page at once.
 
 Colour changes stay CSS transitions on `--ui-motion-fast` and `--ui-motion-normal`.
 A change in flight starts from the current value and keeps its speed.
@@ -100,8 +105,9 @@ With no provider, it returns `projection`.
 
 Crisp and tactile. A small overshoot, then done. The default.
 The press scale is 0.97, and the Slider grab scale is 1.15.
-Press, release, and the Toggle thumb use `mechanical`.
+Press, release, the Toggle thumb, the toast and tooltip enters, and the Modal backdrop use `mechanical`.
 The ButtonGroup and Tabs indicators use `settle`, so an indicator never bounces past its option.
+The Modal dialog uses `settle` too: a large surface does not bounce.
 
 - `mechanical`: stiffness 600, damping 28.0, mass 1. Damping ratio 0.572. Measured overshoot 9.0 percent. Measured settle time 223 ms.
 - `settle`: stiffness 600, damping 49.0, mass 1. Damping ratio 1.000. Measured overshoot 0.0 percent. Measured settle time 256 ms.
@@ -110,7 +116,7 @@ The ButtonGroup and Tabs indicators use `settle`, so an indicator never bounces 
 
 Calm and slow to settle, with no bounce. The press is shallower.
 The press scale is 0.985, and the Slider grab scale is 1.1.
-Every moving part, the indicators included, uses `glide`.
+Every moving part, the indicators included, uses `glide`, except the Modal dialog and its backdrop, which use `settle`.
 
 - `glide`: stiffness 429, damping 41.4, mass 1. Damping ratio 1.000. Measured overshoot 0.0 percent. Measured settle time 300 ms.
 - `settle`: stiffness 600, damping 49.0, mass 1. Damping ratio 1.000. Measured overshoot 0.0 percent. Measured settle time 256 ms.

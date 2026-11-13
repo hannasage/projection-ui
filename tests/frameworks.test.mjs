@@ -57,4 +57,5 @@ test('Next App Router builds both server and client components from the packed p
   assert.match(html, /data-pui-motion/, 'the motion client component renders on the server');
   assert.match(html, /var\(--pui-thumb, 0\)/, 'the motion Toggle renders its rest state on the server');
   assert.match(html, /scale:var\(--pui-press, 1\)/, 'the motion Button renders its rest state on the server');
+  assert.match(html, /opacity:var\(--pui-dialog, 1\)/, 'the motion Modal renders its rest state on the server');
 });

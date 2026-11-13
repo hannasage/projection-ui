@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { create } from 'zustand'
+import { useEnterMotion, useMotionRuntime } from './motionContext'
 
 export type ToastVariant = 'info' | 'success' | 'warning' | 'danger'
 
@@ -45,12 +46,19 @@ interface ToastItemProps {
   onDismiss: (id: string) => void
 }
 
+// With a MotionProvider, a new toast rises in and fades in on a spring that goes from 0 to 1. Without one, the CSS enter stays.
+const TOAST_ENTER: React.CSSProperties = { opacity: 'var(--pui-enter, 1)', translate: '0 calc((1 - var(--pui-enter, 1)) * 8px)' }
+
 function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
   const bar = VARIANT_COLOR[toast.variant]
+  const runtime = useMotionRuntime()
+  const root = useRef<HTMLDivElement | null>(null)
+  useEnterMotion(root, runtime, 'enter', true)
 
   return (
     <div
       className="ui-toast"
+      ref={root}
       style={{
         display:     'flex',
         alignItems:  'stretch',
@@ -62,7 +70,8 @@ function ToastItem({ toast, onDismiss }: ToastItemProps): React.ReactElement {
         fontFamily:  'var(--ui-font-body, var(--ui-font))',
         minWidth:    260,
         maxWidth:    380,
-        animation:   'ui-toast-in 0.18s ease',
+        animation:   runtime ? undefined : 'ui-toast-in 0.18s ease',
+        ...(runtime ? TOAST_ENTER : undefined),
       }}
     >
       {/* Accent bar */}
@@ -106,8 +115,8 @@ export function ToastContainer(): React.ReactElement {
     <>
       <style>{`
         @keyframes ui-toast-in {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; translate: 0 8px; }
+          to   { opacity: 1; translate: 0 0; }
         }
         @media (prefers-reduced-motion: reduce) { .ui-toast { animation: none !important; } }
       `}</style>

@@ -1,13 +1,15 @@
 import React, { StrictMode, useEffect, useRef, useState } from 'react'
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { Button, ButtonGroup, Slider, Tabs, ThemeProvider, Toggle } from '@hannasage/projection-ui/core'
+import { Button, ButtonGroup, Modal, Slider, Tabs, ThemeProvider, Toggle, Tooltip } from '@hannasage/projection-ui/core'
+import { ToastContainer, useToastStore } from '@hannasage/projection-ui/toast'
 import { DEFAULT_THEME } from '@hannasage/projection-ui/foundations'
 import { MotionProvider, projection, projectionGlide, useMotionFlavor } from '@hannasage/projection-ui/motion'
 import '@hannasage/projection-ui/styles'
 
-type Read = { selector: string; property: string; pseudo?: string; fallback?: number }
-type Action = { at: number; selector: string; type: 'click' | 'pointerdown' | 'pointerup' | 'keydown' | 'width'; key?: string; value?: string }
+// `part` picks one number of a value with several, such as the y of `translate`. `absent` is the value read while the element is not on the page.
+type Read = { selector: string; property: string; pseudo?: string; fallback?: number; part?: number; absent?: number }
+type Action = { at: number; selector: string; type: 'click' | 'pointerdown' | 'pointerup' | 'keydown' | 'width' | 'mouseover' | 'mouseout' | 'focus'; key?: string; value?: string }
 type Sample = { t: number; v: number }
 
 declare global {
@@ -29,9 +31,14 @@ const flavor = params.get('flavor') === 'glide' ? projectionGlide : projection
 
 function read(spec: Read): number {
   const element = document.querySelector(spec.selector)
-  if (!element) throw new Error(`no element for ${spec.selector}`)
+  if (!element) {
+    if (spec.absent !== undefined) return spec.absent
+    throw new Error(`no element for ${spec.selector}`)
+  }
   const raw = getComputedStyle(element, spec.pseudo ?? null).getPropertyValue(spec.property).trim()
   if (raw === '' || raw === 'none') return spec.fallback ?? Number.NaN
+  const parts = raw.split(/\s+/)
+  if (spec.part !== undefined) return parts[spec.part] === undefined ? 0 : Number.parseFloat(parts[spec.part])
   return Number.parseFloat(raw)
 }
 
@@ -41,6 +48,8 @@ function fire(action: Action): void {
   // A pointer click: detail 1, as a mouse gives. element.click() would give detail 0, which is how Enter and Space activate a button.
   if (action.type === 'click') element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1, button: 0 }))
   else if (action.type === 'width') element.style.width = action.value ?? ''
+  else if (action.type === 'mouseover' || action.type === 'mouseout') element.dispatchEvent(new MouseEvent(action.type, { bubbles: true, relatedTarget: document.body }))
+  else if (action.type === 'focus') element.focus()
   else if (action.type === 'keydown') {
     element.focus()
     element.dispatchEvent(new KeyboardEvent('keydown', { key: action.key, bubbles: true, cancelable: true }))
@@ -101,6 +110,28 @@ function Nested() {
   )
 }
 
+// A toast pusher, a Modal with a nested Modal, and a Tooltip. The Modal's primary action is Confirm, so focus lands there on open.
+function Overlays() {
+  const push = useToastStore(state => state.push)
+  const [open, setOpen] = useState(false)
+  const [nested, setNested] = useState(false)
+  const [count, setCount] = useState(0)
+  return (
+    <>
+      <p>
+        <button type="button" data-testid="push-toast" onClick={() => { setCount(value => value + 1); push(`Saved ${count + 1}`) }}>Push a toast</button>{' '}
+        <button type="button" data-testid="open-modal" onClick={() => setOpen(true)}>Open the dialog</button>{' '}
+        <Tooltip content="A helpful hint"><button type="button" data-testid="tip-trigger">Hint</button></Tooltip>
+      </p>
+      <Modal open={open} title="Outer dialog" onDismiss={() => setOpen(false)} actions={[{ label: 'Open nested', variant: 'secondary', onClick: () => setNested(true) }, { label: 'Confirm', variant: 'primary', onClick: () => setOpen(false) }]}>
+        Outer body.
+        <Modal open={nested} title="Inner dialog" onDismiss={() => setNested(false)} actions={[{ label: 'Inner confirm', variant: 'primary', onClick: () => setNested(false) }]}>Inner body.</Modal>
+      </Modal>
+      <ToastContainer />
+    </>
+  )
+}
+
 function Fixture() {
   const [on, setOn] = useState(false)
   const [level, setLevel] = useState(40)
@@ -123,6 +154,7 @@ function Fixture() {
       <Tabs label="Sections" items={[{ value: 'one', label: 'First', content: 'First panel' }, { value: 'two', label: 'Second', content: 'Second panel' }, { value: 'three', label: 'Third', content: 'Third panel' }, { value: 'four', label: 'Fourth', content: 'Fourth panel', disabled: true }]} />
       <p><button type="button" data-testid="set-week" onClick={() => setMode('week')}>Set week from outside</button></p>
       {params.has('nested') && <Nested />}
+      <Overlays />
     </ThemeProvider>
   )
 }

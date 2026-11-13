@@ -462,6 +462,278 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
   });
 });
 
+// The overlays: a toast, a dialog with its backdrop, and a tooltip. Each one enters on a follower that goes from 0 to 1.
+// Leaving is not animated: a dismissed toast, a closed dialog, and a hidden tooltip leave the page at once.
+const PUSH = '[data-testid=push-toast]';
+const TOAST = '[role=log] > .ui-toast';
+const OPEN = '[data-testid=open-modal]';
+const DIALOG = '[role=dialog]';
+const INNER = '[role=dialog] [role=dialog]';
+const BACKDROP = '.ui-modal-backdrop';
+const TRIGGER = '[data-testid=tip-trigger]';
+const TIP = '[role=tooltip]';
+const nthToast = n => `${TOAST}:nth-of-type(${n})`;
+const enterOf = selector => ({ selector, property: '--pui-enter', absent: 0 });
+const dialogOf = selector => ({ selector, property: '--pui-dialog', absent: 0 });
+const backdropOf = selector => ({ selector, property: '--pui-backdrop', absent: 0 });
+const OVERLAY_FLAVORS = {
+  mechanical: { enterBounces: true, backdropBounces: true },
+  glide: { enterBounces: false, backdropBounces: false },
+};
+function bounces(list, expected, label) {
+  if (expected) assert.ok(Math.max(...list) > 1.01, `${label} overshoots a little: ${Math.max(...list)}`);
+  else assert.ok(Math.max(...list) <= 1 + 1e-3, `${label} does not overshoot: ${Math.max(...list)}`);
+}
+const focusedLabel = page => page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.getAttribute('data-testid') ?? document.activeElement?.textContent);
+
+for (const [key, flavor] of Object.entries(OVERLAY_FLAVORS)) describe(`${key} flavor: overlays`, () => {
+  test('Toast enter: a pushed toast rises in from rest to rest, read from the page, and never writes transform', async () => {
+    const page = await open(key);
+    try {
+      const enter = values(await sample(page, { read: enterOf(nthToast(1)), ms: 800, actions: [{ at: 0, selector: PUSH, type: 'click' }] }));
+      assert.equal(enter[0], 0, 'no toast before the push');
+      assert.ok(strictlyBetween(enter, 0, 1).length >= 3, `the toast is seen in flight: ${enter.slice(0, 8)}`);
+      near(enter.at(-1), 1, 1e-3, 'the toast rests at 1');
+      bounces(enter, flavor.enterBounces, 'the toast enter');
+      const rise = values(await sample(page, { read: { selector: nthToast(2), property: 'translate', part: 1, fallback: 0, absent: 8 }, ms: 800, actions: [{ at: 0, selector: PUSH, type: 'click' }] }));
+      assert.ok(strictlyBetween(rise, 0, 8, PX).length >= 2, `the rendered toast rises: ${rise.slice(0, 8)}`);
+      near(rise.at(-1), 0, PX, 'the rendered toast rests in place');
+      const fade = values(await sample(page, { read: { selector: nthToast(3), property: 'opacity', absent: 0 }, ms: 800, actions: [{ at: 0, selector: PUSH, type: 'click' }] }));
+      assert.ok(strictlyBetween(fade, 0, 1).length >= 2, `the rendered toast fades in: ${fade.slice(0, 8)}`);
+      assert.ok(Math.max(...fade) <= 1 && fade.at(-1) === 1, 'the rendered opacity never passes 1 and rests at 1');
+      const transforms = await page.locator(TOAST).evaluateAll(nodes => nodes.map(node => getComputedStyle(node).transform));
+      assert.deepEqual(transforms, ['none', 'none', 'none'], 'no toast writes transform');
+      assert.deepEqual(await page.locator('[role=log]').evaluate(node => [node.getAttribute('aria-live'), node.getAttribute('aria-atomic')]), ['polite', 'false'], 'the live region keeps its roles');
+      assert.equal(await page.locator(`${TOAST}[aria-hidden]`).count(), 0, 'an entering toast is not hidden from screen readers');
+      assert.match(await page.locator('[role=log]').textContent(), /Saved 1.*Saved 2.*Saved 3/, 'every message is in the live region');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('Toast enter: a second toast during the first enter leaves the first in flight, with its speed kept', async () => {
+    const page = await open(key);
+    try {
+      const run = await sample(page, { read: enterOf(nthToast(1)), ms: 900, actions: [{ at: 0, selector: PUSH, type: 'click' }, { at: 80, selector: PUSH, type: 'click' }] });
+      const list = values(run);
+      const turn = run.marks[1];
+      const atTurn = list[turn - 1];
+      assert.ok(atTurn > 0.02 && atTurn < 0.98, `the second push lands while the first toast is in flight: ${atTurn} in ${list.slice(0, turn + 2)}`);
+      assert.ok(list[turn] >= atTurn - 1e-3, `the first toast does not restart: ${list[turn]} after ${atTurn}`);
+      assert.ok(Math.max(...list.slice(turn, turn + 3)) > atTurn, 'the first toast keeps moving forward: its speed carried over');
+      near(list.at(-1), 1, 1e-3, 'the first toast rests at 1');
+      assert.equal(await page.locator(TOAST).count(), 2);
+    } finally { await page.close(); }
+  });
+
+  test('Toast: the dismiss button works from the keyboard, and a dismissed toast leaves the page at once', async () => {
+    const page = await open(key);
+    try {
+      await page.locator(PUSH).click();
+      await page.waitForTimeout(400);
+      await page.locator(`${TOAST} button[aria-label=Dismiss]`).focus();
+      await page.keyboard.press('Enter');
+      assert.equal(await page.locator(TOAST).count(), 0, 'Enter on Dismiss removes the toast');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('Modal enter: the dialog and the backdrop spring in from rest to rest, and focus lands on the primary action at once', async () => {
+    const page = await open(key);
+    try {
+      // A script click does not move focus, as a real pointer click does, so the opener takes focus first.
+      const first = await page.evaluate(selectors => new Promise(resolve => {
+        document.querySelector(selectors.open).focus();
+        document.querySelector(selectors.open).click();
+        requestAnimationFrame(() => resolve([document.activeElement?.textContent, Number.parseFloat(getComputedStyle(document.querySelector(selectors.dialog)).getPropertyValue('--pui-dialog'))]));
+      }), { open: OPEN, dialog: DIALOG });
+      assert.equal(first[0], 'Confirm', 'focus is on the primary action at the first frame');
+      assert.ok(first[1] >= 0 && first[1] < 0.9, `the dialog is still entering at the first frame: ${first[1]}`);
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator(DIALOG).count(), 0, 'Escape closes the dialog at once');
+      assert.equal(await focusedLabel(page), 'open-modal', 'focus returns to the opener');
+      const dialog = values(await sample(page, { read: dialogOf(DIALOG), ms: 900, actions: [{ at: 0, selector: OPEN, type: 'click' }] }));
+      assert.ok(strictlyBetween(dialog, 0, 1).length >= 3, `the dialog is seen in flight: ${dialog.slice(0, 8)}`);
+      near(dialog.at(-1), 1, 1e-3, 'the dialog rests at 1');
+      assert.ok(Math.max(...dialog) <= 1 + 1e-3, `a large surface does not bounce: ${Math.max(...dialog)}`);
+      await page.keyboard.press('Escape');
+      const backdrop = values(await sample(page, { read: backdropOf(BACKDROP), ms: 900, actions: [{ at: 0, selector: OPEN, type: 'click' }] }));
+      assert.ok(strictlyBetween(backdrop, 0, 1).length >= 3, `the backdrop is seen in flight: ${backdrop.slice(0, 8)}`);
+      near(backdrop.at(-1), 1, 1e-3, 'the backdrop rests at 1');
+      bounces(backdrop, flavor.backdropBounces, 'the backdrop');
+      await page.keyboard.press('Escape');
+      const scale = values(await sample(page, { read: { selector: DIALOG, property: 'scale', fallback: 1, absent: 0.96 }, ms: 900, actions: [{ at: 0, selector: OPEN, type: 'click' }] }));
+      assert.ok(strictlyBetween(scale, 0.96, 1).length >= 2, `the rendered dialog grows to its size: ${scale.slice(0, 8)}`);
+      near(scale.at(-1), 1, 1e-3, 'the rendered dialog rests at scale 1');
+      assert.equal(await page.locator(DIALOG).evaluate(node => getComputedStyle(node).transform), 'none', 'the dialog never writes transform');
+      assert.equal(await page.locator(BACKDROP).evaluate(node => getComputedStyle(node).opacity), '1', 'the rendered backdrop rests at full opacity');
+      assert.equal(await page.locator(DIALOG).evaluate(node => getComputedStyle(node).opacity), '1', 'the rendered dialog rests at full opacity');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('Modal: opening from the keyboard moves the same as a click', async () => {
+    const page = await open(key);
+    try {
+      await page.locator(OPEN).focus();
+      const keyed = sample(page, { read: dialogOf(DIALOG), ms: 900 });
+      await page.keyboard.press('Enter');
+      const run = values(await keyed);
+      assert.ok(strictlyBetween(run, 0, 1).length >= 3, `the dialog enters after Enter on its opener: ${run.slice(0, 8)}`);
+      near(run.at(-1), 1, 1e-3, 'the dialog rests at 1');
+    } finally { await page.close(); }
+  });
+
+  test('Modal: a nested dialog enters on its own while the outer one rests, and the focus trap and return are unchanged', async () => {
+    const page = await open(key);
+    try {
+      await page.locator(OPEN).click();
+      await page.waitForTimeout(600);
+      const nestedButton = `${DIALOG} button[aria-label="Open nested"]`;
+      // A dispatched click does not move focus, as a real pointer click does, so the action takes focus first.
+      await page.locator(nestedButton).focus();
+      const inner = values(await sample(page, { read: dialogOf(INNER), ms: 900, actions: [{ at: 0, selector: nestedButton, type: 'click' }] }));
+      assert.ok(strictlyBetween(inner, 0, 1).length >= 3, `the nested dialog is seen in flight: ${inner.slice(0, 8)}`);
+      near(inner.at(-1), 1, 1e-3, 'the nested dialog rests at 1');
+      assert.equal(await focusedLabel(page), 'Inner confirm', 'focus moves into the nested dialog');
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(selector => document.querySelector(selector).contains(document.activeElement), INNER), true, 'Tab stays inside the nested dialog');
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator(INNER).count(), 0, 'Escape closes only the nested dialog');
+      assert.equal(await focusedLabel(page), 'Open nested', 'focus returns to the action that opened it');
+      const outer = values(await sample(page, { read: dialogOf(DIALOG), ms: 500, actions: [{ at: 0, selector: nestedButton, type: 'click' }] }));
+      assert.ok(onlyRest(outer, [1]), `the outer dialog stays at rest while the nested one enters: ${outer.slice(0, 8)}`);
+      await page.keyboard.press('Escape');
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator(DIALOG).count(), 0, 'both dialogs are closed');
+      assert.equal(await focusedLabel(page), 'open-modal', 'focus returns to the first opener');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('Tooltip: a pointer hover shows it with an enter motion, centred over its trigger, with no transform', async () => {
+    const page = await open(key);
+    try {
+      const tip = values(await sample(page, { read: enterOf(TIP), ms: 700, actions: [{ at: 0, selector: TRIGGER, type: 'mouseover' }] }));
+      assert.equal(tip[0], 0, 'no tooltip before the hover');
+      assert.ok(strictlyBetween(tip, 0, 1).length >= 2, `the tooltip is seen in flight: ${tip.slice(0, 8)}`);
+      near(tip.at(-1), 1, 1e-3, 'the tooltip rests at 1');
+      bounces(tip, flavor.enterBounces, 'the tooltip enter');
+      const [tipBox, triggerBox] = await page.evaluate(([tip, trigger]) => [tip, trigger].map(selector => document.querySelector(selector).getBoundingClientRect().toJSON()), [TIP, TRIGGER]);
+      near(tipBox.x + tipBox.width / 2, triggerBox.x + triggerBox.width / 2, 0.5, 'the rendered tooltip is centred over its trigger');
+      assert.ok(tipBox.y + tipBox.height <= triggerBox.y, 'the rendered tooltip sits above its trigger');
+      assert.equal(await page.locator(TIP).evaluate(node => getComputedStyle(node).transform), 'none', 'the tooltip never writes transform');
+      const id = await page.locator(TIP).getAttribute('id');
+      assert.equal(await page.locator(TRIGGER).getAttribute('aria-describedby'), id, 'the trigger is described by the tooltip');
+      await page.evaluate(selector => document.querySelector(selector).dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body })), TRIGGER);
+      assert.equal(await page.locator(TIP).count(), 0, 'a pointer leave hides it at once');
+      assert.equal(await page.locator(TRIGGER).getAttribute('aria-describedby'), null, 'the description is gone with it');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('Tooltip: a keyboard focus shows it at rest with no motion, and Escape hides it at once', async () => {
+    const page = await open(key);
+    try {
+      const run = values(await sample(page, { read: enterOf(TIP), ms: 400, actions: [{ at: 0, selector: TRIGGER, type: 'focus' }] }));
+      assert.ok(onlyRest(run, [0, 1]) && run.at(-1) === 1, `a focus shows the tooltip at rest: ${run.slice(0, 8)}`);
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator(TIP).count(), 0, 'Escape hides it at once');
+      assert.equal(await page.locator(TRIGGER).getAttribute('aria-describedby'), null);
+    } finally { await page.close(); }
+  });
+
+  test('reduced motion: the toast, the dialog, its backdrop, and a hovered tooltip appear at rest', async () => {
+    const page = await open(key, 'reduce');
+    try {
+      const cases = [
+        [enterOf(nthToast(1)), { selector: PUSH, type: 'click' }],
+        [dialogOf(DIALOG), { selector: OPEN, type: 'click' }],
+        [backdropOf(BACKDROP), null],
+        [enterOf(TIP), { selector: TRIGGER, type: 'mouseover' }],
+      ];
+      for (const [read, action] of cases) {
+        const run = values(await sample(page, { read, ms: 300, actions: action ? [{ at: 0, ...action }] : [] }));
+        assert.ok(onlyRest(run, [0, 1]) && run.at(-1) === 1, `${read.selector} appears at rest: ${run.slice(0, 8)}`);
+        if (read.selector === BACKDROP) await page.keyboard.press('Escape');
+      }
+    } finally { await page.close(); }
+  });
+
+  test('reduced motion turned on mid-move snaps the toast, the dialog, and the tooltip to rest', async () => {
+    const page = await open(key);
+    try {
+      const cases = [
+        { read: enterOf(nthToast(1)), action: { selector: PUSH, type: 'click' } },
+        { read: dialogOf(DIALOG), action: { selector: OPEN, type: 'click' }, reset: () => page.keyboard.press('Escape') },
+        { read: enterOf(TIP), action: { selector: TRIGGER, type: 'mouseover' }, reset: () => page.evaluate(selector => document.querySelector(selector).dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body })), TRIGGER) },
+      ];
+      for (const item of cases) {
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.evaluate(() => { window.__flipAt = null; });
+        await page.waitForTimeout(300);
+        const running = page.evaluate(options => window.__sample(options).then(run => ({ ...run, start: performance.now() - run.values.at(-1).t })), { read: item.read, ms: 500, actions: [{ at: 0, ...item.action }] });
+        await page.waitForTimeout(40);
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        const run = await running;
+        const flip = await page.evaluate(() => window.__flipAt);
+        assert.ok(flip, 'the setting changed during the run');
+        const beforeFlip = run.values.filter(sample => run.start + sample.t < flip).map(sample => sample.v);
+        const afterFlip = run.values.filter(sample => run.start + sample.t > flip + 20).map(sample => sample.v);
+        assert.ok(strictlyBetween(beforeFlip, 0, 1).length > 0, `${item.read.selector} is in flight before the switch: ${beforeFlip.slice(0, 6)}`);
+        assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [1]), `${item.read.selector} rests at 1 once reduced motion is on: ${afterFlip.slice(0, 4)}`);
+        await item.reset?.();
+      }
+    } finally { await page.close(); }
+  });
+
+  test('forced colors: the toast, the dialog, and the tooltip rest fully visible after they enter', async () => {
+    const page = await open(key);
+    try {
+      await page.emulateMedia({ forcedColors: 'active' });
+      await page.locator(PUSH).click();
+      await page.evaluate(selector => document.querySelector(selector).dispatchEvent(new MouseEvent('mouseover', { bubbles: true, relatedTarget: document.body })), TRIGGER);
+      await page.waitForTimeout(700);
+      for (const selector of [TOAST, TIP]) assert.equal(await page.locator(selector).evaluate(node => getComputedStyle(node).opacity), '1', `${selector} rests visible`);
+      await page.locator(OPEN).click();
+      await page.waitForTimeout(700);
+      for (const selector of [DIALOG, BACKDROP]) assert.equal(await page.locator(selector).evaluate(node => getComputedStyle(node).opacity), '1', `${selector} rests visible`);
+    } finally { await page.close(); }
+  });
+});
+
+describe('overlay environments', () => {
+  test('without a MotionProvider: the toast, the dialog, and the tooltip keep their static markup and write no motion variable', async () => {
+    const page = await open('mechanical', 'no-preference', '&provider=none');
+    try {
+      await page.locator(PUSH).click();
+      assert.equal(await page.locator(TOAST).evaluate(node => [getComputedStyle(node).getPropertyValue('--pui-enter'), getComputedStyle(node).animationName].join('|')), '|ui-toast-in', 'the toast keeps its CSS enter');
+      await page.evaluate(selector => document.querySelector(selector).dispatchEvent(new MouseEvent('mouseover', { bubbles: true, relatedTarget: document.body })), TRIGGER);
+      assert.equal(await page.locator(TIP).evaluate(node => getComputedStyle(node).getPropertyValue('--pui-enter')), '', 'the tooltip writes no motion variable');
+      await page.locator(OPEN).click();
+      assert.equal(await page.locator(BACKDROP).count(), 0, 'no separate backdrop layer');
+      assert.equal(await page.locator(DIALOG).evaluate(node => getComputedStyle(node).getPropertyValue('--pui-dialog')), '', 'the dialog writes no motion variable');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test('React StrictMode: the toast and the dialog enter once and rest at 1, and an unmount leaves no listener', async () => {
+    const page = await open('mechanical', 'no-preference', '&strict');
+    try {
+      const toast = values(await sample(page, { read: enterOf(nthToast(1)), ms: 800, actions: [{ at: 0, selector: PUSH, type: 'click' }] }));
+      assert.ok(strictlyBetween(toast, 0, 1).length >= 3, 'the toast is seen in flight');
+      near(toast.at(-1), 1, 1e-3, 'the toast rests at 1');
+      const dialog = values(await sample(page, { read: dialogOf(DIALOG), ms: 900, actions: [{ at: 0, selector: OPEN, type: 'click' }] }));
+      assert.ok(strictlyBetween(dialog, 0, 1).length >= 3, 'the dialog is seen in flight');
+      near(dialog.at(-1), 1, 1e-3, 'the dialog rests at 1');
+      await page.keyboard.press('Escape');
+      await page.evaluate(() => window.__unmount());
+      assert.deepEqual(await leftListeners(page), ['change'], 'only the fixture\'s own reduced-motion listener is left');
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+});
+
 describe('environments', () => {
   test('with no matchMedia and no ResizeObserver, as in jsdom: no console error, motion still runs, and an unmount leaves no listener', async () => {
     const page = await open('mechanical', 'no-preference', '&bare');

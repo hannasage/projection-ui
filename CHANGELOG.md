@@ -8,6 +8,9 @@
 - Declare `ref` on `ButtonProps`, so a consumer passes a ref to Button with no cast.
 - Add four spring keys to `UI_FOUNDATIONS.motion`: `mechanical-stiffness`, `mechanical-damping`, `settle-stiffness`, and `glide-settle`. The token stylesheets gain the matching `--ui-motion-*` variables.
 - Move the static Toggle thumb and the Slider thumb hover from `transform` to the individual `translate` and `scale` properties. The rendered result is the same.
+- Add the `./motion` entry, phase 2. Inside a `MotionProvider`, a new toast rises in, a Modal dialog and its backdrop spring in, and a tooltip that a pointer hover opens rises in. A tooltip that a keyboard focus opens shows at rest. Focus still moves into a Modal at once. Leaving is not animated yet. Read `docs/motion.md`.
+- Inside a `MotionProvider`, the Modal backdrop is a separate layer with the class `ui-modal-backdrop`, so its fade does not fade the dialog.
+- Move the static toast enter from `transform` to the individual `translate` property. The rendered result is the same.
 - Add a Stability page that lists the frozen items, the items that are not frozen, the prerelease rule, and the change policy. The `./motion` entry is frozen by name and arrives with the motion milestone.
 - Complete the Migration page with a step for each change since 0.1.5: the soft panel radius, the Modal heading id and styling, the ButtonGroup role, Toggle accessibility, Toast announcements and timing, the larger `/tokens` output, and the client boundary.
 - Fix the Migration page wording to match the `1.0.0-beta` line.

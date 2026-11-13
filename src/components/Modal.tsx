@@ -1,8 +1,14 @@
 import React, { useEffect, useId, useRef } from 'react'
+import { useEnterMotion, useMotionRuntime } from './motionContext'
 
 const documents = new WeakMap<Document, { stack: HTMLElement[]; overflow: string }>()
 const focusable = (dialog: HTMLElement) => Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]'))
   .filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && !element.closest('[hidden], [inert], [aria-hidden="true"]') && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden')
+
+const BACKDROP = 'var(--ui-backdrop, rgba(0,0,0,0.55))'
+// Under motion the backdrop is its own layer, so its fade does not fade the dialog. The dialog sits above it.
+const BACKDROP_LAYER: React.CSSProperties = { position: 'absolute', inset: 0, background: BACKDROP, opacity: 'var(--pui-backdrop, 1)' }
+const DIALOG_ENTER: React.CSSProperties = { position: 'relative', opacity: 'var(--pui-dialog, 1)', scale: 'calc(0.96 + 0.04 * var(--pui-dialog, 1))', translate: '0 calc((1 - var(--pui-dialog, 1)) * 12px)' }
 
 export interface ModalAction {
   label:      string
@@ -35,7 +41,12 @@ export function Modal({
   className,
 }: ModalProps): React.ReactElement | null {
   const dialogRef = useRef<HTMLDivElement | null>(null)
+  const backdropRef = useRef<HTMLDivElement | null>(null)
   const dismissRef = useRef(onDismiss)
+  // With a MotionProvider, the dialog and its backdrop spring in on open. Focus still moves at once. Closing is not animated.
+  const runtime = useMotionRuntime()
+  useEnterMotion(dialogRef, runtime, 'dialog', open)
+  useEnterMotion(backdropRef, runtime, 'backdrop', open)
   const headingId = useId()
   useEffect(() => { dismissRef.current = onDismiss }, [onDismiss])
 
@@ -93,7 +104,7 @@ export function Modal({
       style={{
         position:        'fixed',
         inset:           0,
-        background:      'var(--ui-backdrop, rgba(0,0,0,0.55))',
+        background:      runtime ? undefined : BACKDROP,
         zIndex:          1000,
         display:         'flex',
         alignItems:      'center',
@@ -101,6 +112,7 @@ export function Modal({
         padding:         16,
       }}
     >
+      {runtime && <div ref={backdropRef} className="ui-modal-backdrop" aria-hidden="true" style={BACKDROP_LAYER} />}
       <div
         role="dialog"
         ref={dialogRef}
@@ -122,6 +134,7 @@ export function Modal({
           overflowY:    'auto',
           fontFamily:   'var(--ui-font-body, var(--ui-font))',
           color:        'var(--ui-text)',
+          ...(runtime ? DIALOG_ENTER : undefined),
         }}
       >
         <div style={{ padding: '18px 20px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>

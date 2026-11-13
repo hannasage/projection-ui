@@ -51,9 +51,10 @@ const glide = spring(glideStiffness, criticalDamping(glideStiffness))
 
 /**
  * The parts both flavors share. Only the spring keys and the two scales differ. `lensKey` moves the travelling indicators: an
- * indicator never bounces, so Mechanical gives it the critically damped `settle` spring.
+ * indicator never bounces, so Mechanical gives it the critically damped `settle` spring. A toast and a tooltip enter on `key`.
+ * A dialog is a large surface, so it enters on `settle` in both flavors. `backdropKey` moves the backdrop of a Modal.
  */
-function parts(key: string, lensKey: string, pressScale: number, grabScale: number) {
+function parts(key: string, lensKey: string, backdropKey: string, pressScale: number, grabScale: number) {
   const surface: SurfaceFlavor = {
     specular: false,
     glow: false,
@@ -67,7 +68,13 @@ function parts(key: string, lensKey: string, pressScale: number, grabScale: numb
     hoverGlow: 0,
     feels: { grab: { pressScale: grabScale } },
   }
-  const followers: FollowerFlavor = { thumb: { var: 'thumb', springKey: key, rest: { restDelta: 0.001, restSpeed: 0.01 } } }
+  const rest = { restDelta: 0.001, restSpeed: 0.01 }
+  const followers: FollowerFlavor = {
+    thumb: { var: 'thumb', springKey: key, rest },
+    enter: { var: 'enter', springKey: key, rest },
+    dialog: { var: 'dialog', springKey: 'settle', rest },
+    backdrop: { var: 'backdrop', springKey: backdropKey, rest },
+  }
   const lens: LensFlavor = {
     vars: { x: 'lens-x', y: 'lens-y', w: 'lens-w', h: 'lens-h', sx: 'lens-sx', sy: 'lens-sy' },
     readyAttribute: 'lens',
@@ -81,10 +88,10 @@ function parts(key: string, lensKey: string, pressScale: number, grabScale: numb
 }
 
 /** Mechanical, as the engine reads it. */
-export const mechanicalFlavor: EngineFlavor = defineFlavor({ name: 'projection', prefix: 'pui', logLabel: 'projection-ui', springs: { mechanical, settle }, ...parts('mechanical', 'settle', 0.97, 1.15) })
+export const mechanicalFlavor: EngineFlavor = defineFlavor({ name: 'projection', prefix: 'pui', logLabel: 'projection-ui', springs: { mechanical, settle }, ...parts('mechanical', 'settle', 'mechanical', 0.97, 1.15) })
 
 /** Glide, as the engine reads it. */
-export const glideFlavor: EngineFlavor = defineFlavor({ name: 'projection-glide', prefix: 'pui', logLabel: 'projection-ui', springs: { glide, settle }, ...parts('glide', 'glide', 0.985, 1.1) })
+export const glideFlavor: EngineFlavor = defineFlavor({ name: 'projection-glide', prefix: 'pui', logLabel: 'projection-ui', springs: { glide, settle }, ...parts('glide', 'glide', 'settle', 0.985, 1.1) })
 
 /** The engine flavor behind a public flavor. Each public flavor is the engine object itself, so this changes only the type. */
 export function engineFlavor(flavor: MotionFlavor): EngineFlavor {

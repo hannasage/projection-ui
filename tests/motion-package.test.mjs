@@ -13,7 +13,7 @@ import { packFixture, packageName, repository } from './helpers/packed.mjs';
 import { measureSpring, springLine } from './helpers/measure-spring.mjs';
 
 const manifest = JSON.parse(readFileSync(join(repository, 'package.json'), 'utf8'));
-let packed, installed, motion, root, core, foundations, armature, React, server;
+let packed, installed, motion, root, core, foundations, armature, React, server, toast;
 let loads = 0;
 
 async function load(specifier) {
@@ -29,6 +29,7 @@ before(async () => {
   root = await load(packageName);
   core = await load(`${packageName}/core`);
   foundations = await load(`${packageName}/foundations`);
+  toast = await load(`${packageName}/toast`);
   armature = await load('@hannasage/armature');
   const require = createRequire(join(packed.fixture, 'package.json'));
   React = require('react');
@@ -141,6 +142,18 @@ test('both flavors follow the beta.1 contract: frozen, prefix pui, followers and
   assert.equal(motion.projectionGlide.name, 'projection-glide');
 });
 
+test('the enter, dialog, and backdrop followers: the enter slot of each flavor, settle for the dialog, and the backdrop slot', () => {
+  for (const [name, flavor] of Object.entries(flavors())) {
+    assert.doesNotThrow(() => armature.validateFlavor(flavor), `${name} is still a valid Armature flavor`);
+    assert.deepEqual(Object.keys(flavor.followers).sort(), ['backdrop', 'dialog', 'enter', 'thumb'], `${name} has the four followers`);
+    for (const follower of ['enter', 'dialog', 'backdrop']) assert.equal(flavor.followers[follower].var, follower, `${name}: the ${follower} follower writes --pui-${follower}`);
+    assert.equal(flavor.followers.enter.springKey, flavor.surface.springKeys.press, `${name}: a toast and a tooltip enter on the slot of press and thumb`);
+    assert.equal(flavor.followers.dialog.springKey, 'settle', `${name}: a dialog is a large surface and does not bounce`);
+  }
+  assert.equal(motion.projection.followers.backdrop.springKey, 'mechanical', 'Mechanical moves the backdrop on mechanical');
+  assert.equal(motion.projectionGlide.followers.backdrop.springKey, 'settle', 'Glide moves the backdrop on the slot of the dialog');
+});
+
 test('spring numbers come from UI_FOUNDATIONS.motion and the Armature solver, never typed into the flavor', () => {
   const tokens = foundations.UI_FOUNDATIONS.motion;
   const { mechanical, settle } = motion.projection.springs;
@@ -193,6 +206,16 @@ test('docs/motion.md gives the install command at the pinned version and the rul
   assert.match(stability, /Firefox and WebKit[^\n]*not run in CI/, 'the stability section names the browser gap');
 });
 
+test('docs/motion.md says how the toast, the dialog, and the tooltip move, and that leaving is not animated', () => {
+  const page = readFileSync(join(repository, 'docs/motion.md'), 'utf8');
+  const moves = page.slice(page.indexOf('## What moves'), page.indexOf('## Why clip-path'));
+  assert.match(moves, /- Toast: [^\n]*rises in/);
+  assert.match(moves, /- Modal: [^\n]*backdrop/);
+  assert.match(moves, /- Tooltip: [^\n]*pointer hover/);
+  assert.match(moves, /keyboard focus shows it at rest/);
+  assert.match(moves, /leave the page at once/);
+});
+
 function poisoned(render) {
   const touched = [];
   const names = ['window', 'document', 'matchMedia'];
@@ -233,6 +256,33 @@ test('a server render with window, document, and matchMedia poisoned shows every
       assert.doesNotMatch(html, /transform\s*:/i, `${label}: no moving part writes transform`);
     }
   }
+});
+
+function overlays(api) {
+  const h = React.createElement;
+  const noop = () => {};
+  return h(api.ThemeProvider, { theme: foundations.DEFAULT_THEME },
+    h(api.Modal, { open: true, title: 'Open on the server', onDismiss: noop, actions: [{ label: 'Confirm', onClick: noop }] }, 'Body'),
+    h(api.Tooltip, { content: 'Hint' }, h('button', { type: 'button' }, 'Trigger')),
+    h(toast.ToastContainer));
+}
+
+// The toast store serves its initial state, with no toasts, to a server render, so the toast container renders empty there.
+test('a server render of an open Modal, a Tooltip, and the toast container under a provider shows them at rest and reads no browser global', () => {
+  for (const [label, api] of [['root', root], ['core', core]]) {
+    for (const flavor of Object.values(flavors())) {
+      const { html, touched } = poisoned(() => server.renderToString(React.createElement(motion.MotionProvider, { flavor }, overlays(api))));
+      assert.deepEqual(touched, [], `${label}: no browser global is read`);
+      assert.match(html, /opacity:var\(--pui-dialog, 1\)/, `${label}: the dialog rests at full opacity`);
+      assert.match(html, /scale:calc\(0\.96 \+ 0\.04 \* var\(--pui-dialog, 1\)\)/, `${label}: the dialog rests at scale 1`);
+      assert.match(html, /class="ui-modal-backdrop"[^>]*opacity:var\(--pui-backdrop, 1\)/, `${label}: the backdrop rests at full opacity`);
+      assert.match(html, /role="log"/, `${label}: the toast container renders its live region`);
+      assert.doesNotMatch(html, /transform\s*:/i, `${label}: no moving part writes transform`);
+    }
+  }
+  const { html, touched } = poisoned(() => server.renderToString(overlays(core)));
+  assert.deepEqual(touched, []);
+  assert.doesNotMatch(html, /--pui-|ui-modal-backdrop/, 'without a provider the overlays render their static markup');
 });
 
 test('without a MotionProvider the components render their static markup with no motion variables', () => {
