@@ -11,6 +11,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Renders full-width */
   block?:    boolean
   appearance?: 'solid' | 'gradient'
+  /** The button element. React 19 passes `ref` as a prop, and Button forwards it with or without a MotionProvider. */
+  ref?:      React.Ref<HTMLButtonElement>
 }
 
 const SIZE: Record<ButtonSize, React.CSSProperties> = {
@@ -75,17 +77,18 @@ export function Button({
   style,
   disabled,
   children,
+  ref: passedRef,
   ...rest
 }: ButtonProps): React.ReactElement {
   // With a MotionProvider, a pointer press springs the scale (D12 A: small and fast). Keyboard activation gets no motion.
   const runtime = useMotionRuntime()
   const own = useRef<HTMLButtonElement | null>(null)
-  const ref = useMergedRef(own, (rest as { ref?: React.Ref<HTMLButtonElement> }).ref)
+  const ref = useMergedRef(own, passedRef)
   usePressMotion(own, runtime, !disabled)
   const button = (
     <button
       {...rest}
-      ref={runtime ? ref : (rest as { ref?: React.Ref<HTMLButtonElement> }).ref}
+      ref={runtime ? ref : passedRef}
       className={['ui-button', className].filter(Boolean).join(' ')}
       data-pui-motion={runtime ? 'press' : undefined}
       data-variant={variant}

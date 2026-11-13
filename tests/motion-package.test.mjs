@@ -110,6 +110,22 @@ test('the public ./motion declarations reach no Armature type, and MotionFlavor 
   execFileSync(process.execPath, [join(repository, 'node_modules/typescript/bin/tsc'), '-p', config], { cwd: packed.fixture, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 });
 
+test('Button declares its ref, so a consumer passes one with no cast, inside a MotionProvider or not', () => {
+  writeFileSync(join(packed.fixture, 'button-ref.tsx'), [
+    `import { createRef } from 'react'`,
+    `import { Button, type ButtonProps } from '${packageName}/core'`,
+    `import { MotionProvider } from '${packageName}/motion'`,
+    `const ref = createRef<HTMLButtonElement>()`,
+    `const props: ButtonProps = { ref, variant: 'primary' }`,
+    `export const plain = <Button ref={ref}>Go</Button>`,
+    `export const moving = <MotionProvider><Button ref={node => { void node?.focus }}>Go</Button></MotionProvider>`,
+    `export { props }`,
+  ].join('\n'));
+  const config = join(packed.fixture, 'tsconfig-ref.json');
+  writeFileSync(config, JSON.stringify({ compilerOptions: { target: 'ES2020', lib: ['ES2020', 'DOM'], module: 'ESNext', moduleResolution: 'bundler', jsx: 'react-jsx', strict: true, noEmit: true, skipLibCheck: false }, files: ['button-ref.tsx'] }));
+  execFileSync(process.execPath, [join(repository, 'node_modules/typescript/bin/tsc'), '-p', config], { cwd: packed.fixture, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+});
+
 test('both flavors follow the beta.1 contract: frozen, prefix pui, followers and lens.rest', () => {
   for (const [name, flavor] of Object.entries(flavors())) {
     assert.ok(Object.isFrozen(flavor) && Object.isFrozen(flavor.springs) && Object.isFrozen(flavor.lens), `${name} is frozen at every level`);
