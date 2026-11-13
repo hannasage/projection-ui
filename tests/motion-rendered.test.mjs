@@ -308,6 +308,32 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
     } finally { await page.close(); }
   });
 
+  test('Lens: an option that resizes inside a container of fixed size moves the lens with it', async () => {
+    const page = await open(key);
+    try {
+      await page.locator(option(TABS, 3)).click();
+      await page.waitForTimeout(600);
+      const width = () => page.locator(TABS).evaluate(node => node.getBoundingClientRect().width);
+      const before = await width();
+      const lens = () => page.locator(TABS).evaluate(node => ['--pui-lens-x', '--pui-lens-w'].map(name => Number.parseFloat(getComputedStyle(node).getPropertyValue(name))));
+      // A wider first tab pushes the active third tab right. The tab list keeps its width, so only the options resize.
+      await page.locator(option(TABS, 1)).evaluate(node => { node.style.width = '160px'; });
+      await page.waitForTimeout(600);
+      assert.equal(await width(), before, 'the tab list did not resize');
+      const moved = await box(page, TABS, 'Third');
+      assert.ok(moved.x > 160, 'the active tab moved');
+      near((await lens())[0], moved.x, 0.5, 'the lens follows the active tab');
+      // The active tab itself grows.
+      await page.locator(option(TABS, 3)).evaluate(node => { node.style.width = '150px'; });
+      await page.waitForTimeout(600);
+      assert.equal(await width(), before, 'the tab list still did not resize');
+      const grown = await box(page, TABS, 'Third');
+      const [x, w] = await lens();
+      near(x, grown.x, 0.5, 'x stays on the active tab');
+      near(w, grown.w, 0.5, 'the width follows the active tab');
+    } finally { await page.close(); }
+  });
+
   test('reduced motion: every surface shows no value between rest and rest', async () => {
     const page = await open(key, 'reduce');
     try {

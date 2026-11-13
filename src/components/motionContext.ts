@@ -73,17 +73,38 @@ export function useLensMotion(ref: RefObject<HTMLElement | null>, runtime: Motio
   const lens = useRef<MotionLensHandle | null>(null)
   const latest = useRef(measure)
   useEffect(() => { latest.current = measure })
+  const options = useRef<ResizeObserver | null>(null)
+  const observed = useRef(new Set<Element>())
   useEffect(() => {
     const container = ref.current
     if (!runtime || !container) return
     const started = runtime.lens(container, () => latest.current())
     lens.current = started.handle
     started.handle.update()
+    // The engine refits when the container resizes. An option can resize while the container keeps its size, for example when
+    // its label changes or a web font loads, so each option is watched too, and the lens refits once the fonts are ready.
+    let alive = true
+    const watched = observed.current
+    if (typeof ResizeObserver === 'function') options.current = new ResizeObserver(() => { if (alive) started.handle.refit() })
+    if (typeof document !== 'undefined' && document.fonts?.ready) document.fonts.ready.then(() => { if (alive) started.handle.refit() }, () => undefined)
     return () => {
+      alive = false
+      options.current?.disconnect()
+      options.current = null
+      watched.clear()
       started.stop()
       lens.current = null
     }
   }, [ref, runtime])
+  // After every render, watch the options that are in the container now and stop watching the ones that left.
+  useEffect(() => {
+    const container = ref.current
+    const observer = options.current
+    if (!container || !observer) return
+    const current = new Set(Array.from(container.children))
+    for (const element of observed.current) if (!current.has(element)) { observer.unobserve(element); observed.current.delete(element) }
+    for (const element of current) if (!observed.current.has(element)) { observer.observe(element); observed.current.add(element) }
+  })
   useEffect(() => {
     lens.current?.update({ keyboard: keyboardRef.current })
     keyboardRef.current = false
