@@ -6,13 +6,14 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 globalThis.__controlMaterialReact = React;
-// A data: module cannot resolve 'react' or a relative path, so React comes from a global and the motion context module is inlined the same way.
+// A data: module cannot resolve 'react' or a relative path, so React comes from a global and the motion modules are inlined the same way.
 function moduleUrl(file) {
   const source = readFileSync(new URL(`../src/components/${file}`, import.meta.url), 'utf8');
   const code = ts.transpileModule(source, {compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.ESNext}}).outputText
     .replace(/import React(?:, \{([^}]*)\})? from 'react';/, (_, named) => `const React = globalThis.__controlMaterialReact;${named ? ` const {${named}} = React;` : ''}`)
     .replace(/import \{([^}]*)\} from 'react';/, (_, named) => `const {${named}} = globalThis.__controlMaterialReact;`)
-    .replace("from './motionContext'", () => `from '${moduleUrl('motionContext.ts')}'`);
+    .replace("from './motionContext'", () => `from '${moduleUrl('motionContext.ts')}'`)
+    .replace("from './motionStyle'", () => `from '${moduleUrl('motionStyle.tsx')}'`);
   return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
 }
 async function component(name) {

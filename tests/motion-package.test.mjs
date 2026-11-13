@@ -195,6 +195,7 @@ test('a server render with window, document, and matchMedia poisoned shows every
       assert.match(html, /translate:calc\(var\(--pui-thumb, 0\) \* 16px\) 0/, `${label}: an unchecked Toggle rests on the unchecked side`);
       assert.match(html, /translate:calc\(var\(--pui-thumb, 1\) \* 13px\) 0/, `${label}: the small Toggle travels 13 px`);
       assert.equal((html.match(/class="ui-lens"/g) ?? []).length, 3, `${label}: each lens surface draws one hidden indicator`);
+      assert.equal((html.match(/<style[^>]*data-href="pui-motion"/g) ?? []).length, 1, `${label}: one copy of the motion stylesheet, however many surfaces render`);
       assert.equal((html.match(/data-pui-motion/g) ?? []).length >= 3, true);
       assert.doesNotMatch(html, /\sdata-pui-lens="/, `${label}: the lens is not ready on the server, so the static active style shows`);
       assert.doesNotMatch(html, /transform\s*:/i, `${label}: no moving part writes transform`);

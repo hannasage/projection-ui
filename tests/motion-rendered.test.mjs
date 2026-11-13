@@ -352,6 +352,53 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
     } finally { await page.close(); }
   });
 
+  test('forced colors: each indicator draws in Highlight, and the active segment text in HighlightText', async () => {
+    const page = await open(key);
+    try {
+      await page.emulateMedia({ forcedColors: 'active' });
+      await page.waitForTimeout(400); // the colour fades finish
+      const system = await page.evaluate(() => Object.fromEntries(['Highlight', 'HighlightText', 'Canvas'].map(name => {
+        const probe = document.createElement('div');
+        probe.style.cssText = `background-color: ${name}; forced-color-adjust: none`;
+        document.body.append(probe);
+        const value = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return [name, value];
+      })));
+      assert.notEqual(system.Highlight, system.Canvas, 'Highlight differs from the page background');
+      for (const group of [TABS, MODE, SEGMENT]) {
+        const lens = await page.locator(`${group} > .ui-lens`).evaluate(node => [getComputedStyle(node).backgroundColor, getComputedStyle(node).opacity]);
+        assert.deepEqual(lens, [system.Highlight, '1'], `${group}: the indicator shows in Highlight`);
+      }
+      for (const group of [MODE, SEGMENT]) {
+        const color = await page.locator(`${group} > [aria-checked=true]`).evaluate(node => getComputedStyle(node).color);
+        assert.equal(color, system.HighlightText, `${group}: the active option text reads on Highlight`);
+      }
+    } finally { await page.close(); }
+  });
+
+  test('reduced motion: the colour fades of every motion surface are off, without help from the token stylesheet', async () => {
+    const page = await open(key, 'reduce');
+    try {
+      // The token stylesheet turns transitions off inside a theme. The motion stylesheet must do it alone, so every other sheet is off.
+      const disabled = await page.evaluate(() => [...document.styleSheets].filter(sheet => !sheet.ownerNode?.textContent?.includes('.ui-lens')).map(sheet => { sheet.disabled = true; return 1; }).length);
+      assert.ok(disabled > 0, 'the token stylesheet is off');
+      for (const selector of [BUTTON, option(TABS, 1), option(MODE, 1), option(SEGMENT, 1), THUMB]) {
+        const durations = await page.locator(selector).evaluate(node => getComputedStyle(node).transitionDuration.split(',').map(value => value.trim()));
+        assert.ok(durations.every(value => value === '0s'), `${selector} has no transition: ${durations}`);
+      }
+    } finally { await page.close(); }
+  });
+
+  test('the motion stylesheet is shared: one copy in the document, however many surfaces render', async () => {
+    const page = await open(key);
+    try {
+      const copies = await page.evaluate(() => [...document.querySelectorAll('style')].filter(node => node.textContent.includes('.ui-lens')).length);
+      assert.equal(copies, 1);
+      assert.ok(await page.locator('[role=radiogroup]').count() >= 3, 'several lens surfaces render');
+    } finally { await page.close(); }
+  });
+
   test('reduced motion turned on mid-move snaps every surface to rest', async () => {
     const page = await open(key);
     try {

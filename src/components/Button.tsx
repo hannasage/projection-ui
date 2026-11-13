@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import { useMergedRef, useMotionRuntime, usePressMotion } from './motionContext'
+import { MotionStyle } from './motionStyle'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon'
 export type ButtonSize    = 'sm' | 'md' | 'lg'
@@ -81,11 +82,12 @@ export function Button({
   const own = useRef<HTMLButtonElement | null>(null)
   const ref = useMergedRef(own, (rest as { ref?: React.Ref<HTMLButtonElement> }).ref)
   usePressMotion(own, runtime, !disabled)
-  return (
+  const button = (
     <button
       {...rest}
       ref={runtime ? ref : (rest as { ref?: React.Ref<HTMLButtonElement> }).ref}
       className={['ui-button', className].filter(Boolean).join(' ')}
+      data-pui-motion={runtime ? 'press' : undefined}
       data-variant={variant}
       data-appearance={appearance}
       disabled={disabled}
@@ -104,4 +106,6 @@ export function Button({
       {children}
     </button>
   )
+  // React hoists the shared motion stylesheet into the head, so the button stays the only element rendered here.
+  return runtime ? <><MotionStyle />{button}</> : button
 }
