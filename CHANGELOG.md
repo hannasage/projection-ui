@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add the `./motion` entry, phase 1. It is ESM only and exports `projection` (Mechanical), `projectionGlide` (Glide), `MotionProvider`, and `useMotionFlavor`. Inside a `MotionProvider`, Button press, the Toggle thumb, the Slider grab, and the ButtonGroup and Tabs indicator move on Armature springs. Without one, components keep their static behaviour. Read `docs/motion.md`.
+- Depend on `@hannasage/armature` at exactly `1.0.0-beta.1`. `./core` does not load it.
+- Add four spring keys to `UI_FOUNDATIONS.motion`: `mechanical-stiffness`, `mechanical-damping`, `settle-stiffness`, and `glide-settle`. The token stylesheets gain the matching `--ui-motion-*` variables.
+- Move the static Toggle thumb and the Slider thumb hover from `transform` to the individual `translate` and `scale` properties. The rendered result is the same.
 - Add a Stability page that lists the frozen items, the items that are not frozen, the prerelease rule, and the change policy. The `./motion` entry is frozen by name and arrives with the motion milestone.
 - Complete the Migration page with a step for each change since 0.1.5: the soft panel radius, the Modal heading id and styling, the ButtonGroup role, Toggle accessibility, Toast announcements and timing, the larger `/tokens` output, and the client boundary.
 - Fix the Migration page wording to match the `1.0.0-beta` line.

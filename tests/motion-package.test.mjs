@@ -165,7 +165,7 @@ test('a server render with window, document, and matchMedia poisoned shows every
       assert.match(html, /translate:calc\(var\(--pui-thumb, 1\) \* 13px\) 0/, `${label}: the small Toggle travels 13 px`);
       assert.equal((html.match(/class="ui-lens"/g) ?? []).length, 3, `${label}: each lens surface draws one hidden indicator`);
       assert.equal((html.match(/data-pui-motion/g) ?? []).length >= 3, true);
-      assert.doesNotMatch(html, /data-pui-lens=/, `${label}: the lens is not ready on the server, so the static active style shows`);
+      assert.doesNotMatch(html, /\sdata-pui-lens="/, `${label}: the lens is not ready on the server, so the static active style shows`);
       assert.doesNotMatch(html, /transform\s*:/i, `${label}: no moving part writes transform`);
     }
   }
@@ -197,7 +197,7 @@ test('the size of ./motion is measured (no cap is set here)', async t => {
   const bundle = async (name, source) => {
     const entry = join(packed.fixture, `${name}.mjs`);
     writeFileSync(entry, source);
-    const result = await build({ configFile: false, root: packed.fixture, logLevel: 'silent', build: { write: false, minify: true, rollupOptions: { input: entry, external: ['react', 'react-dom', 'react/jsx-runtime'] } } });
+    const result = await build({ configFile: false, root: packed.fixture, logLevel: 'silent', build: { write: false, minify: true, lib: { entry, formats: ['es'], fileName: name }, rollupOptions: { external: ['react', 'react-dom', 'react/jsx-runtime'] } } });
     const chunks = (Array.isArray(result) ? result : [result]).flatMap(output => output.output).filter(chunk => chunk.type === 'chunk');
     return chunks.reduce((sum, chunk) => ({ raw: sum.raw + Buffer.byteLength(chunk.code), gzip: sum.gzip + gzipSync(chunk.code).length }), { raw: 0, gzip: 0 });
   };

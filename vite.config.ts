@@ -14,6 +14,15 @@ export default defineConfig({
         for (const name of ['scoped', 'reset']) this.emitFile({ type: 'asset', fileName: `tokens/${name}.css`, source: readFileSync(`src/tokens/${name}.css`, 'utf8') })
       },
     },
+    {
+      // ./motion is ESM only (D5): Armature ships import conditions only, and a second CommonJS copy could split engine state.
+      // The other entries keep both formats, so the CommonJS pass drops the motion entry and its map.
+      name: 'projection-motion-esm-only',
+      generateBundle(options, bundle) {
+        if (options.format !== 'cjs') return
+        for (const fileName of Object.keys(bundle)) if (/^motion\.cjs(\.map)?$/.test(fileName)) delete bundle[fileName]
+      },
+    },
     react(),
     dts({
       include:     ['src'],
@@ -33,7 +42,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: Object.fromEntries(['index', 'core', 'charts', 'sortable', 'toast', 'foundations'].map(name => [name, resolve(__dirname, `src/${name}.ts`)])),
+      entry: Object.fromEntries(['index', 'core', 'charts', 'sortable', 'toast', 'foundations', 'motion'].map(name => [name, resolve(__dirname, `src/${name}.ts`)])),
       name:    'ProjectionUI',
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'js' : 'cjs'}`,
@@ -43,6 +52,7 @@ export default defineConfig({
         'react', 'react/jsx-runtime', 'react-dom',
         'recharts', 'zustand',
         '@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities',
+        /^@hannasage\/armature(\/.*)?$/,
       ],
       output: {
         banner: chunk => chunk.isEntry && chunk.name !== 'foundations' ? "'use client';" : '',

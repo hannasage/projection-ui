@@ -24,10 +24,11 @@ A breaking change to a frozen item needs a major release.
 - The attributes `data-ui-theme`, `data-ui-radius`, `data-ui-appearance`, and `data-ui-mode`.
 - Motion: the flat token key names in `UI_FOUNDATIONS.motion`, the flavor name `projection`, the `pui` prefix, and the rule that reduced motion snaps to rest.
 
-The `./motion` entry does not exist yet.
-Its name is frozen now.
-It arrives with the motion milestone.
-The export snapshot test covers only the entries that `package.json` lists today.
+`./motion` is ESM only.
+It has a `types` and an `import` condition and no `require` condition.
+Every other entry keeps its CommonJS build.
+Its named exports are `projection`, `projectionGlide`, `MotionProvider`, and `useMotionFlavor`.
+The export snapshot test covers every entry that `package.json` lists.
 
 ## Not frozen
 
@@ -42,6 +43,7 @@ These items can change in a minor release.
 - The contents of the design kit.
 - Versions of transitive dependencies.
 - Armature internals.
+- The `--pui-*` CSS variables and `data-pui-*` attributes. They are internal to the motion components.
 
 ## Prerelease rule
 

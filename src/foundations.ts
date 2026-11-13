@@ -62,6 +62,11 @@ export const UI_FOUNDATIONS = {
   space: { xs: '4px', sm: '8px', md: '12px', lg: '16px', xl: '24px', '2xl': '32px' },
   borderWidth: { default: '1px', focus: '2px' },
   elevation: { toast: '0 8px 32px rgba(0,0,0,0.35)', modal: '0 24px 80px rgba(0,0,0,0.45)' },
-  motion: { fast: '0.12s', normal: '0.18s', shimmer: '1.4s' },
+  /**
+   * Colour fades use `fast` and `normal`. The four spring keys are the single source of the `./motion` springs:
+   * Mechanical takes its stiffness and damping as given, `settle` takes its stiffness and is critically damped,
+   * and Glide is critically damped with the stiffness the Armature solver finds for the `glide-settle` time.
+   */
+  motion: { fast: '0.12s', normal: '0.18s', shimmer: '1.4s', 'mechanical-stiffness': '600', 'mechanical-damping': '28', 'settle-stiffness': '600', 'glide-settle': '0.3s' },
   semantic: { success: '#35F5AA', warning: '#FFD219', backdrop: 'rgba(0,0,0,0.55)' },
 } as const

@@ -43,8 +43,33 @@ const sample = (page, options) => page.evaluate(options => window.__sample(optio
 const box = (page, group, label) => page.evaluate(([group, label]) => window.__box(group, label), [group, label]);
 const values = run => run.values.map(sample => sample.v);
 const near = (actual, expected, tolerance, message) => assert.ok(Math.abs(actual - expected) <= tolerance, `${message}: ${actual} is not within ${tolerance} of ${expected}`);
-const strictlyBetween = (list, a, b) => list.filter(value => value > Math.min(a, b) + 1e-3 && value < Math.max(a, b) - 1e-3);
-const onlyRest = (list, rests) => list.every(value => rests.some(rest => Math.abs(value - rest) < 1e-3));
+// The lens writes pixels with two decimals, so pixel checks pass PX as the tolerance. Scales and fractions keep 1e-3.
+const PX = 0.01;
+const strictlyBetween = (list, a, b, tolerance = 1e-3) => list.filter(value => value > Math.min(a, b) + tolerance && value < Math.max(a, b) - tolerance);
+const onlyRest = (list, rests, tolerance = 1e-3) => list.every(value => rests.some(rest => Math.abs(value - rest) < tolerance));
+// The rendered height of the slider thumb, in screenshot pixels: Chromium gives no computed style for ::-webkit-slider-thumb,
+// so the test counts the rows of a one-pixel column through the thumb centre that differ from the page background.
+async function thumbHeight(page) {
+  const input = await page.locator(SLIDER).boundingBox();
+  const fraction = await page.locator(SLIDER).evaluate(node => (Number(node.value) - Number(node.min)) / (Number(node.max) - Number(node.min)));
+  const x = Math.round(input.x + 8 + (input.width - 16) * fraction);
+  const clip = { x, y: Math.round(input.y + input.height / 2 - 16), width: 1, height: 32 };
+  const png = (await page.screenshot({ clip, animations: 'allow' })).toString('base64');
+  return page.evaluate(async source => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${source}`;
+    await image.decode();
+    const canvas = Object.assign(document.createElement('canvas'), { width: image.width, height: image.height });
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    const data = context.getImageData(0, 0, image.width, image.height).data;
+    const at = row => [...data.slice(row * image.width * 4, row * image.width * 4 + 3)];
+    const background = at(0);
+    let rows = 0;
+    for (let row = 0; row < image.height; row++) if (at(row).some((channel, index) => Math.abs(channel - background[index]) > 60)) rows += 1;
+    return rows / (image.height / 32);
+  }, png);
+}
 const largestStep = list => list.slice(1).reduce((largest, value, index) => Math.max(largest, Math.abs(value - list[index])), 0);
 
 const FLAVORS = {
@@ -131,10 +156,12 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       const held = values(await sample(page, { read: grab, ms: 500, actions: [{ at: 0, selector: SLIDER, type: 'pointerdown' }] }));
       assert.ok(strictlyBetween(held, 1, flavor.grab).length > 0, 'the grab is seen in flight');
       near(held.at(-1), flavor.grab, 0.005, 'the grab rests on the flavor scale');
-      const thumbScale = await page.locator(SLIDER).evaluate(node => getComputedStyle(node, '::-webkit-slider-thumb').scale);
-      near(Number.parseFloat(thumbScale), flavor.grab, 0.005, 'the rendered WebKit thumb pseudo-element reads the grab scale');
+      const grabbed = await thumbHeight(page);
       const released = values(await sample(page, { read: grab, ms: 600, actions: [{ at: 0, selector: SLIDER, type: 'pointerup' }] }));
       near(released.at(-1), 1, 1e-3, 'the release rests at 1');
+      const resting = await thumbHeight(page);
+      assert.ok(resting >= 12, `the resting thumb is drawn: ${resting} rows`);
+      assert.ok(grabbed / resting > 1 + (flavor.grab - 1) / 2, `the rendered WebKit thumb grows while grabbed: ${grabbed} rows against ${resting}`);
       await page.locator(SLIDER).focus();
       const before = Number(await page.locator(SLIDER).inputValue());
       const keyed = sample(page, { read: grab, ms: 300 });
@@ -152,8 +179,9 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       const page = await open(key);
       try {
         const start = await box(page, group, await page.locator(option(group, from)).textContent());
-        const end = await box(page, group, await page.locator(option(group, to)).textContent());
         const run = values(await sample(page, { read: { selector: group, property: '--pui-lens-x' }, ms: 800, actions: [{ at: 0, selector: option(group, to), type: 'click' }] }));
+        // Measured after the change: the active option turns bold, so the options can shift.
+        const end = await box(page, group, await page.locator(option(group, to)).textContent());
         near(run[0], start.x, 0.5, 'starts on the selected option');
         assert.ok(strictlyBetween(run, start.x, end.x).length >= 2, 'the indicator is seen in flight');
         near(run.at(-1), end.x, 0.5, 'lands on the new option');
@@ -167,15 +195,16 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
     test(`Lens (${label}): arrow keys jump with no travel (D15)`, async () => {
       const page = await open(key);
       try {
-        const end = await box(page, group, await page.locator(option(group, 2)).textContent());
         const start = await box(page, group, await page.locator(option(group, 1)).textContent());
         const run = values(await sample(page, { read: { selector: group, property: '--pui-lens-x' }, ms: 400, actions: [{ at: 0, selector: option(group, 1), type: 'keydown', key: 'ArrowRight' }] }));
-        assert.equal(strictlyBetween(run, start.x, end.x).length, 0, 'no value between the two options');
+        const end = await box(page, group, await page.locator(option(group, 2)).textContent());
+        assert.equal(strictlyBetween(run, start.x, end.x, PX).length, 0, 'no value between the two options');
         near(run.at(-1), end.x, 0.5, 'jumps to the next option');
         const last = await page.locator(`${group} > button:not([disabled])`).last().textContent();
         const home = values(await sample(page, { read: { selector: group, property: '--pui-lens-x' }, ms: 300, actions: [{ at: 0, selector: option(group, 2), type: 'keydown', key: 'End' }] }));
-        near(home.at(-1), (await box(page, group, last)).x, 0.5, 'End jumps to the last enabled option');
-        assert.equal(strictlyBetween(home, end.x, (await box(page, group, last)).x).length, 0, 'End shows no travel');
+        const lastBox = await box(page, group, last);
+        near(home.at(-1), lastBox.x, 0.5, 'End jumps to the last enabled option');
+        assert.equal(strictlyBetween(home, end.x, lastBox.x, PX).length, 0, 'End shows no travel');
       } finally { await page.close(); }
     });
   }
@@ -183,13 +212,13 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
   test('Lens: a second click mid-travel retargets with no jump, a disabled option is never a target, and no selection hides it', async () => {
     const page = await open(key);
     try {
+      const run = values(await sample(page, { read: { selector: MODE, property: '--pui-lens-x' }, ms: 900, actions: [{ at: 0, selector: option(MODE, 2), type: 'click' }, { at: 60, selector: option(MODE, 4), type: 'click' }] }));
       const week = await box(page, MODE, 'Week');
       const month = await box(page, MODE, 'Month');
-      const run = values(await sample(page, { read: { selector: MODE, property: '--pui-lens-x' }, ms: 900, actions: [{ at: 0, selector: option(MODE, 2), type: 'click' }, { at: 60, selector: option(MODE, 4), type: 'click' }] }));
       assert.ok(largestStep(run) < (month.x - 0) * 0.5, `no jump at the retarget: largest step ${largestStep(run)}`);
       near(run.at(-1), month.x, 0.5, 'lands on the second choice');
       const still = values(await sample(page, { read: { selector: MODE, property: '--pui-lens-x' }, ms: 300, actions: [{ at: 0, selector: option(MODE, 3), type: 'click' }] }));
-      assert.ok(onlyRest(still, [month.x]), 'a click on a disabled option does not move the indicator');
+      assert.ok(onlyRest(still, [month.x], PX), 'a click on a disabled option does not move the indicator');
       assert.ok(week.x < month.x);
       await page.locator(option(MODE, 4)).click();
       await page.waitForFunction(selector => !document.querySelector(selector).hasAttribute('data-pui-lens'), MODE);
@@ -229,9 +258,9 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
       assert.ok(onlyRest(grab, [1]), 'no grab motion');
       for (const [group, to] of [[MODE, 2], [SEGMENT, 3], [TABS, 3]]) {
         const from = await box(page, group, await page.locator(option(group, 1)).textContent());
-        const end = await box(page, group, await page.locator(option(group, to)).textContent());
         const lens = values(await sample(page, { read: { selector: group, property: '--pui-lens-x' }, ms: 300, actions: [{ at: 0, selector: option(group, to), type: 'click' }] }));
-        assert.ok(onlyRest(lens, [from.x, end.x]), `${group}: the indicator jumps`);
+        const end = await box(page, group, await page.locator(option(group, to)).textContent());
+        assert.ok(onlyRest(lens, [from.x, end.x], PX), `${group}: the indicator jumps`);
       }
     } finally { await page.close(); }
   });
@@ -247,15 +276,15 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
         await page.emulateMedia({ reducedMotion: 'no-preference' });
         await page.evaluate(() => { window.__flipAt = null; });
         await page.waitForTimeout(500);
-        const target = rest ?? (await box(page, MODE, 'Week')).x;
         const running = page.evaluate(options => window.__sample(options).then(run => ({ ...run, start: performance.now() - run.values.at(-1).t })), { read, ms: 500, actions });
         await page.waitForTimeout(40);
         await page.emulateMedia({ reducedMotion: 'reduce' });
         const run = await running;
+        const target = rest ?? (await box(page, MODE, 'Week')).x;
         const flip = await page.evaluate(() => window.__flipAt);
         assert.ok(flip, 'the setting changed during the run');
         const afterFlip = run.values.filter(sample => run.start + sample.t > flip + 20).map(sample => sample.v);
-        assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [target]), `${read.selector} rests on ${target} once reduced motion is on: ${afterFlip.slice(0, 4)}`);
+        assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [target], rest === null ? PX : 1e-3), `${read.selector} rests on ${target} once reduced motion is on: ${afterFlip.slice(0, 4)}`);
         await page.evaluate(selector => document.querySelector(selector)?.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })), BUTTON);
         if (read.selector === MODE) await page.locator(option(MODE, 1)).click();
         if (read.selector === TOGGLE) await page.locator(`${TOGGLE} input`).click();

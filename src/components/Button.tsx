@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useRef } from 'react'
+import { useMergedRef, useMotionRuntime, usePressMotion } from './motionContext'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon'
 export type ButtonSize    = 'sm' | 'md' | 'lg'
@@ -75,9 +76,15 @@ export function Button({
   children,
   ...rest
 }: ButtonProps): React.ReactElement {
+  // With a MotionProvider, a pointer press springs the scale (D12 A: small and fast). Keyboard activation gets no motion.
+  const runtime = useMotionRuntime()
+  const own = useRef<HTMLButtonElement | null>(null)
+  const ref = useMergedRef(own, (rest as { ref?: React.Ref<HTMLButtonElement> }).ref)
+  usePressMotion(own, runtime, !disabled)
   return (
     <button
       {...rest}
+      ref={runtime ? ref : (rest as { ref?: React.Ref<HTMLButtonElement> }).ref}
       className={['ui-button', className].filter(Boolean).join(' ')}
       data-variant={variant}
       data-appearance={appearance}
@@ -90,6 +97,7 @@ export function Button({
         width:   block ? '100%' : undefined,
         opacity: disabled ? 0.45 : 1,
         cursor:  disabled ? 'not-allowed' : 'pointer',
+        ...(runtime ? { scale: 'var(--pui-press, 1)', transition: 'background-color var(--ui-motion-fast, 0.12s), color var(--ui-motion-fast, 0.12s), opacity var(--ui-motion-fast, 0.12s)' } : {}),
         ...style,
       }}
     >
