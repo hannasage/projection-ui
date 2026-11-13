@@ -3,10 +3,10 @@
 // The same cases run with the Mechanical flavor and the Glide flavor, and the component code does not change between them.
 import assert from 'node:assert/strict';
 import { after, before, describe, test } from 'node:test';
-import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { createServer } from 'vite';
-import { chromium } from '@playwright/test';
+import { chromium, firefox, webkit } from '@playwright/test';
 import { repository, packFixture } from './helpers/packed.mjs';
 
 let packed, server, browser, url;
@@ -64,6 +64,13 @@ async function open(flavor, reducedMotion = 'no-preference', query = '', on = br
   await page.goto(`${url}/?flavor=${flavor}${query}`);
   await page.getByRole('heading', { name: 'Motion fixture' }).waitFor();
   if (!query.includes('provider=none')) await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('data-pui-lens') === 'ready', TABS, { timeout: 5000 });
+  // Wait until frames arrive at a steady rate: a new WebKit page can hold its first frames for a moment, which would starve a sample.
+  await page.evaluate(() => new Promise(resolve => {
+    let last = performance.now();
+    let steady = 0;
+    const frame = now => { steady = now - last < 50 ? steady + 1 : 0; last = now; if (steady >= 5) resolve(); else requestAnimationFrame(frame); };
+    requestAnimationFrame(frame);
+  }));
   return page;
 }
 // Listeners still registered on a detached element or on a media query list. React itself leaves an `invalid` listener on each
@@ -80,6 +87,7 @@ const onlyRest = (list, rests, tolerance = 1e-3) => list.every(value => rests.so
 // The rendered height of the slider thumb, in screenshot pixels: Chromium gives no computed style for ::-webkit-slider-thumb,
 // so the test counts the rows of a one-pixel column through the thumb centre that differ from the page background.
 async function thumbHeight(page) {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const input = await page.locator(SLIDER).boundingBox();
   const fraction = await page.locator(SLIDER).evaluate(node => (Number(node.value) - Number(node.min)) / (Number(node.max) - Number(node.min)));
   const x = Math.round(input.x + 8 + (input.width - 16) * fraction);
@@ -404,26 +412,35 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
   test('reduced motion turned on mid-move snaps every surface to rest', async () => {
     const page = await open(key);
     try {
-      for (const [read, actions, rest] of [
-        [{ selector: TOGGLE, property: '--pui-thumb' }, [{ at: 0, selector: `${TOGGLE} input`, type: 'click' }], 1],
-        [{ selector: BUTTON, property: 'scale', fallback: 1 }, [{ at: 0, selector: BUTTON, type: 'pointerdown' }], 1],
-        [{ selector: MODE, property: '--pui-lens-x' }, [{ at: 0, selector: option(MODE, 2), type: 'click' }], null],
-      ]) {
+      const lensCase = (group, to) => ({ read: { selector: group, property: '--pui-lens-x' }, action: { selector: option(group, to), type: 'click' }, group, to, tolerance: PX });
+      const cases = [
+        { read: { selector: TOGGLE, property: '--pui-thumb' }, action: { selector: `${TOGGLE} input`, type: 'click' }, from: 0, to: 1, rest: 1, tolerance: 1e-3 },
+        { read: { selector: BUTTON, property: 'scale', fallback: 1 }, action: { selector: BUTTON, type: 'pointerdown' }, from: 1, to: flavor.press, rest: 1, tolerance: 1e-3 },
+        { read: { selector: SLIDER, property: '--pui-press', fallback: 1 }, action: { selector: SLIDER, type: 'pointerdown' }, from: 1, to: flavor.grab, rest: 1, tolerance: 1e-3 },
+        lensCase(MODE, 2), lensCase(SEGMENT, 3), lensCase(TABS, 3),
+      ];
+      for (const item of cases) {
         await page.emulateMedia({ reducedMotion: 'no-preference' });
         await page.evaluate(() => { window.__flipAt = null; });
         await page.waitForTimeout(500);
-        const running = page.evaluate(options => window.__sample(options).then(run => ({ ...run, start: performance.now() - run.values.at(-1).t })), { read, ms: 500, actions });
+        const target = item.to;
+        if (item.group) item.from = (await box(page, item.group, await page.locator(option(item.group, 1)).textContent())).x;
+        const running = page.evaluate(options => window.__sample(options).then(run => ({ ...run, start: performance.now() - run.values.at(-1).t })), { read: item.read, ms: 500, actions: [{ at: 0, ...item.action }] });
         await page.waitForTimeout(40);
         await page.emulateMedia({ reducedMotion: 'reduce' });
         const run = await running;
-        const target = rest ?? (await box(page, MODE, 'Week')).x;
         const flip = await page.evaluate(() => window.__flipAt);
         assert.ok(flip, 'the setting changed during the run');
+        // A lens target is measured after the change: the active option turns bold, so the options can shift.
+        if (item.group) item.to = item.rest = (await box(page, item.group, await page.locator(option(item.group, target)).textContent())).x;
+        const beforeFlip = run.values.filter(sample => run.start + sample.t < flip).map(sample => sample.v);
         const afterFlip = run.values.filter(sample => run.start + sample.t > flip + 20).map(sample => sample.v);
-        assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [target], rest === null ? PX : 1e-3), `${read.selector} rests on ${target} once reduced motion is on: ${afterFlip.slice(0, 4)}`);
-        await page.evaluate(selector => document.querySelector(selector)?.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })), BUTTON);
-        if (read.selector === MODE) await page.locator(option(MODE, 1)).click();
-        if (read.selector === TOGGLE) await page.locator(`${TOGGLE} input`).click();
+        // The move must be under way when the setting changes, or the check after it would pass with no motion at all.
+        assert.ok(strictlyBetween(beforeFlip, item.from, item.to, item.tolerance).length > 0, `${item.read.selector} is in flight before the switch: ${beforeFlip.slice(0, 6)}`);
+        assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [item.rest], item.tolerance), `${item.read.selector} rests on ${item.rest} once reduced motion is on: ${afterFlip.slice(0, 4)}`);
+        for (const selector of [BUTTON, SLIDER]) await page.evaluate(selector => document.querySelector(selector)?.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })), selector);
+        if (item.group) await page.locator(option(item.group, 1)).click();
+        if (item.read.selector === TOGGLE) await page.locator(`${TOGGLE} input`).click();
       }
     } finally { await page.close(); }
   });
@@ -516,6 +533,45 @@ describe('environments', () => {
       assert.ok(strictlyBetween(thumb, 0, 1).length >= 3, 'the thumb is seen in flight after hydration');
       assert.equal(await page.evaluate(() => document.querySelectorAll('style[data-href="pui-motion"]').length), 1, 'one motion stylesheet after hydration');
       assert.deepEqual(page.errors, [], 'no hydration error');
+    } finally { await page.close(); }
+  });
+});
+
+// The same Slider grab and Toggle checks in Firefox and WebKit. They run where Playwright has the browser installed, as in the
+// gate image. CI installs Chromium only, so there they are skipped with that reason.
+for (const [name, type] of [['firefox', firefox], ['webkit', webkit]]) describe(name, () => {
+  const installed = existsSync(type.executablePath());
+  const skip = installed ? false : `${name} is not installed here (CI installs Chromium only)`;
+  let other;
+  before(async () => { if (installed) other = await type.launch({ headless: true }); });
+  after(async () => { await other?.close(); });
+
+  test(`${name}: a pointer grab scales the rendered Slider thumb, and the release rests at 1`, { skip }, async () => {
+    const page = await open('mechanical', 'no-preference', '', other);
+    try {
+      const grab = { selector: SLIDER, property: '--pui-press', fallback: 1 };
+      const held = values(await sample(page, { read: grab, ms: 500, actions: [{ at: 0, selector: SLIDER, type: 'pointerdown' }] }));
+      assert.ok(strictlyBetween(held, 1, FLAVORS.mechanical.grab).length > 0, `the grab is seen in flight: ${held.slice(0, 8)}`);
+      near(held.at(-1), FLAVORS.mechanical.grab, 0.005, 'the grab rests on the flavor scale');
+      const grabbed = await thumbHeight(page);
+      const released = values(await sample(page, { read: grab, ms: 600, actions: [{ at: 0, selector: SLIDER, type: 'pointerup' }] }));
+      near(released.at(-1), 1, 1e-3, 'the release rests at 1');
+      const resting = await thumbHeight(page);
+      assert.ok(resting >= 12, `the resting thumb is drawn: ${resting} rows`);
+      assert.ok(grabbed / resting > 1.07, `the rendered thumb grows while grabbed: ${grabbed} rows against ${resting}`);
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  test(`${name}: the Toggle thumb springs in flight and rests on the checked side`, { skip }, async () => {
+    const page = await open('mechanical', 'no-preference', '', other);
+    try {
+      const run = values(await sample(page, { read: { selector: TOGGLE, property: '--pui-thumb' }, ms: 800, actions: [{ at: 0, selector: `${TOGGLE} input`, type: 'click' }] }));
+      assert.ok(strictlyBetween(run, 0, 1).length >= 3, 'the thumb is seen in flight');
+      near(run.at(-1), 1, 1e-3, 'rests on the checked side');
+      const travel = await page.locator(THUMB).evaluate(node => Number.parseFloat(getComputedStyle(node).translate));
+      near(travel, 16, 0.05, 'the rendered thumb moved the md travel');
+      assert.deepEqual(page.errors, []);
     } finally { await page.close(); }
   });
 });
