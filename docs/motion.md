@@ -53,6 +53,7 @@ Both are constants at module scope, so the flavor keeps its identity from one re
 The `flavor` prop takes only these two. Its type is `MotionFlavor`, which `./motion` exports. A hand-made object is not a flavor.
 When the flavor identity changes, every motion controller inside the provider restarts.
 Outside production, the provider then logs one warning.
+The consumer's build decides what production means: `process.env.NODE_ENV` first, then `import.meta.env.DEV`. Where `process` is undefined and `import.meta.env` gives no answer, the provider warns, because a missing warning is harder to notice than an extra one.
 
 ### Nested providers
 
@@ -60,7 +61,7 @@ A nested `MotionProvider` sets the flavor for its subtree.
 No provider turns motion off for a subtree.
 To turn motion off, leave the subtree outside every provider, or rely on the reader's reduced-motion setting.
 
-A per-component `flavor` prop is deferred. An earlier plan listed one. Phase 1 ships the opt-in provider only. The prop can arrive later as an additive change.
+There is no per-component `flavor` prop. The provider is the only way to choose a flavor. A per-component prop is deferred, and it can arrive later as an additive change.
 
 ## What moves
 
@@ -146,3 +147,4 @@ CI installs Chromium only, so there they are skipped. This is a known gap.
 The flavor names `projection` and `projection-glide` and the `pui` prefix are stable names.
 Spring numbers are not frozen.
 The `--pui-*` CSS variables and the `data-pui-*` attributes are internal and can change in any release.
+The rendered claims for Firefox and WebKit are not run in CI, which installs Chromium only. They run where Playwright has those browsers, as in a local gate run.

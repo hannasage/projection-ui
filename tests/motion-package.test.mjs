@@ -187,6 +187,10 @@ test('docs/motion.md gives the install command at the pinned version and the rul
   assert.match(page, /module scope/);
   assert.match(page, /No provider turns motion off/);
   assert.match(page, /Firefox and WebKit/);
+  assert.doesNotMatch(page, /\bplan\b/i, 'the page cites no plan a reader cannot see');
+  assert.match(page, /Where `process` is undefined/, 'the page says what the warning does without process');
+  const stability = page.slice(page.indexOf('## Stability'));
+  assert.match(stability, /Firefox and WebKit[^\n]*not run in CI/, 'the stability section names the browser gap');
 });
 
 function poisoned(render) {
