@@ -10,9 +10,32 @@ import { chromium } from '@playwright/test';
 import { repository, packFixture } from './helpers/packed.mjs';
 
 let packed, server, browser, url;
+// Runs before the app. With ?bare it removes matchMedia and ResizeObserver, as in jsdom. It always records every live event listener,
+// so a test can count the listeners left on detached elements after an unmount.
+const PAGE_SETUP = `(() => {
+  if (new URLSearchParams(location.search).has('bare')) {
+    delete window.ResizeObserver;
+    Object.defineProperty(window, 'matchMedia', { value: undefined, configurable: true, writable: true });
+  }
+  const live = [];
+  const add = EventTarget.prototype.addEventListener;
+  const remove = EventTarget.prototype.removeEventListener;
+  const capture = options => typeof options === 'boolean' ? options : Boolean(options && options.capture);
+  const index = (target, type, listener, options) => live.findIndex(r => r.target === target && r.type === type && r.listener === listener && r.capture === capture(options));
+  EventTarget.prototype.addEventListener = function (type, listener, options) {
+    if (listener && index(this, type, listener, options) < 0) live.push({ target: this, type, listener, capture: capture(options) });
+    return add.call(this, type, listener, options);
+  };
+  EventTarget.prototype.removeEventListener = function (type, listener, options) {
+    const at = index(this, type, listener, options);
+    if (at >= 0) live.splice(at, 1);
+    return remove.call(this, type, listener, options);
+  };
+  window.__listeners = () => live.map(r => ({ type: r.type, detached: r.target instanceof Node && !r.target.isConnected, media: typeof MediaQueryList === 'function' && r.target instanceof MediaQueryList }));
+})();`;
 before(async () => {
   packed = packFixture('motion-rendered', ['armature']);
-  writeFileSync(join(packed.fixture, 'index.html'), '<!doctype html><html lang="en"><title>Motion fixture</title><div id="root"></div><script type="module" src="/main.tsx"></script></html>');
+  writeFileSync(join(packed.fixture, 'index.html'), `<!doctype html><html lang="en"><title>Motion fixture</title><script>${PAGE_SETUP}</script><div id="root"></div><script type="module" src="/main.tsx"></script></html>`);
   writeFileSync(join(packed.fixture, 'main.tsx'), readFileSync(join(repository, 'tests/fixtures/motion/main.tsx')));
   server = await createServer({ configFile: false, root: packed.fixture, logLevel: 'error', server: { port: 0, host: '127.0.0.1', fs: { allow: [packed.fixture, repository] } } });
   await server.listen();
@@ -31,14 +54,21 @@ const WRAPPED = '[role=radiogroup][aria-label=Wrapped]';
 const TABS = '[role=tablist]';
 const option = (group, label) => `${group} > button:nth-of-type(${label})`;
 
-async function open(flavor, reducedMotion = 'no-preference') {
-  const page = await browser.newPage();
+// Opens the fixture. `query` adds options such as `&strict`. `page.errors` collects every console error and page error.
+async function open(flavor, reducedMotion = 'no-preference', query = '', on = browser) {
+  const page = await on.newPage();
+  page.errors = [];
+  page.on('console', message => { if (message.type() === 'error') page.errors.push(message.text()); });
+  page.on('pageerror', error => page.errors.push(String(error)));
   await page.emulateMedia({ reducedMotion });
-  await page.goto(`${url}/?flavor=${flavor}`);
+  await page.goto(`${url}/?flavor=${flavor}${query}`);
   await page.getByRole('heading', { name: 'Motion fixture' }).waitFor();
-  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('data-pui-lens') === 'ready', TABS);
+  if (!query.includes('provider=none')) await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('data-pui-lens') === 'ready', TABS, { timeout: 5000 });
   return page;
 }
+// Listeners still registered on a detached element or on a media query list. React itself leaves an `invalid` listener on each
+// input it rendered, so that type is not counted.
+const leftListeners = page => page.evaluate(() => window.__listeners().filter(listener => (listener.detached && listener.type !== 'invalid') || listener.media).map(listener => listener.type));
 const sample = (page, options) => page.evaluate(options => window.__sample(options), options);
 const box = (page, group, label) => page.evaluate(([group, label]) => window.__box(group, label), [group, label]);
 const values = run => run.values.map(sample => sample.v);
@@ -289,6 +319,22 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
         if (read.selector === MODE) await page.locator(option(MODE, 1)).click();
         if (read.selector === TOGGLE) await page.locator(`${TOGGLE} input`).click();
       }
+    } finally { await page.close(); }
+  });
+});
+
+describe('environments', () => {
+  test('with no matchMedia and no ResizeObserver, as in jsdom: no console error, motion still runs, and an unmount leaves no listener', async () => {
+    const page = await open('mechanical', 'no-preference', '&bare');
+    try {
+      assert.deepEqual(await page.evaluate(() => [typeof window.matchMedia, typeof window.ResizeObserver]), ['undefined', 'undefined']);
+      const press = values(await sample(page, { read: { selector: BUTTON, property: 'scale', fallback: 1 }, ms: 400, actions: [{ at: 0, selector: BUTTON, type: 'pointerdown' }, { at: 150, selector: BUTTON, type: 'pointerup' }] }));
+      assert.ok(strictlyBetween(press, 1, FLAVORS.mechanical.press).length > 0, 'the press still moves');
+      const thumb = values(await sample(page, { read: { selector: TOGGLE, property: '--pui-thumb' }, ms: 500, actions: [{ at: 0, selector: `${TOGGLE} input`, type: 'click' }] }));
+      assert.ok(strictlyBetween(thumb, 0, 1).length > 0, 'the thumb still moves');
+      await page.evaluate(() => window.__unmount());
+      assert.deepEqual(await leftListeners(page), [], 'every controller removed its listeners');
+      assert.deepEqual(page.errors, [], 'nothing logged an error');
     } finally { await page.close(); }
   });
 });

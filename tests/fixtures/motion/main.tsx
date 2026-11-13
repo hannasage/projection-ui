@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { createRoot } from 'react-dom/client'
+import React, { StrictMode, useState } from 'react'
+import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { Button, ButtonGroup, Slider, Tabs, ThemeProvider, Toggle } from '@hannasage/projection-ui/core'
 import { DEFAULT_THEME } from '@hannasage/projection-ui/foundations'
 import { MotionProvider, projection, projectionGlide, useMotionFlavor } from '@hannasage/projection-ui/motion'
@@ -14,9 +15,13 @@ declare global {
     __sample: (options: { read: Read; ms: number; actions?: Action[] }) => Promise<{ values: Sample[]; marks: number[] }>
     __box: (group: string, option: string) => { x: number; y: number; w: number; h: number }
     __flipAt: number | null
+    __unmount: () => void
+    __mount: () => void
   }
 }
 
+// Query options: flavor=glide, provider=none (no MotionProvider), strict (React StrictMode), nested (an inner Glide provider),
+// and hydrate (server markup first, then hydrateRoot). The page's index.html handles bare (no matchMedia, no ResizeObserver).
 const params = new URLSearchParams(location.search)
 const flavor = params.get('flavor') === 'glide' ? projectionGlide : projection
 
@@ -69,10 +74,10 @@ window.__box = (group, option) => {
 }
 
 window.__flipAt = null
-matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { window.__flipAt = performance.now() })
+if (typeof window.matchMedia === 'function') matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { window.__flipAt = performance.now() })
 
-function FlavorName() {
-  return <output data-testid="flavor">{useMotionFlavor().name}</output>
+function FlavorName({ testId = 'flavor' }: { testId?: string }) {
+  return <output data-testid={testId}>{useMotionFlavor().name}</output>
 }
 
 function Fixture() {
@@ -93,8 +98,21 @@ function Fixture() {
       <ButtonGroup aria-label="Segment" variant="segmented" value={segment} onChange={setSegment} options={[{ value: 'one', label: 'One' }, { value: 'two', label: 'Two' }, { value: 'three', label: 'Three' }]} />
       <div style={{ width: 150 }}><ButtonGroup aria-label="Wrapped" value={wrapped} onChange={setWrapped} options={['alpha', 'beta', 'gamma', 'delta', 'epsilon'].map(value => ({ value, label: value }))} /></div>
       <Tabs label="Sections" items={[{ value: 'one', label: 'First', content: 'First panel' }, { value: 'two', label: 'Second', content: 'Second panel' }, { value: 'three', label: 'Third', content: 'Third panel' }, { value: 'four', label: 'Fourth', content: 'Fourth panel', disabled: true }]} />
+      <p><button type="button" data-testid="set-week" onClick={() => setMode('week')}>Set week from outside</button></p>
+      {params.has('nested') && <MotionProvider flavor={projectionGlide}><FlavorName testId="nested-flavor" /><Button type="button" data-testid="nested-press">Nested press</Button></MotionProvider>}
     </ThemeProvider>
   )
 }
 
-createRoot(document.getElementById('root')!).render(<MotionProvider flavor={flavor}><Fixture /></MotionProvider>)
+const container = document.getElementById('root')!
+const app = () => {
+  const tree = params.get('provider') === 'none' ? <Fixture /> : <MotionProvider flavor={flavor}><Fixture /></MotionProvider>
+  return params.has('strict') ? <StrictMode>{tree}</StrictMode> : tree
+}
+let root: Root | null = null
+window.__unmount = () => { root?.unmount(); root = null }
+window.__mount = () => { root = createRoot(container); root.render(app()) }
+if (params.has('hydrate')) {
+  container.innerHTML = renderToString(app())
+  root = hydrateRoot(container, app())
+} else window.__mount()

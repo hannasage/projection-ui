@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, type Ref, ty
 export interface MotionBox { x: number; y: number; w: number; h: number }
 
 export interface MotionFollowerHandle { setTarget(target: number): void }
-export interface MotionLensHandle { update(change?: { keyboard?: boolean }): void }
+export interface MotionLensHandle { update(change?: { keyboard?: boolean }): void; refit(): void }
 export interface MotionStarted<H> { handle: H; stop(): void }
 
 /**
