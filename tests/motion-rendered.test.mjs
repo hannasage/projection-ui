@@ -32,6 +32,22 @@ const PAGE_SETUP = `(() => {
     return remove.call(this, type, listener, options);
   };
   window.__listeners = () => live.map(r => ({ type: r.type, detached: r.target instanceof Node && !r.target.isConnected, media: typeof MediaQueryList === 'function' && r.target instanceof MediaQueryList }));
+  // With ?legacymq, matchMedia returns a list with only addListener and removeListener, as older Safari does.
+  if (new URLSearchParams(location.search).has('legacymq')) {
+    const real = window.matchMedia.bind(window);
+    let count = 0;
+    window.__legacyListeners = () => count;
+    window.matchMedia = query => {
+      const list = real(query);
+      const wrapped = new Map();
+      return {
+        get matches() { return list.matches; },
+        media: list.media,
+        addListener(listener) { if (wrapped.has(listener)) return; const relay = () => listener({ matches: list.matches, media: list.media }); wrapped.set(listener, relay); list.addEventListener('change', relay); count += 1; },
+        removeListener(listener) { const relay = wrapped.get(listener); if (!relay) return; list.removeEventListener('change', relay); wrapped.delete(listener); count -= 1; },
+      };
+    };
+  }
 })();`;
 before(async () => {
   packed = packFixture('motion-rendered', ['armature']);
@@ -522,6 +538,45 @@ describe('environments', () => {
       await page.waitForTimeout(100);
       assert.equal(warnings.length, 1, `one warning for the provider: ${warnings}`);
       assert.match(warnings[0], /MotionProvider: the flavor changed between renders/);
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+
+  // Turns reduced motion on while the Tabs lens travels to the third tab, and returns the lens values after the switch and the target.
+  async function flipDuringTabsTravel(page) {
+    await page.evaluate(() => { window.__flipAt = null; });
+    const running = page.evaluate(options => window.__sample(options).then(run => ({ ...run, start: performance.now() - run.values.at(-1).t })), { read: { selector: TABS, property: '--pui-lens-x' }, ms: 500, actions: [{ at: 0, selector: option(TABS, 3), type: 'click' }] });
+    await page.waitForTimeout(40);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const run = await running;
+    const flip = await page.evaluate(() => window.__flipAt);
+    assert.ok(flip, 'the setting changed during the run');
+    const target = (await box(page, TABS, 'Third')).x;
+    const start = (await box(page, TABS, 'First')).x;
+    const beforeFlip = run.values.filter(sample => run.start + sample.t < flip).map(sample => sample.v);
+    assert.ok(strictlyBetween(beforeFlip, start, target, PX).length > 0, `the lens is in flight before the switch: ${beforeFlip.slice(0, 6)}`);
+    return { target, afterFlip: run.values.filter(sample => run.start + sample.t > flip + 20).map(sample => sample.v) };
+  }
+
+  test('reduced motion turned on mid-move: a controller that throws while it stops does not keep the others moving', async () => {
+    const page = await open('mechanical');
+    try {
+      // The Button registered first. Its stop re-attaches pointer listeners, so a throwing addEventListener makes that stop throw.
+      await page.locator(BUTTON).evaluate(node => { node.addEventListener = () => { throw new Error('a sabotaged controller'); }; });
+      const { target, afterFlip } = await flipDuringTabsTravel(page);
+      assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [target], PX), `the Tabs lens rests on ${target} once reduced motion is on: ${afterFlip.slice(0, 4)}`);
+      assert.ok(page.errors.some(text => text.includes('a sabotaged controller')), `the failure is reported: ${page.errors}`);
+    } finally { await page.close(); }
+  });
+
+  test('with a media query list that has only addListener, as in older Safari, a reduced-motion change still stops the motion, and an unmount removes the listener', async () => {
+    const page = await open('mechanical', 'no-preference', '&legacymq');
+    try {
+      assert.equal(await page.evaluate(() => typeof window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener), 'undefined', 'the stub has no addEventListener');
+      const { target, afterFlip } = await flipDuringTabsTravel(page);
+      assert.ok(afterFlip.length > 0 && onlyRest(afterFlip, [target], PX), `the Tabs lens rests on ${target} once reduced motion is on: ${afterFlip.slice(0, 4)}`);
+      await page.evaluate(() => window.__unmount());
+      assert.equal(await page.evaluate(() => window.__legacyListeners()), 1, 'only the fixture\'s own listener is left');
       assert.deepEqual(page.errors, []);
     } finally { await page.close(); }
   });

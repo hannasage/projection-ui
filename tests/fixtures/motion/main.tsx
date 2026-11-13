@@ -18,6 +18,7 @@ declare global {
     __unmount: () => void
     __mount: () => void
     __pressRef: React.RefObject<HTMLButtonElement | null> | null
+    __legacyListeners?: () => number
   }
 }
 
@@ -76,7 +77,13 @@ window.__box = (group, option) => {
 }
 
 window.__flipAt = null
-if (typeof window.matchMedia === 'function') matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { window.__flipAt = performance.now() })
+// Older Safari has only addListener, which the legacymq option of the page imitates.
+if (typeof window.matchMedia === 'function') {
+  const list = matchMedia('(prefers-reduced-motion: reduce)')
+  const flipped = () => { window.__flipAt = performance.now() }
+  if (typeof list.addEventListener === 'function') list.addEventListener('change', flipped)
+  else (list as MediaQueryList).addListener(flipped)
+}
 
 function FlavorName({ testId = 'flavor' }: { testId?: string }) {
   return <output data-testid={testId}>{useMotionFlavor().name}</output>

@@ -1,4 +1,4 @@
-import { createBrowserEnvironment, guardedSetup, readPreferences, REDUCED_MOTION_QUERY } from '@hannasage/armature'
+import { createBrowserEnvironment, guardedSetup, logTag, readPreferences, REDUCED_MOTION_QUERY } from '@hannasage/armature'
 import { attachSurface, createFollower, createLens, type Follower, type Lens } from '@hannasage/armature/dom'
 import type { MotionRuntime } from '../components/motionContext'
 import { engineFlavor } from './engineFlavors'
@@ -26,8 +26,16 @@ export function createMotionRuntime(publicFlavor: MotionFlavor): MotionRuntime {
   const live = new Set<() => void>()
   let unwatch: (() => void) | null = null
 
+  // Each controller stops on its own, so one that throws cannot keep the others moving. Its error is reported, not rethrown.
   const settleAll = () => {
-    if (readPreferences(window).reducedMotion) for (const settle of [...live]) settle()
+    if (!readPreferences(window).reducedMotion) return
+    for (const settle of [...live]) {
+      try {
+        settle()
+      } catch (error) {
+        console.error(`${logTag(flavor)} A motion controller failed to stop for reduced motion and was skipped.`, error)
+      }
+    }
   }
   const track = (settle: () => void) => {
     live.add(settle)
@@ -36,6 +44,10 @@ export function createMotionRuntime(publicFlavor: MotionFlavor): MotionRuntime {
       if (typeof media?.addEventListener === 'function') {
         media.addEventListener('change', settleAll)
         unwatch = () => media.removeEventListener('change', settleAll)
+      } else if (typeof media?.addListener === 'function') {
+        // Older Safari has only the deprecated addListener and removeListener.
+        media.addListener(settleAll)
+        unwatch = () => media.removeListener(settleAll)
       }
     }
     return () => {
