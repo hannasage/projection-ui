@@ -460,6 +460,7 @@
     },
     "./motion": {
       "names": [
+        "MotionFlavor",
         "MotionProvider",
         "MotionProviderProps",
         "projection",

@@ -2,6 +2,7 @@
 // its server render, and its size. Browser behaviour is in motion-rendered.test.mjs.
 import assert from 'node:assert/strict';
 import { readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -22,7 +23,7 @@ async function load(specifier) {
 }
 
 before(async () => {
-  packed = packFixture('motion-package', ['armature']);
+  packed = packFixture('motion-package', ['armature', '@types', 'typescript']);
   installed = packed.installed;
   motion = await load(`${packageName}/motion`);
   root = await load(packageName);
@@ -77,6 +78,36 @@ test('./core loads no Armature, and ./motion reaches Armature only through its p
   assert.ok(reached.length > 0, './motion uses Armature');
   for (const name of reached) assert.ok(publicEntries.includes(name), `${name} is a public Armature entry`);
   assert.equal(published.version, '1.0.0-beta.1', 'the installed Armature is the pinned beta');
+});
+
+test('the public ./motion declarations reach no Armature type, and MotionFlavor accepts only the two flavors', () => {
+  const declarations = new Set();
+  const bare = new Set();
+  const walk = file => {
+    if (declarations.has(file)) return;
+    declarations.add(file);
+    for (const [, specifier] of readFileSync(file, 'utf8').matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*)["']([^"']+)["']/g)) {
+      if (specifier.startsWith('.')) walk(join(dirname(file), specifier.replace(/\.js$/, '') + '.d.ts'));
+      else bare.add(specifier);
+    }
+  };
+  walk(join(installed, 'dist/src/motion.d.ts'));
+  assert.deepEqual([...bare].filter(name => name.includes('armature')), [], 'no public declaration imports Armature');
+  for (const file of declarations) assert.doesNotMatch(readFileSync(file, 'utf8'), /armature/i, `${file} names no Armature type`);
+  writeFileSync(join(packed.fixture, 'flavor-types.tsx'), [
+    `import { MotionProvider, projection, projectionGlide, useMotionFlavor, type MotionFlavor, type MotionProviderProps } from '${packageName}/motion'`,
+    `const both: MotionFlavor[] = [projection, projectionGlide]`,
+    `const name: string = useMotionFlavor().name`,
+    `const props: MotionProviderProps = { flavor: projectionGlide }`,
+    `// @ts-expect-error A hand-made object is not a flavor.`,
+    `const made: MotionFlavor = { name: 'projection', prefix: 'pui' }`,
+    `// @ts-expect-error The flavor prop takes only the two exported flavors.`,
+    `export const wrong = <MotionProvider flavor={{ name: 'projection-glide', prefix: 'pui' }} />`,
+    `export { both, name, props, made }`,
+  ].join('\n'));
+  const config = join(packed.fixture, 'tsconfig-flavor.json');
+  writeFileSync(config, JSON.stringify({ compilerOptions: { target: 'ES2020', lib: ['ES2020', 'DOM'], module: 'ESNext', moduleResolution: 'bundler', jsx: 'react-jsx', strict: true, noEmit: true, skipLibCheck: false }, files: ['flavor-types.tsx'] }));
+  execFileSync(process.execPath, [join(repository, 'node_modules/typescript/bin/tsc'), '-p', config], { cwd: packed.fixture, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 });
 
 test('both flavors follow the beta.1 contract: frozen, prefix pui, followers and lens.rest', () => {

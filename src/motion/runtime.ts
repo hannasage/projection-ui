@@ -1,6 +1,7 @@
 import { guardedSetup, readPreferences, REDUCED_MOTION_QUERY } from '@hannasage/armature'
 import { attachSurface, createFollower, createLens, type Follower, type Lens } from '@hannasage/armature/dom'
 import type { MotionRuntime } from '../components/motionContext'
+import { engineFlavor } from './engineFlavors'
 import type { MotionFlavor } from './flavors'
 
 /**
@@ -11,7 +12,8 @@ import type { MotionFlavor } from './flavors'
  * turns reduced motion on, every live controller snaps to rest at once. Armature's follower already checks the setting on each frame.
  * Its surface and lens check it only on the next pointer event or update, so without this a press or a lens in flight would finish its move.
  */
-export function createMotionRuntime(flavor: MotionFlavor): MotionRuntime {
+export function createMotionRuntime(publicFlavor: MotionFlavor): MotionRuntime {
+  const flavor = engineFlavor(publicFlavor)
   const live = new Set<() => void>()
   let unwatch: (() => void) | null = null
 

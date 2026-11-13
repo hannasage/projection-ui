@@ -5,3 +5,4 @@
 export { projection, projectionGlide } from './motion/flavors'
 export { MotionProvider, useMotionFlavor } from './motion/MotionProvider'
 export type { MotionProviderProps } from './motion/MotionProvider'
+export type { MotionFlavor } from './motion/flavors'
