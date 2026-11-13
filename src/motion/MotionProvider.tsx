@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 import { MotionContext } from '../components/motionContext'
 import { projection, type MotionFlavor } from './flavors'
+import { isDevelopment } from './devMode'
 import { createMotionRuntime } from './runtime'
 
 export interface MotionProviderProps {
@@ -12,18 +13,6 @@ export interface MotionProviderProps {
 }
 
 const FlavorContext = createContext<MotionFlavor | null>(null)
-
-// Bundlers define `process.env.NODE_ENV`. The library does not depend on Node types, so it declares only what it reads.
-declare const process: { env: { NODE_ENV?: string } }
-
-/** True outside a production build. A bundler replaces `process.env.NODE_ENV`. Where nothing defines `process`, this is false. */
-function isDevelopment(): boolean {
-  try {
-    return process.env.NODE_ENV !== 'production'
-  } catch {
-    return false
-  }
-}
 
 /**
  * Turns on spring motion for the Projection UI components inside it. Without it the components keep their static CSS behaviour.

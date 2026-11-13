@@ -238,6 +238,13 @@ test('without a MotionProvider the components render their static markup with no
   assert.doesNotMatch(html, /transform\s*:/i, 'the static Toggle and Slider use individual properties too');
 });
 
+test('the built ./motion leaves the development check to the consumer build: process.env.NODE_ENV stays, and no import.meta.env value is baked in', () => {
+  const text = readFileSync(join(installed, 'dist/motion.js'), 'utf8').split('\n').filter(line => !/^\s*(?:\/\*\*|\*|\/\/)/.test(line)).join('\n');
+  assert.match(text, /process\.env\.NODE_ENV/, 'the consumer bundler can replace NODE_ENV');
+  assert.match(text, /import\.meta/, 'import.meta stays for the consumer bundler to read');
+  assert.doesNotMatch(text, /"?DEV"?\s*:\s*(?:true|false)|"?MODE"?\s*:\s*"production"/, 'no build-time environment object is baked in');
+});
+
 test('Glide runs the same components: the server markup does not depend on the flavor, and no code branches on its name', () => {
   const render = flavor => server.renderToString(React.createElement(motion.MotionProvider, { flavor }, surfaces(core)));
   assert.equal(render(motion.projectionGlide), render(motion.projection));
