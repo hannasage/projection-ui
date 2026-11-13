@@ -240,17 +240,23 @@ test('useMotionFlavor reads the provider and defaults to Mechanical', () => {
   assert.equal(server.renderToStaticMarkup(React.createElement(motion.MotionProvider, null, React.createElement(Probe))), '<output>projection</output>');
 });
 
-test('the size of ./motion is measured (no cap is set here)', async t => {
+// The ./motion cost in an app: the gzip size of core plus motion, less core alone. 8,050 bytes is the agreed cap.
+const MOTION_GZIP_CAP = 8_050;
+test('./motion adds at most 8,050 bytes, minified with whitespace removed and gzipped, to an app that uses ./core', async t => {
   const bundle = async (name, source) => {
     const entry = join(packed.fixture, `${name}.mjs`);
     writeFileSync(entry, source);
-    const result = await build({ configFile: false, root: packed.fixture, logLevel: 'silent', build: { write: false, minify: true, lib: { entry, formats: ['es'], fileName: name }, rollupOptions: { external: ['react', 'react-dom', 'react/jsx-runtime'] } } });
+    const result = await build({ configFile: false, root: packed.fixture, logLevel: 'silent', build: { write: false, minify: true, rollupOptions: { input: entry, preserveEntrySignatures: 'strict', external: ['react', 'react-dom', 'react/jsx-runtime'] } } });
     const chunks = (Array.isArray(result) ? result : [result]).flatMap(output => output.output).filter(chunk => chunk.type === 'chunk');
+    // Library mode keeps the whitespace of an ES build. App mode removes it, as a consumer's production build does.
+    // The check looks for an indented statement, so the line breaks inside the components' CSS strings do not count.
+    for (const chunk of chunks) assert.doesNotMatch(chunk.code, /\n[ \t]+(?:const|let|return|function) /, `${name}: the measured code has no indented statement`);
     return chunks.reduce((sum, chunk) => ({ raw: sum.raw + Buffer.byteLength(chunk.code), gzip: sum.gzip + gzipSync(chunk.code).length }), { raw: 0, gzip: 0 });
   };
   const onlyCore = await bundle('size-core', `export * from '${packageName}/core'\n`);
   const withMotion = await bundle('size-motion', `export * from '${packageName}/core'\nexport * from '${packageName}/motion'\n`);
   const cost = { raw: withMotion.raw - onlyCore.raw, gzip: withMotion.gzip - onlyCore.gzip };
-  t.diagnostic(`./motion added to ./core: ${cost.raw} bytes minified, ${cost.gzip} bytes minified and gzipped (core alone: ${onlyCore.raw} and ${onlyCore.gzip})`);
+  t.diagnostic(`./motion added to ./core in an app build: ${cost.raw} bytes minified with whitespace removed, ${cost.gzip} bytes gzipped (core alone: ${onlyCore.raw} and ${onlyCore.gzip})`);
   assert.ok(cost.raw > 0 && cost.gzip > 0, 'the measurement ran');
+  assert.ok(cost.gzip <= MOTION_GZIP_CAP, `./motion costs ${cost.gzip} bytes gzipped, over the cap of ${MOTION_GZIP_CAP}`);
 });
