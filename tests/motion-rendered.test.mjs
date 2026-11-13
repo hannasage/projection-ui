@@ -214,6 +214,8 @@ for (const [key, flavor] of Object.entries(FLAVORS)) describe(`${key} flavor`, (
         const end = await box(page, group, await page.locator(option(group, to)).textContent());
         near(run[0], start.x, 0.5, 'starts on the selected option');
         assert.ok(strictlyBetween(run, start.x, end.x, PX).length >= 2, 'the indicator is seen in flight');
+        const beyond = run.filter(value => value > Math.max(start.x, end.x) + PX || value < Math.min(start.x, end.x) - PX);
+        assert.deepEqual(beyond, [], 'the indicator does not bounce past the option');
         near(run.at(-1), end.x, 0.5, 'lands on the new option');
         const width = await page.evaluate(selector => Number.parseFloat(getComputedStyle(document.querySelector(selector)).getPropertyValue('--pui-lens-w')), group);
         near(width, end.w, 0.5, 'the width lands on the new option');

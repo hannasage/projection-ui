@@ -40,17 +40,20 @@ function stiffnessFor(target: number): number {
 
 const spring = (stiffness: number, damping: number): SpringConfig => ({ stiffness, damping, mass: 1 })
 
-/** Press, release, thumb, and lens of Mechanical. Underdamped: a small overshoot, then done. */
+/** Press, release, and thumb of Mechanical. Underdamped: a small overshoot, then done. */
 const mechanical = spring(Number(tokens['mechanical-stiffness']), Number(tokens['mechanical-damping']))
 const settleStiffness = Number(tokens['settle-stiffness'])
-/** Every exit, in both flavors. Critically damped, so nothing bounces on the way out. */
+/** Critically damped, so nothing that uses it bounces. Both flavors carry it, and Mechanical moves its indicators on it. */
 const settle = spring(settleStiffness, criticalDamping(settleStiffness))
 const glideStiffness = stiffnessFor(seconds(tokens['glide-settle']))
 /** Press, release, thumb, and lens of Glide. Critically damped and softer than Mechanical, so it settles later with no bounce. */
 const glide = spring(glideStiffness, criticalDamping(glideStiffness))
 
-/** The parts both flavors share. Only the spring key and the two scales differ. */
-function parts(key: string, pressScale: number, grabScale: number) {
+/**
+ * The parts both flavors share. Only the spring keys and the two scales differ. `lensKey` moves the travelling indicators: an
+ * indicator never bounces, so Mechanical gives it the critically damped `settle` spring.
+ */
+function parts(key: string, lensKey: string, pressScale: number, grabScale: number) {
   const surface: SurfaceFlavor = {
     specular: false,
     glow: false,
@@ -69,7 +72,7 @@ function parts(key: string, pressScale: number, grabScale: number) {
     vars: { x: 'lens-x', y: 'lens-y', w: 'lens-w', h: 'lens-h', sx: 'lens-sx', sy: 'lens-sy' },
     readyAttribute: 'lens',
     readyValue: 'ready',
-    springKeys: { x: key, width: key },
+    springKeys: { x: lensKey, width: lensKey },
     rest: { restDelta: 0.05, restSpeed: 1 },
     stretchVelocity: 10_000,
     maxStretch: 0,
@@ -78,10 +81,10 @@ function parts(key: string, pressScale: number, grabScale: number) {
 }
 
 /** Mechanical, as the engine reads it. */
-export const mechanicalFlavor: EngineFlavor = defineFlavor({ name: 'projection', prefix: 'pui', logLabel: 'projection-ui', springs: { mechanical, settle }, ...parts('mechanical', 0.97, 1.15) })
+export const mechanicalFlavor: EngineFlavor = defineFlavor({ name: 'projection', prefix: 'pui', logLabel: 'projection-ui', springs: { mechanical, settle }, ...parts('mechanical', 'settle', 0.97, 1.15) })
 
 /** Glide, as the engine reads it. */
-export const glideFlavor: EngineFlavor = defineFlavor({ name: 'projection-glide', prefix: 'pui', logLabel: 'projection-ui', springs: { glide, settle }, ...parts('glide', 0.985, 1.1) })
+export const glideFlavor: EngineFlavor = defineFlavor({ name: 'projection-glide', prefix: 'pui', logLabel: 'projection-ui', springs: { glide, settle }, ...parts('glide', 'glide', 0.985, 1.1) })
 
 /** The engine flavor behind a public flavor. Each public flavor is the engine object itself, so this changes only the type. */
 export function engineFlavor(flavor: MotionFlavor): EngineFlavor {

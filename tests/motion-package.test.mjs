@@ -143,11 +143,10 @@ test('spring numbers come from UI_FOUNDATIONS.motion and the Armature solver, ne
   const depth = flavor => Math.abs(1 - flavor.surface.defaults.pressScale);
   assert.ok(depth(motion.projectionGlide) < depth(motion.projection), 'the Glide press is shallower');
   assert.ok(Math.abs(1 - motion.projectionGlide.surface.feels.grab.pressScale) < Math.abs(1 - motion.projection.surface.feels.grab.pressScale), 'the Glide grab is shallower');
-  for (const flavor of Object.values(flavors())) {
-    assert.equal(flavor.surface.springKeys.press, flavor.followers.thumb.springKey);
-    assert.equal(flavor.lens.springKeys.x, flavor.followers.thumb.springKey);
-    assert.equal(flavor.lens.springKeys.width, flavor.followers.thumb.springKey);
-  }
+  for (const flavor of Object.values(flavors())) assert.equal(flavor.surface.springKeys.press, flavor.followers.thumb.springKey);
+  // Indicators never bounce: Mechanical moves its lens on the critically damped settle spring, and Glide on its own glide spring.
+  assert.deepEqual({ ...motion.projection.lens.springKeys }, { x: 'settle', width: 'settle' });
+  assert.deepEqual({ ...motion.projectionGlide.lens.springKeys }, { x: 'glide', width: 'glide' });
 });
 
 test('docs/motion.md prints the numbers the solver measures', t => {
