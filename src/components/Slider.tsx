@@ -1,4 +1,14 @@
-import React, { useId } from 'react'
+import React, { useId, useRef } from 'react'
+import { useMotionRuntime, usePressMotion } from './motionContext'
+
+/** Without a MotionProvider the WebKit thumb grows on hover with a short CSS transition. */
+const HOVER_THUMB = `.ui-slider-track::-webkit-slider-thumb:hover { scale: 1.15; }`
+/**
+ * With one, the grab spring writes --pui-press on the input, and the thumb pseudo-elements inherit it. No CSS transition smooths it.
+ * The doubled class outranks the hover rule of a static Slider elsewhere on the page.
+ */
+const MOTION_THUMB = `.ui-slider-track.ui-slider-track[data-pui-motion]::-webkit-slider-thumb { scale: var(--pui-press, 1); transition: none; }
+        .ui-slider-track.ui-slider-track[data-pui-motion]::-moz-range-thumb { scale: var(--pui-press, 1); }`
 
 export interface SliderProps {
   value:       number
@@ -33,6 +43,10 @@ export function Slider({
 }: SliderProps): React.ReactElement {
   const id = useId()
   const pct = ((value - min) / (max - min)) * 100
+  // With a MotionProvider, a pointer grab springs the thumb scale. Keys, drag, and a value set from code move the value at once, with no spring.
+  const runtime = useMotionRuntime()
+  const input = useRef<HTMLInputElement | null>(null)
+  usePressMotion(input, runtime, !disabled, 'grab')
 
   return (
     <>
@@ -67,11 +81,9 @@ export function Slider({
           border: 2px solid var(--ui-primary-fg);
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
           cursor: pointer;
-          transition: transform 0.1s;
+          transition: scale 0.1s;
         }
-        .ui-slider-track::-webkit-slider-thumb:hover {
-          transform: scale(1.15);
-        }
+        ${runtime ? MOTION_THUMB : HOVER_THUMB}
         .ui-slider-track::-moz-range-thumb {
           width: 16px;
           height: 16px;
@@ -123,6 +135,8 @@ export function Slider({
           disabled={disabled}
           onChange={(e) => onChange(Number(e.target.value))}
           className="ui-slider-track"
+          ref={input}
+          data-pui-motion={runtime ? '' : undefined}
           style={{ '--ui-slider-pct': `${pct}%` } as React.CSSProperties}
           aria-label={ariaLabel ?? label}
           aria-valuemin={min}

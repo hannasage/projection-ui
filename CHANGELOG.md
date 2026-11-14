@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add the `./motion` entry, phase 1. It is ESM only and exports `projection` (Mechanical), `projectionGlide` (Glide), `MotionProvider`, `useMotionFlavor`, and the `MotionFlavor` type. Inside a `MotionProvider`, Button press, the Toggle thumb, the Slider grab, and the ButtonGroup and Tabs indicator move on Armature springs. Under Mechanical, the indicators use the `settle` spring and do not bounce. Without a provider, components keep their static behaviour. Read `docs/motion.md`.
+- Add `@hannasage/armature` as an optional peer dependency at exactly `1.0.0-beta.1`. Install it to use `./motion`. Installing Projection UI does not install it, and `./core` does not load it.
+- Inside a `MotionProvider`: Enter and Space on a ButtonGroup or Tabs option make the indicator jump, as arrow keys do. The indicator refits when an option resizes or web fonts load. Under forced colors it draws in `Highlight`. Under reduced motion the colour fades turn off. The provider warns once, outside production, when its flavor changes between renders.
+- Declare `ref` on `ButtonProps`, so a consumer passes a ref to Button with no cast.
+- Add four spring keys to `UI_FOUNDATIONS.motion`: `mechanical-stiffness`, `mechanical-damping`, `settle-stiffness`, and `glide-settle`. The token stylesheets gain the matching `--ui-motion-*` variables.
+- Move the static Toggle thumb and the Slider thumb hover from `transform` to the individual `translate` and `scale` properties. The rendered result is the same.
 - Add a Stability page that lists the frozen items, the items that are not frozen, the prerelease rule, and the change policy. The `./motion` entry is frozen by name and arrives with the motion milestone.
 - Complete the Migration page with a step for each change since 0.1.5: the soft panel radius, the Modal heading id and styling, the ButtonGroup role, Toggle accessibility, Toast announcements and timing, the larger `/tokens` output, and the client boundary.
 - Fix the Migration page wording to match the `1.0.0-beta` line.

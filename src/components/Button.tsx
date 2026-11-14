@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useRef } from 'react'
+import { useMergedRef, useMotionRuntime, usePressMotion } from './motionContext'
+import { MotionStyle } from './motionStyle'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon'
 export type ButtonSize    = 'sm' | 'md' | 'lg'
@@ -9,6 +11,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Renders full-width */
   block?:    boolean
   appearance?: 'solid' | 'gradient'
+  /** The button element. React 19 passes `ref` as a prop, and Button forwards it with or without a MotionProvider. */
+  ref?:      React.Ref<HTMLButtonElement>
 }
 
 const SIZE: Record<ButtonSize, React.CSSProperties> = {
@@ -73,12 +77,20 @@ export function Button({
   style,
   disabled,
   children,
+  ref: passedRef,
   ...rest
 }: ButtonProps): React.ReactElement {
-  return (
+  // With a MotionProvider, a pointer press springs the scale: small and fast. Keyboard activation gets no motion.
+  const runtime = useMotionRuntime()
+  const own = useRef<HTMLButtonElement | null>(null)
+  const ref = useMergedRef(own, passedRef)
+  usePressMotion(own, runtime, !disabled)
+  const button = (
     <button
       {...rest}
+      ref={runtime ? ref : passedRef}
       className={['ui-button', className].filter(Boolean).join(' ')}
+      data-pui-motion={runtime ? 'press' : undefined}
       data-variant={variant}
       data-appearance={appearance}
       disabled={disabled}
@@ -90,10 +102,13 @@ export function Button({
         width:   block ? '100%' : undefined,
         opacity: disabled ? 0.45 : 1,
         cursor:  disabled ? 'not-allowed' : 'pointer',
+        ...(runtime ? { scale: 'var(--pui-press, 1)', transition: 'background-color var(--ui-motion-fast, 0.12s), color var(--ui-motion-fast, 0.12s), opacity var(--ui-motion-fast, 0.12s)' } : {}),
         ...style,
       }}
     >
       {children}
     </button>
   )
+  // React hoists the shared motion stylesheet into the head, so the button stays the only element rendered here.
+  return runtime ? <><MotionStyle />{button}</> : button
 }

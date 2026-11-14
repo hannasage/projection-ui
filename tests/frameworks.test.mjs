@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { packFixture, repository, run } from './helpers/packed.mjs';
 
 let packed;
-before(() => { packed = packFixture('frameworks', ['react', 'react-dom', '@types', 'typescript', 'next']); });
+before(() => { packed = packFixture('frameworks', ['react', 'react-dom', '@types', 'typescript', 'next', 'armature']); });
 after(() => { if (packed) rmSync(packed.temporary, {recursive:true,force:true}); });
 
 test('core executes without loading managed feature runtimes', async () => {
@@ -38,6 +38,7 @@ test('Vite builds the real packed React-only entry without chart, sortable, or s
   const modules=JSON.parse(readFileSync(join(packed.fixture,'dist/core-modules.json'),'utf8'));
   assert.ok(modules.some(path=>path.includes('/projection-ui/dist/core.js')));
   assert.ok(!modules.some(path=>/\/node_modules\/(?:recharts|zustand|@dnd-kit)\//.test(path)), 'core import graph excludes feature runtimes');
+  assert.ok(!modules.some(path=>path.includes('/node_modules/@hannasage/armature/')), 'core import graph excludes Armature');
   assert.ok(readFileSync(join(packed.fixture, 'dist/index.html'), 'utf8').includes('assets/'));
 });
 test('Next App Router builds both server and client components from the packed package', () => {
@@ -51,5 +52,9 @@ test('Next App Router builds both server and client components from the packed p
   writeFileSync(join(packed.fixture, 'package-lock.json'), JSON.stringify({name:manifest.name,version:'1.0.0',lockfileVersion:3,packages:{'':{name:manifest.name,version:'1.0.0',dependencies:manifest.dependencies}}}));
   mkdirSync(join(packed.fixture, '.next'), {recursive:true});
   run(process.execPath, [join(packed.fixture, 'node_modules/next/dist/bin/next'), 'build', '--webpack'], packed.fixture, 240_000);
-  assert.ok(readFileSync(join(packed.fixture, '.next/server/app/index.html'), 'utf8').includes('Next packed server page'));
+  const html = readFileSync(join(packed.fixture, '.next/server/app/index.html'), 'utf8');
+  assert.ok(html.includes('Next packed server page'));
+  assert.match(html, /data-pui-motion/, 'the motion client component renders on the server');
+  assert.match(html, /var\(--pui-thumb, 0\)/, 'the motion Toggle renders its rest state on the server');
+  assert.match(html, /scale:var\(--pui-press, 1\)/, 'the motion Button renders its rest state on the server');
 });

@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { boxWithin, useLensMotion, useMotionRuntime } from './motionContext'
+import { MotionStyle } from './motionStyle'
 
 const panel: React.CSSProperties = { border: '1px solid var(--ui-border)', borderRadius: 16, background: 'var(--ui-surface)', color: 'var(--ui-text)', fontFamily: 'var(--ui-font-body, var(--ui-font))', padding: 16 }
 const control: React.CSSProperties = { border: '1px solid var(--ui-border)', borderRadius: 8, background: 'transparent', color: 'var(--ui-text)', padding: '8px 12px', cursor: 'pointer', font: 'inherit' }
@@ -28,7 +30,12 @@ export function Tabs({ items, value, defaultValue, onValueChange, label = 'Tabs'
   const id = useId(); const [selected, select] = useValue(value, defaultValue ?? items.find(item => !item.disabled)?.value ?? '', onValueChange)
   const buttons = useRef<Array<HTMLButtonElement | null>>([])
   const active = items.find(item => item.value === selected && !item.disabled) ?? items.find(item => !item.disabled)
-  return <div {...rest} style={{ fontFamily: 'var(--ui-font-body, var(--ui-font))', color: 'var(--ui-text)', ...style }}><div role="tablist" aria-label={label} style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--ui-border)' }}>{items.map((item, index) => <button key={item.value} ref={node => { buttons.current[index] = node }} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel-${index}`} aria-selected={active?.value === item.value} tabIndex={active?.value === item.value ? 0 : -1} disabled={item.disabled} style={{ ...control, background: active?.value === item.value ? 'var(--ui-accent-soft, transparent)' : 'transparent', color: active?.value === item.value ? 'var(--ui-accent-text, var(--ui-text))' : 'var(--ui-text)', border: 0, borderBottom: active?.value === item.value ? '2px solid var(--ui-primary)' : '2px solid transparent', borderRadius: 0, opacity: item.disabled ? .45 : 1 }} onClick={() => select(item.value)} onKeyDown={event => {
+  // With a MotionProvider, the underline travels to a clicked tab and jumps on a key (Arrow, Home, End, Enter, or Space), so keyboard selection never travels. The panels swap at once.
+  const runtime = useMotionRuntime(); const list = useRef<HTMLDivElement | null>(null); const keyboard = useRef(false)
+  const activeIndex = active ? items.indexOf(active) : -1
+  useLensMotion(list, runtime, () => list.current ? boxWithin(list.current, buttons.current[activeIndex]) : null, activeIndex, keyboard)
+  const line = (on: boolean) => runtime ? '2px solid var(--pui-static-line, transparent)' : on ? '2px solid var(--ui-primary)' : '2px solid transparent'
+  return <div {...rest} style={{ fontFamily: 'var(--ui-font-body, var(--ui-font))', color: 'var(--ui-text)', ...style }}>{runtime && <MotionStyle />}<div ref={list} role="tablist" aria-label={label} data-pui-motion={runtime ? 'tabs' : undefined} style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--ui-border)', position: runtime ? 'relative' : undefined }}>{runtime && <span className="ui-lens" aria-hidden="true" />}{items.map((item, index) => <button key={item.value} ref={node => { buttons.current[index] = node }} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel-${index}`} aria-selected={active?.value === item.value} tabIndex={active?.value === item.value ? 0 : -1} disabled={item.disabled} style={{ ...control, background: active?.value === item.value ? 'var(--ui-accent-soft, transparent)' : 'transparent', color: active?.value === item.value ? 'var(--ui-accent-text, var(--ui-text))' : 'var(--ui-text)', border: 0, borderBottom: line(active?.value === item.value), borderRadius: 0, opacity: item.disabled ? .45 : 1, transition: runtime ? 'color var(--ui-motion-fast, 0.12s)' : undefined }} onClick={event => { keyboard.current = event.detail === 0; select(item.value) }} onKeyUp={() => { keyboard.current = false }} onBlur={() => { keyboard.current = false }} onKeyDown={event => {
     const enabled = items.map((entry, i) => entry.disabled ? -1 : i).filter(i => i >= 0)
     const position = enabled.indexOf(index)
     let next: number | undefined
@@ -36,7 +43,8 @@ export function Tabs({ items, value, defaultValue, onValueChange, label = 'Tabs'
     if (event.key === 'ArrowLeft') next = enabled[(position - 1 + enabled.length) % enabled.length]
     if (event.key === 'Home') next = enabled[0]
     if (event.key === 'End') next = enabled[enabled.length - 1]
-    if (next !== undefined) { event.preventDefault(); select(items[next].value); buttons.current[next]?.focus() }
+    // Focus moves first: the blur it causes clears the keyboard flag, which is then set for this change.
+    if (next !== undefined) { event.preventDefault(); buttons.current[next]?.focus(); keyboard.current = true; select(items[next].value) }
   }}>{item.label}</button>)}</div>{items.map((item, index) => <div key={item.value} role="tabpanel" id={`${id}-panel-${index}`} aria-labelledby={`${id}-tab-${index}`} hidden={active?.value !== item.value} tabIndex={0} style={{ padding: '16px 0' }}>{item.content}</div>)}</div>
 }
 export interface AccordionItem { value: string; title: React.ReactNode; content: React.ReactNode; disabled?: boolean }

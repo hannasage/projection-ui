@@ -1,7 +1,5 @@
 {
-  "planned": [
-    "./motion"
-  ],
+  "planned": [],
   "stylesheets": [
     "./tokens",
     "./styles",
@@ -143,6 +141,12 @@
       "RADIUS_SCALE",
       "THEME_PRESETS",
       "UI_FOUNDATIONS"
+    ],
+    "./motion": [
+      "MotionProvider",
+      "projection",
+      "projectionGlide",
+      "useMotionFlavor"
     ]
   },
   "types": {
@@ -450,6 +454,18 @@
         "RADIUS_SCALE",
         "THEME_PRESETS",
         "UI_FOUNDATIONS"
+      ],
+      "themeFields": null,
+      "radius": null
+    },
+    "./motion": {
+      "names": [
+        "MotionFlavor",
+        "MotionProvider",
+        "MotionProviderProps",
+        "projection",
+        "projectionGlide",
+        "useMotionFlavor"
       ],
       "themeFields": null,
       "radius": null

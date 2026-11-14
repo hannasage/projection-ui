@@ -21,11 +21,11 @@ function namedExports(specifier, format) {
 }
 
 before(() => {
-  ({ temporary, fixture, installed } = packFixture('export-snapshot'));
+  ({ temporary, fixture, installed } = packFixture('export-snapshot', ['armature']));
 });
 after(() => rmSync(temporary, { recursive: true, force: true }));
 
-test('the snapshot covers exactly the entries in package.json today, and lists ./motion as planned', () => {
+test('the snapshot covers exactly the entries in package.json, and ./motion is no longer only planned', () => {
   const listed = [...Object.keys(snapshot.modules), ...snapshot.stylesheets].sort();
   assert.deepEqual(listed, Object.keys(manifest.exports).sort());
   for (const entry of snapshot.planned) {
@@ -50,10 +50,23 @@ for (const [entry, names] of Object.entries(snapshot.modules)) {
   test(`${entry} ESM named exports match the snapshot`, () => {
     compareExports(namedExports(specifier, 'esm'), names, `${entry} ESM`);
   });
+  // ./motion is ESM only. Its exports block has no require condition, so a CommonJS consumer gets a clear export error.
+  if (!('require' in manifest.exports[entry])) {
+    test(`${entry} is ESM only: a require of it fails with an export error`, () => {
+      assert.throws(() => namedExports(specifier, 'cjs'), /ERR_PACKAGE_PATH_NOT_EXPORTED/);
+    });
+    continue;
+  }
   test(`${entry} CommonJS named exports match the snapshot`, () => {
     compareExports(namedExports(specifier, 'cjs'), names, `${entry} CommonJS`);
   });
 }
+
+test('only ./motion is ESM only; every other module entry keeps CommonJS', () => {
+  const esmOnly = Object.keys(snapshot.modules).filter(entry => !('require' in manifest.exports[entry]));
+  assert.deepEqual(esmOnly, ['./motion']);
+  assert.deepEqual(snapshot.planned, []);
+});
 
 for (const [entry, expected] of Object.entries(snapshot.types)) {
   test(`${entry} declaration exports, UITheme fields, and UIRadius values match the snapshot`, () => {

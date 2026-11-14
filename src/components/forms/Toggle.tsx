@@ -1,4 +1,5 @@
-import React, { useId } from 'react'
+import React, { useId, useRef } from 'react'
+import { useFollowerMotion, useMotionRuntime } from '../motionContext'
 
 export interface ToggleProps {
   checked:    boolean
@@ -28,6 +29,13 @@ export function Toggle({
   const trackH  = size === 'sm' ? 17 : 22
   const thumbSz = size === 'sm' ? 11 : 16
   const thumbOff = size === 'sm' ? 3  : 3
+  const travel   = trackW - thumbSz - 2 * thumbOff
+  const at       = checked ? 1 : 0
+  // With a MotionProvider, the thumb follows a spring on every input, keyboard too. The track fill fades with the same
+  // number, so a turn in flight keeps colour and position together. Without one, the static CSS transition stays.
+  const runtime  = useMotionRuntime()
+  const root     = useRef<HTMLDivElement | null>(null)
+  useFollowerMotion(root, runtime, 'thumb', at)
 
   return (
     <label
@@ -42,7 +50,7 @@ export function Toggle({
         ...style,
       }}
     >
-      <div className="ui-toggle" style={{ flexShrink: 0, marginTop: 1, position: 'relative' }}>
+      <div className="ui-toggle" ref={root} data-pui-motion={runtime ? '' : undefined} style={{ flexShrink: 0, marginTop: 1, position: 'relative' }}>
         <style>{`
           .ui-toggle:has(input:focus-visible) .ui-toggle-track { outline: 2px solid var(--ui-focus, var(--ui-primary)); outline-offset: 2px; }
           @media (prefers-reduced-motion: reduce) { .ui-toggle-track, .ui-toggle-thumb { transition: none !important; } }
@@ -64,22 +72,29 @@ export function Toggle({
             width:        trackW,
             height:       trackH,
             borderRadius: 'var(--ui-radius-full)',
-            background:   checked ? 'var(--ui-accent-fill, var(--ui-primary))' : 'var(--ui-border)',
+            background:   checked && !runtime ? 'var(--ui-accent-fill, var(--ui-primary))' : 'var(--ui-border)',
             position:     'relative',
-            transition:   'background 0.18s',
+            transition:   runtime ? undefined : 'background 0.18s',
             flexShrink:   0,
           }}
         >
+          {runtime && <span className="ui-toggle-fill" style={{
+            position:     'absolute',
+            inset:        0,
+            borderRadius: 'inherit',
+            background:   'var(--ui-accent-fill, var(--ui-primary))',
+            opacity:      `var(--pui-thumb, ${at})`,
+          }} />}
           <div className="ui-toggle-thumb" style={{
             position:     'absolute',
             top:          thumbOff,
             left:         thumbOff,
-            transform:    `translateX(${checked ? trackW - thumbSz - 2 * thumbOff : 0}px)`,
+            translate:    runtime ? `calc(var(--pui-thumb, ${at}) * ${travel}px) 0` : `${at * travel}px 0`,
             width:        thumbSz,
             height:       thumbSz,
             borderRadius: 'var(--ui-radius-full)',
             background:   checked ? 'var(--ui-primary-fg)' : 'var(--ui-muted)',
-            transition:   'transform 0.18s, background 0.18s',
+            transition:   runtime ? 'background-color var(--ui-motion-normal, 0.18s)' : 'translate 0.18s, background 0.18s',
           }} />
         </div>
       </div>

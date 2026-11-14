@@ -53,6 +53,10 @@
       "import": "./dist/foundations.js",
       "require": "./dist/foundations.cjs"
     },
+    "./motion": {
+      "types": "./dist/src/motion.d.ts",
+      "import": "./dist/motion.js"
+    },
     "./tokens": "./dist/tokens/theme.css",
     "./styles": {
       "types": "./dist/styles.d.ts",
@@ -92,10 +96,17 @@
   },
   "peerDependencies": {
     "react": ">=19.0.0",
-    "react-dom": ">=19.0.0"
+    "react-dom": ">=19.0.0",
+    "@hannasage/armature": "1.0.0-beta.1"
+  },
+  "peerDependenciesMeta": {
+    "@hannasage/armature": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@hannasage/armature": "1.0.0-beta.1",
     "@playwright/test": "1.64.0",
     "@storybook/addon-a11y": "8.6.18",
     "@storybook/addon-docs": "^8.6.12",

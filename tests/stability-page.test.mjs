@@ -7,11 +7,17 @@ const page = read('../docs/pages/Stability.mdx');
 const manifest = JSON.parse(read('../package.json'));
 const snapshot = JSON.parse(read('./fixtures/export-snapshot.json'));
 
-test('the stability page names every frozen entry, including the planned motion entry', () => {
+test('the stability page names every frozen entry, including the motion entry', () => {
   for (const entry of [...Object.keys(manifest.exports), ...snapshot.planned]) {
     assert.ok(page.includes('`' + entry + '`'), `Stability.mdx names ${entry}`);
   }
-  assert.match(page, /`\.\/motion` entry does not exist yet/);
+  assert.doesNotMatch(page, /entry does not exist yet/);
+});
+
+test('the stability page states the ESM-only exception and keeps the pui variables unfrozen', () => {
+  assert.match(page, /`\.\/motion` is ESM only/);
+  assert.match(page, /`--pui-\*`[^\n]*internal/);
+  assert.match(page, /`projectionGlide`/);
 });
 
 test('the stability page carries the freeze list, not-frozen list, prerelease rule, and change policy', () => {
@@ -27,4 +33,11 @@ test('the stability page carries the freeze list, not-frozen list, prerelease ru
 test('the docs navigation lists the Stability page', () => {
   assert.match(read('../.storybook/preview.ts'), /'Migration', 'Stability', 'Releases'/);
   assert.match(read('../scripts/build-docs.mjs'), /'migration','stability','releases'/);
+});
+
+test('the stability page names MotionFlavor, the optional motion engine peer, and the read-only spring variables', () => {
+  assert.match(page, /`MotionFlavor`/);
+  assert.match(page, /`@hannasage\/armature`[^\n]*optional peer/);
+  for (const name of ['mechanical-stiffness', 'mechanical-damping', 'settle-stiffness', 'glide-settle']) assert.ok(page.includes('`--ui-motion-' + name + '`'), `names --ui-motion-${name}`);
+  assert.match(page, /read-only[^\n]*Setting them changes nothing/);
 });
